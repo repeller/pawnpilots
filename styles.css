@@ -17,10 +17,82 @@
   --shadow-lg: 0 24px 64px rgba(50, 28, 14, 0.12);
   --radius: 20px;
   --radius-sm: 14px;
+  --accent: var(--gold);
+  --accent-soft: rgba(196, 134, 46, 0.08);
+}
+
+/* ── Page color themes ───────────────── */
+/* Levels — warm hangar browns & gold */
+.theme-levels {
+  --accent: #b8860b;
+  --accent-soft: rgba(184, 134, 11, 0.06);
+  --bg: #fffcf5;
+}
+.theme-levels .kicker { color: #b8860b; }
+.theme-levels .level-card { border-top-color: #b8860b; }
+.theme-levels .tier-label span { background: linear-gradient(135deg, #b8860b, #d4a535); }
+
+/* Coach — teal cockpit greens */
+.theme-coach {
+  --accent: #2a8a7a;
+  --accent-soft: rgba(42, 138, 122, 0.06);
+  --bg: #f5fcfa;
+}
+.theme-coach .kicker { color: #2a8a7a; }
+.theme-coach .approach-card { border-left-color: rgba(42, 138, 122, 0.35); }
+.theme-coach .approach-card:hover { border-left-color: #2a8a7a; }
+.theme-coach .coach-badge { border-color: rgba(42, 138, 122, 0.2); }
+.theme-coach .step-num { background: #2a8a7a; }
+
+/* Enroll — sunset amber & warm orange */
+.theme-enroll {
+  --accent: #c76a1a;
+  --accent-soft: rgba(199, 106, 26, 0.06);
+  --bg: #fffaf3;
+}
+.theme-enroll .kicker { color: #c76a1a; }
+.theme-enroll .step-card { border-bottom-color: rgba(199, 106, 26, 0.35); }
+.theme-enroll .step-num { background: #c76a1a; }
+.theme-enroll .booking-submit { background: #c76a1a; }
+.theme-enroll .booking-submit:hover { background: #a8570f; }
+.theme-enroll .testimonial-card { border-top-color: #c76a1a; }
+
+/* ── Page banner ─────────────────────── */
+.page-banner {
+  width: 100%;
+  max-height: 280px;
+  overflow: hidden;
+  position: relative;
+}
+.page-banner img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+.page-banner::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(transparent, var(--bg));
+  pointer-events: none;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+
+/* ── Snap sections ───────────────────── */
+.snap-section {
+  scroll-snap-align: start;
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
 body {
   margin: 0;
@@ -255,6 +327,8 @@ h1 { color: var(--walnut); }
   grid-template-columns: 1.1fr 0.9fr;
   gap: 40px;
   align-items: center;
+  min-height: calc(100vh - 60px);
+  align-content: center;
 }
 
 .hero-copy h1 {
@@ -1165,6 +1239,103 @@ h1 { color: var(--walnut); }
   transform: translateX(4px);
 }
 
+/* ── Explore cards (index page) ──────── */
+
+.explore-section {
+  padding-bottom: 40px;
+}
+
+.explore-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.explore-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid rgba(196,134,46,0.15);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+.explore-card:nth-child(even) {
+  direction: rtl;
+}
+.explore-card:nth-child(even) > * {
+  direction: ltr;
+}
+
+.explore-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold);
+}
+
+.explore-img-wrap {
+  overflow: hidden;
+}
+
+.explore-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+
+.explore-card:hover .explore-img-wrap img {
+  transform: scale(1.04);
+}
+
+.explore-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 28px 32px;
+  position: relative;
+}
+
+.explore-emojis {
+  font-size: 1.6rem;
+  letter-spacing: 8px;
+  opacity: 0.2;
+  margin-bottom: 10px;
+}
+
+.explore-info strong {
+  display: block;
+  font-family: "Baloo 2", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--walnut);
+  margin-bottom: 6px;
+}
+
+.explore-info p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.explore-arrow {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 1.4rem;
+  color: var(--gold);
+  transition: transform 0.2s;
+}
+
+.explore-card:hover .explore-arrow {
+  transform: translateX(6px);
+}
+
 /* ── Section h1 (page titles) ────────── */
 
 .section-head-center h1 {
@@ -1746,6 +1917,10 @@ h1 { color: var(--walnut); }
   .proof-strip { grid-template-columns: repeat(2, 1fr); }
   .coach-stats { grid-template-columns: repeat(2, 1fr); }
   .page-nav-grid { grid-template-columns: 1fr; }
+  .explore-card { grid-template-columns: 1fr; }
+  .explore-card:nth-child(even) { direction: ltr; }
+  .explore-img-wrap img { aspect-ratio: 16/9; }
+  .snap-section { min-height: auto; }
   .wyg-grid { grid-template-columns: 1fr; }
   .wyg-compare { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
