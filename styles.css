@@ -279,6 +279,11 @@ h1, h2, h3 {
   overflow: hidden;
   box-shadow: var(--shadow-lg);
   border: 4px solid rgba(255, 255, 255, 0.6);
+  transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+.hero-img-wrap:hover {
+  box-shadow: 0 0 24px rgba(196, 134, 46, 0.3), var(--shadow-lg);
+  transform: translateY(-4px);
 }
 
 .hero-img-wrap img {
@@ -460,21 +465,43 @@ h1, h2, h3 {
 /* ── Gallery strip ────────────────────── */
 
 .gallery-strip {
+  position: relative;
   width: min(1100px, 92%);
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  padding: 8px 0;
+  padding: 60px 24px;
+}
+.gallery-strip::before {
+  content: "";
+  position: absolute;
+  inset: -80px -140px;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='180'%3E%3Cg fill='none' stroke='%235a3925' stroke-width='1.5'%3E%3C!-- pawn --%3E%3Cellipse cx='50' cy='155' rx='20' ry='7'/%3E%3Cpath d='M35 155 Q33 130 38 122 L36 114 Q31 110 31 102 Q31 88 50 84 Q69 88 69 102 Q69 110 64 114 L62 122 Q67 130 65 155'/%3E%3Ccircle cx='50' cy='72' r='13'/%3E%3C!-- knight --%3E%3Cellipse cx='155' cy='155' rx='22' ry='7'/%3E%3Cpath d='M138 155 L140 125 Q136 116 138 106 Q140 92 148 82 L143 64 Q146 54 155 50 L166 54 Q175 57 177 68 L173 82 Q180 92 180 106 Q177 120 175 125 L177 155'/%3E%3C!-- bishop --%3E%3Cellipse cx='260' cy='155' rx='20' ry='7'/%3E%3Cpath d='M246 155 Q244 130 249 122 L247 114 Q240 106 246 92 Q250 78 260 70 Q270 78 274 92 Q280 106 273 114 L271 122 Q276 130 274 155'/%3E%3Ccircle cx='260' cy='64' r='5'/%3E%3C!-- rook --%3E%3Cellipse cx='365' cy='155' rx='22' ry='7'/%3E%3Cpath d='M348 155 L350 125 L347 120 L347 108 L351 104 L351 92 L355 88 L355 78 L360 78 L360 88 L370 88 L370 78 L375 78 L375 88 L379 92 L379 104 L383 108 L383 120 L380 125 L382 155'/%3E%3C!-- queen --%3E%3Cellipse cx='470' cy='155' rx='22' ry='7'/%3E%3Cpath d='M453 155 Q451 130 457 122 L452 96 L459 114 L464 92 L470 112 L476 92 L481 114 L488 96 L483 122 Q489 130 487 155'/%3E%3Ccircle cx='470' cy='80' r='7'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 500px 180px;
+  background-position: center;
+  background-repeat: repeat;
+  opacity: 0.35;
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 35%, black 55%, transparent 85%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 35%, black 55%, transparent 85%);
 }
 
 .gallery-strip img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   aspect-ratio: 4/3;
   object-fit: cover;
   border-radius: var(--radius);
   border: 3px solid rgba(255, 255, 255, 0.5);
   box-shadow: var(--shadow);
+  transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+.gallery-strip img:hover {
+  box-shadow: 0 0 24px rgba(196, 134, 46, 0.3), var(--shadow);
+  transform: translateY(-4px);
 }
 
 /* ── Levels ────────────────────────────── */
@@ -1156,6 +1183,11 @@ h1, h2, h3 {
   object-fit: cover;
   border: 2px solid var(--gold);
   box-shadow: var(--shadow);
+  transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+.coach-photo:hover {
+  box-shadow: 0 0 20px rgba(196, 134, 46, 0.35), var(--shadow);
+  transform: scale(1.08);
 }
 
 .coach-intro {
