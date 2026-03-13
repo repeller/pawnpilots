@@ -27,7 +27,24 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: "Outfit", system-ui, sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    /* warm radial blobs */
+    radial-gradient(ellipse 700px 500px at 5% 15%, rgba(196,134,46,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 600px at 95% 50%, rgba(47,122,84,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 800px 400px at 50% 85%, rgba(196,134,46,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 70% 10%, rgba(90,57,37,0.04) 0%, transparent 70%),
+    /* diagonal diamond grid */
+    repeating-linear-gradient(
+      45deg,
+      transparent 0px, transparent 36px,
+      rgba(90,57,37,0.03) 36px, rgba(90,57,37,0.03) 38px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0px, transparent 36px,
+      rgba(90,57,37,0.03) 36px, rgba(90,57,37,0.03) 38px
+    );
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -192,9 +209,59 @@ h1, h2, h3 {
 /* ── Shared ───────────────────────────── */
 
 .section {
+  position: relative;
   width: min(1100px, 92%);
   margin: 0 auto;
   padding: 60px 0;
+}
+
+/* floating chess pieces between sections */
+.section:nth-child(odd)::after {
+  content: "♞";
+  position: absolute;
+  right: -50px;
+  bottom: -10px;
+  font-size: 6rem;
+  color: var(--gold);
+  opacity: 0.07;
+  pointer-events: none;
+  transform: rotate(-15deg);
+}
+.section:nth-child(even)::after {
+  content: "♜";
+  position: absolute;
+  left: -50px;
+  bottom: -10px;
+  font-size: 6rem;
+  color: var(--felt);
+  opacity: 0.07;
+  pointer-events: none;
+  transform: rotate(10deg);
+}
+
+/* alternating warm tint on even sections */
+.section:nth-child(even) {
+  background: linear-gradient(180deg, rgba(196,134,46,0.025) 0%, rgba(245,234,216,0.05) 50%, transparent 100%);
+  border-radius: 32px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* decorative pawn divider between sections */
+.section + .section::before {
+  content: "· · ♟ · ·";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+  letter-spacing: 6px;
+  color: var(--gold);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .kicker {
