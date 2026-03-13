@@ -1352,8 +1352,8 @@ a.explore-card:active {
   line-height: 44px;
   text-align: center;
   border-radius: 12px;
-  background: rgba(196, 134, 46, 0.08);
-  color: var(--walnut);
+  background: var(--ec-chip, rgba(196, 134, 46, 0.08));
+  color: var(--ec, var(--walnut));
   opacity: 0.55;
   animation: epc-drift 3.5s ease-in-out infinite;
   animation-delay: var(--d);
@@ -1377,38 +1377,38 @@ a.explore-card:active {
   font-family: "Baloo 2", sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
-  color: rgba(90, 57, 37, 0.45);
+  color: var(--ec-light, rgba(90, 57, 37, 0.35));
   margin-bottom: 6px;
   transition: color 0.3s;
 }
 
 .explore-card:hover .explore-info strong {
-  color: var(--walnut);
+  color: var(--ec, var(--walnut));
 }
 
 .explore-info p {
   margin: 0;
   font-size: 0.92rem;
-  color: rgba(107, 90, 71, 0.4);
+  color: var(--ec-light, rgba(107, 90, 71, 0.4));
   line-height: 1.55;
   transition: color 0.3s;
 }
 
 .explore-card:hover .explore-info p {
-  color: var(--muted);
+  color: var(--ec, var(--muted));
 }
 
 .explore-arrow {
   display: inline-block;
   margin-top: 14px;
   font-size: 1.4rem;
-  color: rgba(196, 134, 46, 0.35);
+  color: var(--ec-light, rgba(196, 134, 46, 0.35));
   transition: transform 0.3s, color 0.3s;
 }
 
 .explore-card:hover .explore-arrow {
   transform: translateX(6px);
-  color: var(--gold);
+  color: var(--ec-arrow, var(--gold));
 }
 
 /* ── Section h1 (page titles) ────────── */
