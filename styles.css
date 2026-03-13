@@ -500,6 +500,15 @@ h1 { color: var(--walnut); }
   background: rgba(255, 248, 236, 0.5);
 }
 
+.btn-learn {
+  background: linear-gradient(135deg, #c4862e, #a8690f);
+  color: #fff;
+  border: none;
+}
+.btn-learn:hover {
+  background: linear-gradient(135deg, #d4963e, #b8791f);
+}
+
 .wa-icon {
   width: 20px;
   height: 20px;
