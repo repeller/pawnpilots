@@ -1,0 +1,18 @@
+{
+  "name": "pawnpilot-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PawnPilot site with synced classroom board",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@chrisoakman/chessboardjs": "^1.0.0",
+    "chess.js": "^1.4.0",
+    "jquery": "^4.0.0",
+    "pdfkit": "^0.17.2",
+    "sharp": "^0.34.5",
+    "ws": "^8.18.0"
+  }
+}
