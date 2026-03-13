@@ -1013,6 +1013,12 @@ nav a:hover { color: var(--ink); }
   gap: 12px;
 }
 
+.foot-col nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .foot-col a {
   color: var(--muted);
   text-decoration: none;
