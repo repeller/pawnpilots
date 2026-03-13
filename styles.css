@@ -1251,7 +1251,10 @@ h1 { color: var(--walnut); }
   gap: 20px;
 }
 
-.explore-card {
+a.explore-card,
+a.explore-card:visited,
+a.explore-card:hover,
+a.explore-card:active {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
@@ -1263,6 +1266,13 @@ h1 { color: var(--walnut); }
   text-decoration: none;
   color: var(--ink);
   transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+.explore-card *,
+.explore-card strong,
+.explore-card p {
+  text-decoration: none;
+  color: inherit;
 }
 
 .explore-card:nth-child(even) {
