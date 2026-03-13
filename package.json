@@ -10,9 +10,10 @@
   "dependencies": {
     "@chrisoakman/chessboardjs": "^1.0.0",
     "chess.js": "^1.4.0",
+    "jimp": "^1.6.0",
     "jquery": "^4.0.0",
     "pdfkit": "^0.17.2",
-    "sharp": "^0.34.5",
+    "sharp": "^0.33.5",
     "ws": "^8.18.0"
   }
 }

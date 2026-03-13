@@ -87,6 +87,21 @@ const server = http.createServer((req, res) => {
   }
 
   fs.stat(filePath, (statErr, stat) => {
+    // If it's a directory, try serving index.html inside it
+    if (!statErr && stat.isDirectory()) {
+      const indexPath = path.join(filePath, "index.html");
+      fs.stat(indexPath, (idxErr, idxStat) => {
+        if (idxErr || !idxStat.isFile()) {
+          res.writeHead(404);
+          res.end("Not found");
+          return;
+        }
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        fs.createReadStream(indexPath).pipe(res);
+      });
+      return;
+    }
+
     if (statErr || !stat.isFile()) {
       res.writeHead(404);
       res.end("Not found");
