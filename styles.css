@@ -1338,11 +1338,38 @@ a.explore-card:active {
   position: relative;
 }
 
-.explore-emojis {
-  font-size: 1.6rem;
-  letter-spacing: 8px;
-  opacity: 0.2;
-  margin-bottom: 10px;
+.explore-pieces {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.epc {
+  display: inline-block;
+  font-size: 1.8rem;
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(196, 134, 46, 0.08);
+  color: var(--walnut);
+  opacity: 0.55;
+  animation: epc-drift 3.5s ease-in-out infinite;
+  animation-delay: var(--d);
+  text-shadow: 0 2px 6px rgba(90, 57, 37, 0.15);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.explore-card:hover .epc {
+  opacity: 0.85;
+}
+
+@keyframes epc-drift {
+  0%, 100% { translate: 0 0; }
+  25% { translate: var(--dx) var(--dy); }
+  50% { translate: calc(var(--dx) * -0.6) calc(var(--dy) * -0.8); }
+  75% { translate: calc(var(--dx) * 0.8) calc(var(--dy) * 0.5); }
 }
 
 .explore-info strong {
