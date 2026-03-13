@@ -152,9 +152,9 @@ h1 { color: var(--walnut); }
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255, 251, 245, 0.88);
+  background: rgba(222, 198, 166, 0.65);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(180, 155, 120, 0.3);
   padding: 0 clamp(16px, 4vw, 40px);
   display: flex;
   align-items: center;
