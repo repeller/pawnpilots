@@ -413,15 +413,19 @@ h1 { color: var(--walnut); }
   background: #fff;
   box-shadow: 0 8px 24px rgba(50, 28, 14, 0.12);
   animation: float 4s ease-in-out infinite;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
 }
 
-.float-1 { top: -12px; right: -8px; animation-delay: 0s; }
-.float-2 { bottom: 20%; left: -16px; animation-delay: 1.2s; }
-.float-3 { bottom: -8px; right: 20%; animation-delay: 2.4s; }
+.float-1 { top: 8px; right: 12px; animation-delay: 0s; }
+.float-2 { bottom: 22%; left: 6px; animation-delay: 1.2s; }
+.float-3 { bottom: 8px; right: 22%; animation-delay: 2.4s; }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
 }
 
 /* ── Buttons ──────────────────────────── */

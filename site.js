@@ -58,6 +58,37 @@
     }
   }
 
+  /* ── Hero float tilt on mouse ────────── */
+  var floats = document.querySelectorAll(".hero-float");
+  if (floats.length && window.innerWidth >= 768) {
+    var heroVisual = document.querySelector(".hero-visual");
+    if (heroVisual) {
+      heroVisual.addEventListener("mousemove", function (e) {
+        floats.forEach(function (el) {
+          var rect = el.getBoundingClientRect();
+          var cx = rect.left + rect.width / 2;
+          var cy = rect.top + rect.height / 2;
+          var dx = (e.clientX - cx) / 4;
+          var dy = (e.clientY - cy) / 4;
+          var maxTilt = 35;
+          dx = Math.max(-maxTilt, Math.min(maxTilt, dx));
+          dy = Math.max(-maxTilt, Math.min(maxTilt, dy));
+          // Shadow shifts opposite to tilt direction
+          var sx = Math.round(-dx * 0.4);
+          var sy = Math.round(dy * 0.4 + 8);
+          el.style.transform = "perspective(300px) rotateY(" + dx + "deg) rotateX(" + (-dy) + "deg)";
+          el.style.boxShadow = sx + "px " + sy + "px 24px rgba(50, 28, 14, 0.2)";
+        });
+      });
+      heroVisual.addEventListener("mouseleave", function () {
+        floats.forEach(function (el) {
+          el.style.transform = "";
+          el.style.boxShadow = "";
+        });
+      });
+    }
+  }
+
   /* ── Dynamic Regional Pricing ───────── */
   const grid = document.getElementById("pricing-grid");
   const loader = document.getElementById("pricing-loader");
