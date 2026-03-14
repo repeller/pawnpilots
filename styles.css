@@ -357,6 +357,8 @@ h1 { color: var(--walnut); }
   pointer-events: none;
   opacity: 0.1;
   z-index: -1;
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 30%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 30%, black 20%, transparent 70%);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 140'%3E%3Cellipse cx='60' cy='80' rx='60' ry='28' fill='%23d4a96a'/%3E%3Cellipse cx='120' cy='65' rx='75' ry='35' fill='%23c89b5c'/%3E%3Cellipse cx='90' cy='58' rx='40' ry='20' fill='%23e8c88a'/%3E%3Cellipse cx='300' cy='75' rx='65' ry='28' fill='%23dbb87a'/%3E%3Cellipse cx='360' cy='62' rx='80' ry='35' fill='%23c89b5c'/%3E%3Cellipse cx='330' cy='56' rx='38' ry='18' fill='%23e8c88a'/%3E%3Cellipse cx='560' cy='78' rx='58' ry='26' fill='%23d4a96a'/%3E%3Cellipse cx='620' cy='65' rx='72' ry='32' fill='%23dbb87a'/%3E%3Cellipse cx='590' cy='58' rx='35' ry='17' fill='%23e8c88a'/%3E%3Cellipse cx='790' cy='72' rx='55' ry='25' fill='%23c89b5c'/%3E%3Cellipse cx='840' cy='62' rx='60' ry='28' fill='%23dbb87a'/%3E%3Cellipse cx='900' cy='80' rx='60' ry='28' fill='%23d4a96a'/%3E%3Cellipse cx='0' cy='80' rx='60' ry='28' fill='%23d4a96a'/%3E%3C/svg%3E");
   background-repeat: repeat-x;
   background-size: 900px 140px;
