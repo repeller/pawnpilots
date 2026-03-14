@@ -689,6 +689,19 @@ h1 { color: var(--walnut); }
   margin-bottom: 32px;
 }
 
+.level-tier-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #fff;
+  background: linear-gradient(135deg, #b8860b, #d4a535);
+  margin-bottom: 12px;
+}
+
 .level-card {
   padding: 24px;
   border-radius: var(--radius);
