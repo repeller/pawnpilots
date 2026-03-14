@@ -351,13 +351,13 @@ h1 { color: var(--walnut); }
   content: "";
   position: absolute;
   top: 10px;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
   height: 200px;
   pointer-events: none;
   opacity: 0.09;
   z-index: -1;
-  overflow: hidden;
   mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1800 200'%3E%3Cellipse cx='120' cy='90' rx='160' ry='65' fill='%23d4a96a'/%3E%3Cellipse cx='200' cy='70' rx='130' ry='55' fill='%23c89b5c'/%3E%3Cellipse cx='80' cy='75' rx='90' ry='45' fill='%23e8c88a'/%3E%3Cellipse cx='700' cy='100' rx='180' ry='70' fill='%23c89b5c'/%3E%3Cellipse cx='800' cy='80' rx='140' ry='55' fill='%23dbb87a'/%3E%3Cellipse cx='650' cy='85' rx='100' ry='50' fill='%23e8c88a'/%3E%3Cellipse cx='1400' cy='95' rx='170' ry='68' fill='%23d4a96a'/%3E%3Cellipse cx='1500' cy='75' rx='120' ry='50' fill='%23dbb87a'/%3E%3Cellipse cx='1350' cy='80' rx='95' ry='42' fill='%23e8c88a'/%3E%3Cellipse cx='1800' cy='90' rx='160' ry='65' fill='%23d4a96a'/%3E%3Cellipse cx='0' cy='90' rx='160' ry='65' fill='%23d4a96a'/%3E%3C/svg%3E");
