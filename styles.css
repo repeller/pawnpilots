@@ -81,7 +81,13 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar { display: none; }
 
 /* ── Snap sections ───────────────────── */
 .snap-section {
