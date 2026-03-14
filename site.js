@@ -97,8 +97,8 @@
     const elQt = document.getElementById("price-qt");
     
     // Default prices (Fallback / RoW)
-    let moPrice = "$89";
-    let qtPrice = "$225";
+    let moPrice = "$119";
+    let qtPrice = "$299";
 
     // Setup manual timeout
     const controller = new AbortController();
@@ -114,10 +114,10 @@
       .then(data => {
         if (data.status === "success" && data.countryCode) {
           const country = data.countryCode;
-          if (country === "US") { moPrice = "$99"; qtPrice = "$249"; }
-           else if (country === "GB" || country === "UK") { moPrice = "£79"; qtPrice = "£199"; }
-           else if (country === "AU") { moPrice = "$120"; qtPrice = "$299"; }
-           else if (country === "NZ") { moPrice = "$130"; qtPrice = "$325"; }
+          if (country === "US") { moPrice = "$149"; qtPrice = "$379"; }
+           else if (country === "GB" || country === "UK") { moPrice = "£109"; qtPrice = "£279"; }
+           else if (country === "AU") { moPrice = "A$169"; qtPrice = "A$429"; }
+           else if (country === "NZ") { moPrice = "NZ$179"; qtPrice = "NZ$449"; }
         }
         applyPrices();
       })
