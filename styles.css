@@ -2012,33 +2012,37 @@ a.explore-card:active {
     position: relative;
     overflow: hidden;
   }
+  .hero-copy {
+    position: relative;
+    z-index: 2;
+  }
   .hero-visual {
-    position: absolute;
-    top: -20%;
-    left: -30%;
-    width: 160%;
-    height: 140%;
-    max-width: none;
-    z-index: -1;
-    opacity: 0.07;
-    pointer-events: none;
+    position: absolute !important;
+    top: -20% !important;
+    left: -30% !important;
+    width: 160% !important;
+    height: 140% !important;
+    max-width: none !important;
+    z-index: 0 !important;
+    opacity: 0.08 !important;
+    pointer-events: none !important;
   }
   .hero-img-wrap {
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-    width: 100%;
-    height: 100%;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    height: 100% !important;
   }
   .hero-img-wrap:hover {
-    box-shadow: none;
-    transform: none;
+    box-shadow: none !important;
+    transform: none !important;
   }
   .hero-img-wrap img {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: auto;
-    object-fit: cover;
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: auto !important;
+    object-fit: cover !important;
   }
 
   .benefits-grid,
