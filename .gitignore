@@ -2,3 +2,4 @@ node_modules/
 generate-letter.js
 runtime/*.log
 .claude/
+private/

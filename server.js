@@ -4,6 +4,10 @@ const path = require("path");
 const { randomUUID } = require("crypto");
 const { WebSocketServer } = require("ws");
 
+// Conditionally load Spotify monitor (lives in private/, never pushed to GitHub)
+let mountMonitor = null;
+try { mountMonitor = require("./private/monitor-backend"); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") console.error("[monitor] Load error:", e.message); }
+
 const PORT = process.env.PORT || 4173;
 const ROOT = __dirname;
 
@@ -54,7 +58,12 @@ function safeJoin(root, targetPath) {
   return resolved;
 }
 
+let monitor = null;
+
 const server = http.createServer((req, res) => {
+  // Handle monitor API routes (if loaded)
+  if (monitor && monitor.handleRequest(req, res)) return;
+
   let reqPath = req.url.split("?")[0];
   if (reqPath === "/") {
     reqPath = "/index.html";
@@ -67,7 +76,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Block access to private/, runtime/, and sensitive files
+  // Block access to private/, runtime/, and sensitive files (return 404, not 403)
   const rel = path.relative(ROOT, filePath).replace(/\\/g, "/");
   if (
     rel.startsWith("private/") ||
@@ -81,8 +90,8 @@ const server = http.createServer((req, res) => {
     rel === "package.json" ||
     rel === "package-lock.json"
   ) {
-    res.writeHead(403);
-    res.end("Forbidden");
+    res.writeHead(404);
+    res.end("Not found");
     return;
   }
 
@@ -115,7 +124,21 @@ const server = http.createServer((req, res) => {
   });
 });
 
-const wss = new WebSocketServer({ server, path: "/ws" });
+// Route WebSocket upgrades manually to avoid conflicts between multiple WSS instances
+const wss = new WebSocketServer({ noServer: true });
+
+server.on("upgrade", (req, socket, head) => {
+  const pathname = new URL(req.url, "http://localhost").pathname;
+  if (pathname === "/ws/monitor" && monitor && monitor.handleUpgrade) {
+    monitor.handleUpgrade(req, socket, head);
+  } else if (pathname === "/ws") {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  } else {
+    socket.destroy();
+  }
+});
 
 function send(ws, payload) {
   if (ws.readyState === ws.OPEN) {
@@ -257,6 +280,11 @@ wss.on("connection", (ws, req) => {
     cleanupRoom(ws.roomName);
   });
 });
+
+// Mount Spotify monitor if available
+if (mountMonitor) {
+  try { monitor = mountMonitor(server); } catch (e) { console.error("[monitor] Mount error:", e.message); }
+}
 
 server.listen(PORT, () => {
   console.log(`PawnPilot site running at http://localhost:${PORT}`);
