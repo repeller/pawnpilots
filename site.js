@@ -1,5 +1,71 @@
-/* Shared site script — scroll reveal + parallax */
+/* Shared site script — scroll reveal + parallax + regional pricing */
 (function () {
+
+  /* ── Preload regional pricing (runs on every page) ── */
+  (function preloadPricing() {
+    // If already cached in sessionStorage, skip the fetch
+    if (sessionStorage.getItem("pp_prices")) return;
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 2000);
+
+    fetch("http://ip-api.com/json/", { signal: controller.signal })
+      .then(function (res) {
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error("Network issues");
+        return res.json();
+      })
+      .then(function (data) {
+        var moPrice = "$149";
+        var qtPrice = "$379";
+        if (data.status === "success" && data.countryCode) {
+          var country = data.countryCode;
+          if (country === "US") { moPrice = "$149"; qtPrice = "$379"; }
+          else if (country === "GB" || country === "UK") { moPrice = "£109"; qtPrice = "£279"; }
+          else if (country === "AU") { moPrice = "A$169"; qtPrice = "A$429"; }
+          else if (country === "NZ") { moPrice = "NZ$179"; qtPrice = "NZ$449"; }
+        }
+        sessionStorage.setItem("pp_prices", JSON.stringify({ mo: moPrice, qt: qtPrice }));
+        applyPricingIfOnPage(moPrice, qtPrice);
+      })
+      .catch(function (err) {
+        clearTimeout(timeoutId);
+        console.error("Could not ping location API. Falling back to default USD pricing.", err);
+        var moPrice = "$149";
+        var qtPrice = "$379";
+        sessionStorage.setItem("pp_prices", JSON.stringify({ mo: moPrice, qt: qtPrice }));
+        applyPricingIfOnPage(moPrice, qtPrice);
+      });
+  })();
+
+  /* Apply prices to the pricing page if we're on it */
+  function applyPricingIfOnPage(moPrice, qtPrice) {
+    var grid = document.getElementById("pricing-grid");
+    var loader = document.getElementById("pricing-loader");
+    var elMo = document.getElementById("price-mo");
+    var elQt = document.getElementById("price-qt");
+    if (!grid) return;
+    if (elMo) elMo.innerText = moPrice;
+    if (elQt) elQt.innerText = qtPrice;
+    if (loader) loader.style.display = "none";
+    grid.style.opacity = "1";
+  }
+
+  /* If on pricing page, apply cached prices immediately (no delay) */
+  (function initPricingPage() {
+    var grid = document.getElementById("pricing-grid");
+    if (!grid) return;
+
+    var cached = sessionStorage.getItem("pp_prices");
+    if (cached) {
+      var prices = JSON.parse(cached);
+      applyPricingIfOnPage(prices.mo, prices.qt);
+    } else {
+      // No cache yet — show US defaults immediately (fetch will update if different)
+      applyPricingIfOnPage("$149", "$379");
+    }
+  })();
+
   /* ── Mobile menu ───────────────────── */
   const menuBtn = document.querySelector(".mobile-menu-btn");
   if (menuBtn) {
@@ -86,52 +152,6 @@
           el.style.boxShadow = "";
         });
       });
-    }
-  }
-
-  /* ── Dynamic Regional Pricing ───────── */
-  const grid = document.getElementById("pricing-grid");
-  const loader = document.getElementById("pricing-loader");
-  if (grid && loader) {
-    const elMo = document.getElementById("price-mo");
-    const elQt = document.getElementById("price-qt");
-    
-    // Default prices (Fallback / RoW)
-    let moPrice = "$119";
-    let qtPrice = "$299";
-
-    // Setup manual timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-    // Fetch user location
-    fetch("http://ip-api.com/json/", { signal: controller.signal })
-      .then(res => {
-        clearTimeout(timeoutId);
-        if (!res.ok) throw new Error("Network issues");
-        return res.json();
-      })
-      .then(data => {
-        if (data.status === "success" && data.countryCode) {
-          const country = data.countryCode;
-          if (country === "US") { moPrice = "$149"; qtPrice = "$379"; }
-           else if (country === "GB" || country === "UK") { moPrice = "£109"; qtPrice = "£279"; }
-           else if (country === "AU") { moPrice = "A$169"; qtPrice = "A$429"; }
-           else if (country === "NZ") { moPrice = "NZ$179"; qtPrice = "NZ$449"; }
-        }
-        applyPrices();
-      })
-      .catch(err => {
-        clearTimeout(timeoutId);
-        console.error("Could not ping location API. Falling back to default USD pricing.", err);
-        applyPrices();
-      });
-
-    function applyPrices() {
-      if (elMo) elMo.innerText = moPrice;
-      if (elQt) elQt.innerText = qtPrice;
-      loader.style.display = "none";
-      grid.style.opacity = "1";
     }
   }
 })();
