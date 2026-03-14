@@ -346,28 +346,29 @@ h1 { color: var(--walnut); }
   position: relative;
 }
 
-/* Faint decorative cloud strip — continuous loop */
+/* Faint decorative clouds — continuous loop */
 .hero::before {
   content: "";
   position: absolute;
-  top: 30px;
+  top: 10px;
   left: 0;
-  right: 0;
-  height: 140px;
+  width: 100%;
+  height: 200px;
   pointer-events: none;
-  opacity: 0.1;
+  opacity: 0.09;
   z-index: -1;
-  mask-image: radial-gradient(ellipse 70% 80% at 50% 30%, black 20%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 30%, black 20%, transparent 70%);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 140'%3E%3Cellipse cx='60' cy='80' rx='60' ry='28' fill='%23d4a96a'/%3E%3Cellipse cx='120' cy='65' rx='75' ry='35' fill='%23c89b5c'/%3E%3Cellipse cx='90' cy='58' rx='40' ry='20' fill='%23e8c88a'/%3E%3Cellipse cx='300' cy='75' rx='65' ry='28' fill='%23dbb87a'/%3E%3Cellipse cx='360' cy='62' rx='80' ry='35' fill='%23c89b5c'/%3E%3Cellipse cx='330' cy='56' rx='38' ry='18' fill='%23e8c88a'/%3E%3Cellipse cx='560' cy='78' rx='58' ry='26' fill='%23d4a96a'/%3E%3Cellipse cx='620' cy='65' rx='72' ry='32' fill='%23dbb87a'/%3E%3Cellipse cx='590' cy='58' rx='35' ry='17' fill='%23e8c88a'/%3E%3Cellipse cx='790' cy='72' rx='55' ry='25' fill='%23c89b5c'/%3E%3Cellipse cx='840' cy='62' rx='60' ry='28' fill='%23dbb87a'/%3E%3Cellipse cx='900' cy='80' rx='60' ry='28' fill='%23d4a96a'/%3E%3Cellipse cx='0' cy='80' rx='60' ry='28' fill='%23d4a96a'/%3E%3C/svg%3E");
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1800 200'%3E%3Cellipse cx='120' cy='90' rx='160' ry='65' fill='%23d4a96a'/%3E%3Cellipse cx='200' cy='70' rx='130' ry='55' fill='%23c89b5c'/%3E%3Cellipse cx='80' cy='75' rx='90' ry='45' fill='%23e8c88a'/%3E%3Cellipse cx='700' cy='100' rx='180' ry='70' fill='%23c89b5c'/%3E%3Cellipse cx='800' cy='80' rx='140' ry='55' fill='%23dbb87a'/%3E%3Cellipse cx='650' cy='85' rx='100' ry='50' fill='%23e8c88a'/%3E%3Cellipse cx='1400' cy='95' rx='170' ry='68' fill='%23d4a96a'/%3E%3Cellipse cx='1500' cy='75' rx='120' ry='50' fill='%23dbb87a'/%3E%3Cellipse cx='1350' cy='80' rx='95' ry='42' fill='%23e8c88a'/%3E%3Cellipse cx='1800' cy='90' rx='160' ry='65' fill='%23d4a96a'/%3E%3Cellipse cx='0' cy='90' rx='160' ry='65' fill='%23d4a96a'/%3E%3C/svg%3E");
   background-repeat: repeat-x;
-  background-size: 900px 140px;
-  animation: cloud-scroll 80s linear infinite;
+  background-size: 1800px 200px;
+  animation: cloud-scroll 90s linear infinite;
 }
 
 @keyframes cloud-scroll {
   from { background-position: 0 0; }
-  to { background-position: -900px 0; }
+  to { background-position: -1800px 0; }
 }
 
 .hero-copy h1 {
@@ -2063,14 +2064,14 @@ a.explore-card:active {
 
   .hero-float { display: none; }
   .hero::before {
-    top: 16px;
-    height: 80px;
-    background-size: 500px 80px;
-    opacity: 0.07;
-    animation: cloud-scroll-sm 50s linear infinite;
+    top: 8px;
+    height: 110px;
+    background-size: 900px 110px;
+    opacity: 0.06;
+    animation: cloud-scroll-sm 55s linear infinite;
   }
   @keyframes cloud-scroll-sm {
     from { background-position: 0 0; }
-    to { background-position: -500px 0; }
+    to { background-position: -900px 0; }
   }
 }
