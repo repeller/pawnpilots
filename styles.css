@@ -2100,7 +2100,15 @@ a.explore-card:active {
   .lesson-time { left: -100px; width: 68px; font-size: 0.82rem; }
 
   .foot-inner { flex-direction: column; align-items: start; }
-  .foot-top { grid-template-columns: 1fr; gap: 32px; }
+  .foot-top { grid-template-columns: 1fr; gap: 24px; }
+  .foot-top .foot-col:first-child { margin-bottom: 8px; }
+  .foot-top .foot-col:not(:first-child) { display: inline; }
+  .foot-top { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+  .foot-top .foot-col:nth-child(2),
+  .foot-top .foot-col:nth-child(3),
+  .foot-top .foot-col:nth-child(4) { grid-row: 2; }
+  .foot-top { grid-template-columns: 1fr 1fr 1fr; }
+  .foot-top .foot-col:first-child { grid-column: 1 / -1; }
 }
 
 @media (max-width: 600px) {
@@ -2124,6 +2132,13 @@ a.explore-card:active {
   .page-banner + .coach-hero { margin-top: -60px; }
 
   .cta-inner { padding: 32px 20px; }
+
+  .foot-top { gap: 16px; }
+  .foot-col h4 { margin-bottom: 10px; font-size: 0.95rem; }
+  .foot-col nav { gap: 8px; }
+  .foot-col a { font-size: 0.85rem; }
+  .foot-desc { font-size: 0.85rem; }
+  .foot-top { margin-bottom: 32px; }
 
   .hero-float { display: none; }
   .hero::before {
