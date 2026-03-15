@@ -16,14 +16,14 @@
         return res.json();
       })
       .then(function (data) {
-        var moPrice = "$149";
-        var qtPrice = "$379";
+        var moPrice = "$99";
+        var qtPrice = "$249";
         if (data.status === "success" && data.countryCode) {
           var country = data.countryCode;
-          if (country === "US") { moPrice = "$149"; qtPrice = "$379"; }
-          else if (country === "GB" || country === "UK") { moPrice = "£109"; qtPrice = "£279"; }
-          else if (country === "AU") { moPrice = "A$169"; qtPrice = "A$429"; }
-          else if (country === "NZ") { moPrice = "NZ$179"; qtPrice = "NZ$449"; }
+          if (country === "US") { moPrice = "$99"; qtPrice = "$249"; }
+          else if (country === "GB" || country === "UK") { moPrice = "£75"; qtPrice = "£189"; }
+          else if (country === "AU") { moPrice = "A$109"; qtPrice = "A$279"; }
+          else if (country === "NZ") { moPrice = "NZ$119"; qtPrice = "NZ$299"; }
         }
         sessionStorage.setItem("pp_prices", JSON.stringify({ mo: moPrice, qt: qtPrice }));
         applyPricingIfOnPage(moPrice, qtPrice);
@@ -31,8 +31,8 @@
       .catch(function (err) {
         clearTimeout(timeoutId);
         console.error("Could not ping location API. Falling back to default USD pricing.", err);
-        var moPrice = "$149";
-        var qtPrice = "$379";
+        var moPrice = "$99";
+        var qtPrice = "$249";
         sessionStorage.setItem("pp_prices", JSON.stringify({ mo: moPrice, qt: qtPrice }));
         applyPricingIfOnPage(moPrice, qtPrice);
       });
@@ -62,7 +62,7 @@
       applyPricingIfOnPage(prices.mo, prices.qt);
     } else {
       // No cache yet — show US defaults immediately (fetch will update if different)
-      applyPricingIfOnPage("$149", "$379");
+      applyPricingIfOnPage("$99", "$249");
     }
   })();
 
