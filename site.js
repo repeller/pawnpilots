@@ -3,7 +3,12 @@
 
   /* ── Preload regional pricing (runs on every page) ── */
   (function preloadPricing() {
-    // If already cached in sessionStorage, skip the fetch
+    // Bust cache when prices change (bump version to force refresh)
+    var priceVer = "2";
+    if (sessionStorage.getItem("pp_prices_v") !== priceVer) {
+      sessionStorage.removeItem("pp_prices");
+      sessionStorage.setItem("pp_prices_v", priceVer);
+    }
     if (sessionStorage.getItem("pp_prices")) return;
 
     var controller = new AbortController();
