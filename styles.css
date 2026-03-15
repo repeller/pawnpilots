@@ -2012,6 +2012,32 @@ a.explore-card:active {
   margin: 4px 0 0;
 }
 
+.booking-alt {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.booking-alt p {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.btn-alt-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.gform-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 /* ── Responsive ───────────────────────── */
 
 @media (max-width: 900px) {
