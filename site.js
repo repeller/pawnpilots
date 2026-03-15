@@ -9,7 +9,7 @@
     var controller = new AbortController();
     var timeoutId = setTimeout(function () { controller.abort(); }, 2000);
 
-    fetch("http://ip-api.com/json/", { signal: controller.signal })
+    fetch("https://ip-api.com/json/", { signal: controller.signal })
       .then(function (res) {
         clearTimeout(timeoutId);
         if (!res.ok) throw new Error("Network issues");
