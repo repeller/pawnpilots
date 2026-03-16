@@ -591,8 +591,20 @@
     var SHEET_ID = "16Wivt3E2C_HFZ4q6P0a-bJB3oRvSSxoFILyBFvlyZHo";
     var CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/export?format=csv";
 
-    var params = new URLSearchParams(window.location.search);
-    var token = params.get("t");
+    // Handle normal ?t=token or encoded ?t%3Dtoken
+    var qs = window.location.search;
+    var token = null;
+    
+    // First try standard URLSearchParams
+    var params = new URLSearchParams(qs);
+    token = params.get("t");
+    
+    // Fallback for aggressively encoded URLs (like ?t%3Dleo-x7k2)
+    if (!token && qs) {
+      var decoded = decodeURIComponent(qs);
+      var match = decoded.match(/[?&]t=([^&]+)/i);
+      if (match) token = match[1];
+    }
 
     var loadingEl = document.getElementById("loadingState");
     var errorEl = document.getElementById("errorState");
