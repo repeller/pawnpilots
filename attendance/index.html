@@ -658,18 +658,59 @@
       var studentData = db.attendance[student.token] || {};
       var records = [];
 
-      (db.sessions || []).forEach(function(sess) {
-        var status = studentData[sess.id];
-        if (!status) return; // Skip if no mark
+      // === Schedule-based: generate session dates from student's days array ===
+      if (student.days && student.days.length > 0) {
+        // Generate dates for the last 6 months
+        var today = new Date();
+        var startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+        var endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // End of current month
 
-        records.push({
-          date: sess.date, // The admin UI creates clean YYYY-MM-DD strings
-          status: status,
-          topic: sess.topic || "",
-          duration: "40 mins", // Default duration
-          notes: ""
+        for (var d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          if (student.days.includes(d.getDay())) {
+            var yyyy = d.getFullYear();
+            var mm = String(d.getMonth() + 1).padStart(2, '0');
+            var dd = String(d.getDate()).padStart(2, '0');
+            var dateStr = yyyy + '-' + mm + '-' + dd;
+            
+            var status = studentData[dateStr];
+            if (status) {
+              records.push({
+                date: dateStr,
+                status: status,
+                topic: "",
+                duration: "40 mins",
+                notes: ""
+              });
+            }
+          }
+        }
+      }
+      // === Fallback: old sessions-based format ===
+      else if (db.sessions && db.sessions.length > 0) {
+        (db.sessions || []).forEach(function(sess) {
+          var status = studentData[sess.id] || studentData[sess.date];
+          if (!status) return;
+          records.push({
+            date: sess.date,
+            status: status,
+            topic: sess.topic || "",
+            duration: "40 mins",
+            notes: ""
+          });
         });
-      });
+      }
+      // === Direct date keys (no schedule, no sessions) ===
+      else {
+        Object.keys(studentData).forEach(function(dateKey) {
+          records.push({
+            date: dateKey,
+            status: studentData[dateKey],
+            topic: "",
+            duration: "40 mins",
+            notes: ""
+          });
+        });
+      }
 
       if (records.length === 0) return null;
 
