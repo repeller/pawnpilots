@@ -116,31 +116,42 @@
     .setup-steps ol { padding-left: 20px; margin-top: 10px; }
     .setup-steps li { margin-bottom: 8px; }
 
-    /* Dashboard Grid */
+    /* Dashboard Grid (Replaced by List UI) */
     #dashboardScreen { display: none; }
     .grid-toolbar { display: flex; justify-content: space-between; margin-bottom: 16px; }
-    
-    .table-responsive { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); max-width: 100vw; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; background: #fff; }
-    th, td { padding: 12px; border: 1px solid var(--line); border-bottom: none; border-right: none; text-align: left; font-size: 0.9rem; }
-    table tr:first-child th { border-top: none; }
-    table tr:last-child td { border-bottom: 1px solid var(--line); }
-    th:last-child, td:last-child { border-right: 1px solid var(--line); }
-    
-    th { background: var(--warm); font-weight: 600; color: var(--walnut-deep); }
-    
-    /* Sticky Left Columns for wide tables */
-    th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 2; width: 120px; }
-    th:nth-child(2), td:nth-child(2) { position: sticky; left: 120px; z-index: 2; width: 160px; box-shadow: 4px 0 8px rgba(90,57,37,0.08); border-right: 1px solid var(--line) !important; }
-    th:nth-child(1), th:nth-child(2) { background: #ecdac1; }
-    td:nth-child(1), td:nth-child(2) { background: var(--paper); }
 
-    .cell-status { width: 100px; }
-    .cell-status select {
-      width: 100%; padding: 6px; border: 1px solid var(--line); border-radius: 4px; font-size: 0.85rem;
-    }
-    .status-p { background: rgba(47,122,84,0.1); color: var(--felt); font-weight: bold; }
-    .status-a { background: rgba(196,74,46,0.1); color: #c44a2e; font-weight: bold; }
+    .view-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .tab-btn { flex: 1; padding: 12px; border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; color: var(--muted); font-family: 'Outfit'; transition: all 0.2s; outline: none; }
+    .tab-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; box-shadow: 0 4px 10px rgba(196,134,46,0.3); }
+
+    .search-bar { width: 100%; padding: 12px 16px; border: 2px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 24px; font-family: 'Outfit'; font-size: 1rem; color: var(--ink); background: #fff; transition: border-color 0.2s; outline: none; }
+    .search-bar:focus { border-color: var(--gold); }
+
+    .accordion { display: flex; flex-direction: column; gap: 12px; }
+    .accordion-item { border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+    .accordion-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--paper); transition: background 0.2s; user-select: none; }
+    .accordion-header:hover { background: var(--warm); }
+    .accordion-title { display: flex; flex-direction: column; }
+    .accordion-title strong { font-size: 1.1rem; color: var(--walnut-deep); font-weight: 700; }
+    .accordion-title small { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+    .accordion-stats { font-size: 0.85rem; font-weight: 600; color: var(--gold); background: #fff; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--line); }
+
+    .accordion-body { display: none; border-top: 1px solid var(--line); background: #fff; }
+    .accordion-item.open .accordion-body { display: block; }
+    .accordion-item.open .accordion-header { background: #ecdac1; border-bottom: 1px solid var(--line); }
+
+    .list-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--line); transition: background 0.1s; }
+    .list-row:hover { background: #fafafa; }
+    .list-row:last-child { border-bottom: none; }
+    .list-row-info { display: flex; flex-direction: column; }
+    .list-row-info strong { font-size: 0.95rem; color: var(--ink); font-weight: 600; }
+    .list-row-info small { font-size: 0.8rem; color: var(--muted); font-family: monospace; letter-spacing: 0.5px; }
+
+    .list-row-action select { width: 140px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; font-family: 'Outfit'; font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none; appearance: none; background: #fff; }
+    .list-row-action select.status-p { color: var(--felt); background: rgba(47,122,84,0.1); border-color: rgba(47,122,84,0.3); }
+    .list-row-action select.status-a { color: #c44a2e; background: rgba(196,74,46,0.1); border-color: rgba(196,74,46,0.3); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 1.1rem; }
 
     .toast {
       position: fixed; bottom: 24px; right: 24px;
@@ -201,21 +212,15 @@
         <button class="btn btn-success" onclick="saveData()">💾 Save to Database</button>
       </div>
 
-      <div class="card" style="padding:0; overflow:hidden;">
-        <div class="table-responsive">
-          <table id="attendanceTable">
-            <thead>
-              <tr id="tableHeaderRow">
-                <th>Token</th>
-                <th>Student Name</th>
-                <!-- Dates will go here -->
-              </tr>
-            </thead>
-            <tbody id="tableBody">
-              <!-- Students will go here -->
-            </tbody>
-          </table>
-        </div>
+      <div class="view-tabs">
+        <button class="tab-btn active" id="tabSessions" onclick="switchView('sessions')">View by Session</button>
+        <button class="tab-btn" id="tabStudents" onclick="switchView('students')">View by Student</button>
+      </div>
+
+      <input type="text" id="searchInput" class="search-bar" placeholder="Search students or sessions..." oninput="renderViews()" />
+
+      <div class="accordion" id="accordionList">
+        <!-- Rendered via JS -->
       </div>
 
     </div>
@@ -293,7 +298,7 @@
         }
         
         t.style.display = 'block';
-        renderTable();
+        renderViews();
       } catch (err) {
         alert("Error loading data. Check your API key and Bin ID.");
         logout();
@@ -326,60 +331,165 @@
       }
     }
 
-    function renderTable() {
-      const thead = document.getElementById('tableHeaderRow');
-      const tbody = document.getElementById('tableBody');
+    let currentView = 'sessions';
+
+    function switchView(view) {
+      syncDOMtoDB(); // Always sync before redrawing to not lose unsaved selects
+      currentView = view;
+      document.getElementById('tabSessions').classList.toggle('active', view === 'sessions');
+      document.getElementById('tabStudents').classList.toggle('active', view === 'students');
+      document.getElementById('searchInput').value = ''; // Clear search on switch
+      renderViews();
+    }
+
+    function toggleAccordion(id) {
+      document.getElementById(id).classList.toggle('open');
+    }
+
+    function renderViews() {
+      const container = document.getElementById('accordionList');
+      const query = document.getElementById('searchInput').value.toLowerCase();
       
-      // Sort sessions descending (newest first) so today's date is always right next to the student's name
+      // Sort sessions newest first
       db.sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      // Sort students alphabetically
+      db.students.sort((a, b) => a.name.localeCompare(b.name));
 
-      // Build Headers
-      let headHtml = `<th>Token</th><th>Student Name</th>`;
-      db.sessions.forEach(sess => {
-        headHtml += `<th>${sess.date}<br><small style="font-weight:normal;opacity:0.7">${sess.topic}</small></th>`;
-      });
-      thead.innerHTML = headHtml;
+      let html = '';
 
-      // Build Body
-      let bodyHtml = '';
-      db.students.forEach(stu => {
-        bodyHtml += `<tr>
-          <td style="font-family:monospace;font-size:0.8rem;color:var(--muted)">${stu.token}</td>
-          <td style="font-weight:600">${stu.name}</td>`;
-        
-        db.sessions.forEach(sess => {
-          const val = (db.attendance[stu.token] && db.attendance[stu.token][sess.id]) ? db.attendance[stu.token][sess.id] : "";
-          
-          let colorClass = "";
-          if (val === "Present") colorClass = "status-p";
-          if (val === "Absent") colorClass = "status-a";
+      if (currentView === 'sessions') {
+        const filteredSessions = db.sessions.filter(s => 
+          s.date.toLowerCase().includes(query) || (s.topic && s.topic.toLowerCase().includes(query))
+        );
 
-          bodyHtml += `
-            <td class="cell-status">
-              <select class="status-select ${colorClass}" data-stu="${stu.token}" data-sess="${sess.id}" onchange="updateSelectColor(this)">
-                <option value="" ${val===""?"selected":""}>-</option>
-                <option value="Present" ${val==="Present"?"selected":""}>Present</option>
-                <option value="Absent" ${val==="Absent"?"selected":""}>Absent</option>
-                <option value="Rescheduled" ${val==="Rescheduled"?"selected":""}>Rescheduled</option>
-                <option value="Cancelled" ${val==="Cancelled"?"selected":""}>Cancelled</option>
-              </select>
-            </td>
+        if (filteredSessions.length === 0) {
+          container.innerHTML = `<div class="empty-state">No sessions found. Add one above!</div>`;
+          return;
+        }
+
+        filteredSessions.forEach((sess, idx) => {
+          const accId = `acc-sess-${idx}`;
+          // Count marked students for this session
+          let marked = 0;
+          db.students.forEach(stu => {
+            if (db.attendance[stu.token] && db.attendance[stu.token][sess.id]) marked++;
+          });
+
+          html += `
+            <div class="accordion-item" id="${accId}">
+              <div class="accordion-header" onclick="toggleAccordion('${accId}')">
+                <div class="accordion-title">
+                  <strong>${sess.date}</strong>
+                  <small>${sess.topic || "No topic"}</small>
+                </div>
+                <div class="accordion-stats">${marked}/${db.students.length} Marked</div>
+              </div>
+              <div class="accordion-body">
           `;
+          
+          if (db.students.length === 0) {
+            html += `<div class="list-row"><div class="list-row-info"><small>No students to mark yet.</small></div></div>`;
+          }
+
+          db.students.forEach(stu => {
+            const val = (db.attendance[stu.token] && db.attendance[stu.token][sess.id]) ? db.attendance[stu.token][sess.id] : "";
+            let colorClass = val === "Present" ? "status-p" : val === "Absent" ? "status-a" : "";
+
+            html += `
+                <div class="list-row">
+                  <div class="list-row-info">
+                    <strong>${stu.name}</strong>
+                    <small>${stu.token}</small>
+                  </div>
+                  <div class="list-row-action">
+                    <select class="status-select ${colorClass}" data-stu="${stu.token}" data-sess="${sess.id}" onchange="updateSelectColor(this)">
+                      <option value="" ${val===""?"selected":""}>-</option>
+                      <option value="Present" ${val==="Present"?"selected":""}>Present</option>
+                      <option value="Absent" ${val==="Absent"?"selected":""}>Absent</option>
+                      <option value="Rescheduled" ${val==="Rescheduled"?"selected":""}>Rescheduled</option>
+                      <option value="Cancelled" ${val==="Cancelled"?"selected":""}>Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+            `;
+          });
+          html += `</div></div>`;
         });
-        bodyHtml += `</tr>`;
-      });
-      
-      if (db.students.length === 0) {
-        bodyHtml = `<tr><td colspan="${2 + db.sessions.length}" style="text-align:center;padding:32px;color:var(--muted)">No students added yet. Click "+ Add Student" to start.</td></tr>`;
+      } 
+      else if (currentView === 'students') {
+        const filteredStudents = db.students.filter(s => 
+          s.name.toLowerCase().includes(query) || s.token.toLowerCase().includes(query)
+        );
+
+        if (filteredStudents.length === 0) {
+          container.innerHTML = `<div class="empty-state">No students found. Add one above!</div>`;
+          return;
+        }
+
+        filteredStudents.forEach((stu, idx) => {
+          const accId = `acc-stu-${idx}`;
+          // Count present rate
+          let present = 0, total = 0;
+          db.sessions.forEach(sess => {
+            const val = (db.attendance[stu.token] || {})[sess.id];
+            if (val) {
+              total++;
+              if (val === 'Present') present++;
+            }
+          });
+          let rate = total > 0 ? Math.round((present/total)*100) + '%' : 'N/A';
+
+          html += `
+            <div class="accordion-item" id="${accId}">
+              <div class="accordion-header" onclick="toggleAccordion('${accId}')">
+                <div class="accordion-title">
+                  <strong>${stu.name}</strong>
+                  <small>${stu.token}</small>
+                </div>
+                <div class="accordion-stats">${rate} Rate</div>
+              </div>
+              <div class="accordion-body">
+          `;
+
+          if (db.sessions.length === 0) {
+            html += `<div class="list-row"><div class="list-row-info"><small>No sessions taught yet.</small></div></div>`;
+          }
+
+          db.sessions.forEach(sess => {
+            const val = (db.attendance[stu.token] && db.attendance[stu.token][sess.id]) ? db.attendance[stu.token][sess.id] : "";
+            let colorClass = val === "Present" ? "status-p" : val === "Absent" ? "status-a" : "";
+
+            html += `
+                <div class="list-row">
+                  <div class="list-row-info">
+                    <strong>${sess.date}</strong>
+                    <small>${sess.topic || "No topic"}</small>
+                  </div>
+                  <div class="list-row-action">
+                    <select class="status-select ${colorClass}" data-stu="${stu.token}" data-sess="${sess.id}" onchange="updateSelectColor(this)">
+                      <option value="" ${val===""?"selected":""}>-</option>
+                      <option value="Present" ${val==="Present"?"selected":""}>Present</option>
+                      <option value="Absent" ${val==="Absent"?"selected":""}>Absent</option>
+                      <option value="Rescheduled" ${val==="Rescheduled"?"selected":""}>Rescheduled</option>
+                      <option value="Cancelled" ${val==="Cancelled"?"selected":""}>Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+            `;
+          });
+          html += `</div></div>`;
+        });
       }
-      
-      tbody.innerHTML = bodyHtml;
+
+      container.innerHTML = html;
     }
 
     function updateSelectColor(select) {
       select.className = "status-select";
       if (select.value === "Present") select.classList.add("status-p");
       if (select.value === "Absent") select.classList.add("status-a");
+      // Optional: Auto-save or wait for manual save?
+      // Since changing view syncs to DB, it's safe to just update classes visually.
     }
 
     function syncDOMtoDB() {
@@ -406,7 +516,7 @@
       const token = name.split(' ')[0].toLowerCase() + '-' + rand;
       
       db.students.push({ token, name });
-      renderTable();
+      renderViews();
     };
 
     document.querySelector('[onclick="document.getElementById(\'addSessionModal\').style.display=\'block\'"]').onclick = () => {
@@ -416,7 +526,7 @@
       
       const id = date + '-' + Math.random().toString(36).substring(2,5);
       db.sessions.push({ id, date, topic });
-      renderTable();
+      renderViews();
     };
 
     init();
