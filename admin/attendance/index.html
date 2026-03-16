@@ -179,6 +179,20 @@
     .student-info .student-schedule .tz-convert {
       color: var(--felt); font-weight: 500; margin-left: 6px;
     }
+    .student-link {
+      display: flex; align-items: center; gap: 8px; margin-top: 6px;
+    }
+    .student-link a {
+      font-size: 0.8rem; color: var(--walnut); text-decoration: none;
+      background: var(--warm); padding: 4px 10px; border-radius: 6px;
+      font-family: monospace; word-break: break-all; transition: all 0.15s;
+    }
+    .student-link a:hover { background: #ecdac1; color: var(--walnut-deep); }
+    .copy-btn {
+      background: var(--gold); color: #fff; border: none; border-radius: 6px;
+      padding: 4px 10px; font-family: 'Outfit'; font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
     .student-card-actions { display: flex; gap: 6px; }
 
     /* Session Grid inside student card */
@@ -558,10 +572,13 @@
             <div class="student-card-header">
               <div class="student-info">
                 <h3>${stu.name}</h3>
-                <div class="student-meta">${stu.token}</div>
                 <div class="student-schedule">
                   ${dayLabels} · ${stuTime} ${tzShort}
                   <span class="tz-convert">→ ${adminTime} IST</span>
+                </div>
+                <div class="student-link">
+                  <a href="https://pawnpilots.com/attendance/?t=${stu.token}" target="_blank">pawnpilots.com/attendance/?t=${stu.token}</a>
+                  <button class="copy-btn" onclick="copyLink('${stu.token}', this)">Copy</button>
                 </div>
               </div>
               <div class="student-card-actions">
@@ -767,6 +784,15 @@
     // =====================================================
     // TOAST
     // =====================================================
+    function copyLink(token, btn) {
+      const url = 'https://pawnpilots.com/attendance/?t=' + token;
+      navigator.clipboard.writeText(url).then(() => {
+        btn.textContent = 'Copied!';
+        btn.style.background = '#2f7a54';
+        setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = ''; }, 2000);
+      });
+    }
+
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
