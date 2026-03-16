@@ -120,10 +120,21 @@
     #dashboardScreen { display: none; }
     .grid-toolbar { display: flex; justify-content: space-between; margin-bottom: 16px; }
     
-    .table-responsive { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
-    table { width: 100%; border-collapse: collapse; min-width: 800px; background: #fff; }
-    th, td { padding: 12px; border: 1px solid var(--line); text-align: left; font-size: 0.9rem; }
+    .table-responsive { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); max-width: 100vw; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; background: #fff; }
+    th, td { padding: 12px; border: 1px solid var(--line); border-bottom: none; border-right: none; text-align: left; font-size: 0.9rem; }
+    table tr:first-child th { border-top: none; }
+    table tr:last-child td { border-bottom: 1px solid var(--line); }
+    th:last-child, td:last-child { border-right: 1px solid var(--line); }
+    
     th { background: var(--warm); font-weight: 600; color: var(--walnut-deep); }
+    
+    /* Sticky Left Columns for wide tables */
+    th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 2; width: 120px; }
+    th:nth-child(2), td:nth-child(2) { position: sticky; left: 120px; z-index: 2; width: 160px; box-shadow: 4px 0 8px rgba(90,57,37,0.08); border-right: 1px solid var(--line) !important; }
+    th:nth-child(1), th:nth-child(2) { background: #ecdac1; }
+    td:nth-child(1), td:nth-child(2) { background: var(--paper); }
+
     .cell-status { width: 100px; }
     .cell-status select {
       width: 100%; padding: 6px; border: 1px solid var(--line); border-radius: 4px; font-size: 0.85rem;
@@ -319,6 +330,9 @@
       const thead = document.getElementById('tableHeaderRow');
       const tbody = document.getElementById('tableBody');
       
+      // Sort sessions descending (newest first) so today's date is always right next to the student's name
+      db.sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
       // Build Headers
       let headHtml = `<th>Token</th><th>Student Name</th>`;
       db.sessions.forEach(sess => {
