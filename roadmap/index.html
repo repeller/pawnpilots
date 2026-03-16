@@ -60,6 +60,31 @@
       color: var(--gold);
       letter-spacing: 1px;
     }
+    /* ── Hidden currency switcher ── */
+    .rm-currency {
+      display: none;
+      gap: 6px;
+      align-items: center;
+    }
+    .rm-currency.show { display: flex; }
+    .rm-currency button {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .rm-currency button:hover { background: rgba(255,255,255,0.15); }
+    .rm-currency button.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #fff;
+    }
 
     /* ── Hero ── */
     .rm-hero {
@@ -346,6 +371,12 @@
       <img src="../favicon-192.png" alt="PawnPilots" />
       <span>PawnPilots<small>Academy</small></span>
     </a>
+    <div class="rm-currency" id="currencySwitcher">
+      <button class="active" data-c="usd">USD</button>
+      <button data-c="gbp">GBP</button>
+      <button data-c="aud">AUD</button>
+      <button data-c="nzd">NZD</button>
+    </div>
     <span class="rm-title">The Complete Pathway</span>
   </div>
 
@@ -525,5 +556,52 @@
     &copy; 2026 PawnPilots Academy &middot; pawnpilots.com
   </div>
 
+  <script>
+  (function() {
+    var pricing = {
+      usd: { s: '$',  l1: '379', l2: '379', l3: '399', l4: '429', elite: '199', b12: '699', b123: '999', b1234: '1,399', s12: '59', s123: '157', s1234: '187' },
+      gbp: { s: '\u00a3', l1: '279', l2: '279', l3: '299', l4: '319', elite: '149', b12: '519', b123: '739', b1234: '1,039', s12: '39', s123: '118', s1234: '137' },
+      aud: { s: 'A$', l1: '549', l2: '549', l3: '579', l4: '629', elite: '289', b12: '1,019', b123: '1,449', b1234: '1,999', s12: '79', s123: '228', s1234: '307' },
+      nzd: { s: 'NZ$', l1: '579', l2: '579', l3: '619', l4: '659', elite: '309', b12: '1,079', b123: '1,539', b1234: '2,129', s12: '79', s123: '238', s1234: '307' }
+    };
+
+    var prices = document.querySelectorAll('.rm-price');
+    var bundles = document.querySelectorAll('.rm-bundle-price');
+    var saves = document.querySelectorAll('.rm-bundle-save');
+    var btns = document.querySelectorAll('.rm-currency button');
+
+    function apply(c) {
+      var p = pricing[c];
+      // Level prices
+      prices[0].textContent = p.s + p.l1;
+      prices[1].textContent = p.s + p.l2;
+      prices[2].textContent = p.s + p.l3;
+      prices[3].textContent = p.s + p.l4;
+      prices[4].textContent = p.s + p.elite + '/mo';
+      // Bundle prices
+      bundles[0].textContent = p.s + p.b12;
+      bundles[1].textContent = p.s + p.b123;
+      bundles[2].textContent = p.s + p.b1234;
+      // Savings
+      saves[0].textContent = 'Save ' + p.s + p.s12;
+      saves[1].textContent = 'Save ' + p.s + p.s123;
+      saves[2].textContent = 'Save ' + p.s + p.s1234;
+      // Active button
+      btns.forEach(function(b) { b.classList.toggle('active', b.dataset.c === c); });
+    }
+
+    // Click handlers
+    btns.forEach(function(b) {
+      b.addEventListener('click', function() { apply(b.dataset.c); });
+    });
+
+    // Press C to toggle switcher visibility
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'c' || e.key === 'C') {
+        document.getElementById('currencySwitcher').classList.toggle('show');
+      }
+    });
+  })();
+  </script>
 </body>
 </html>
