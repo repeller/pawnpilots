@@ -757,6 +757,19 @@ h1 { color: var(--walnut); }
   box-shadow: 0 16px 48px rgba(196, 134, 46, 0.12);
 }
 
+.level-card.elite-card {
+  grid-column: 1 / -1;
+  background: linear-gradient(160deg, #f0faf4, #e8f5ee);
+  border-color: rgba(47,122,84,0.2);
+  margin-bottom: 16px;
+}
+.elite-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .level-top {
   display: flex;
   align-items: center;
@@ -878,6 +891,10 @@ h1 { color: var(--walnut); }
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   max-width: 840px;
+}
+.pricing-grid.triple {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 960px;
   margin: 32px auto 0;
 }
 
@@ -2100,6 +2117,7 @@ a.explore-card:active {
   .benefits-grid,
   .levels-grid,
   .pricing-grid,
+  .pricing-grid.triple,
   .testimonial-grid,
   .steps-grid,
   .included-strip,
@@ -2155,6 +2173,7 @@ a.explore-card:active {
   .section { padding: 28px 0; }
 
   .proof-strip { grid-template-columns: repeat(2, 1fr); }
+  .elite-features { grid-template-columns: 1fr; }
 
   .hero { padding: 28px 0 20px; }
 

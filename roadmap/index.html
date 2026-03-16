@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Complete Pathway — PawnPilots Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <style>
+    :root {
+      --gold: #c4862e;
+      --gold-soft: rgba(196,134,46,0.08);
+      --ink: #1a1209;
+      --paper: #fff8ef;
+      --warm: #f5ead8;
+      --muted: #7a6a5a;
+      --felt: #2f7a54;
+      --walnut: #3d2c1e;
+      --walnut-deep: #1a1209;
+      --radius: 20px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── Header bar ── */
+    .rm-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--walnut-deep);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rm-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .rm-brand img { width: 32px; height: 32px; border-radius: 8px; }
+    .rm-brand small { display: block; font-family: 'Outfit', sans-serif; font-size: 0.55em; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; opacity: 0.6; }
+    .rm-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    /* ── Hero ── */
+    .rm-hero {
+      text-align: center;
+      padding: 60px 24px 40px;
+      background: linear-gradient(180deg, var(--walnut-deep) 0%, var(--walnut) 100%);
+      color: #fff;
+    }
+    .rm-hero h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.15;
+    }
+    .rm-hero h1 span { color: var(--gold); }
+    .rm-hero p {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.6);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ── Timeline ── */
+    .rm-timeline {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px 24px;
+      position: relative;
+    }
+    .rm-timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 48px;
+      bottom: 24px;
+      width: 3px;
+      background: linear-gradient(180deg, var(--gold), var(--felt));
+      transform: translateX(-50%);
+      border-radius: 3px;
+    }
+
+    /* ── Level block ── */
+    .rm-level {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 48px;
+      margin-bottom: 48px;
+    }
+    .rm-level:nth-child(odd) .rm-level-card { grid-column: 1; }
+    .rm-level:nth-child(odd) .rm-level-meta { grid-column: 2; }
+    .rm-level:nth-child(even) .rm-level-card { grid-column: 2; }
+    .rm-level:nth-child(even) .rm-level-meta { grid-column: 1; grid-row: 1; text-align: right; }
+
+    /* Center dot */
+    .rm-level::after {
+      content: attr(data-num);
+      position: absolute;
+      left: 50%;
+      top: 20px;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 0 0 4px var(--paper), 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .rm-level.elite::after {
+      background: var(--felt);
+      width: 44px;
+      height: 44px;
+      font-size: 0.7rem;
+      letter-spacing: 0.5px;
+    }
+
+    .rm-level-meta {
+      padding-top: 16px;
+    }
+    .rm-level-meta h2 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+    .rm-level-meta .rm-meta-line {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .rm-level-meta .rm-price {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .rm-level-card {
+      background: #fff;
+      border: 1px solid rgba(196,134,46,0.12);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    }
+    .rm-level-card h3 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 0.88rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+    .rm-topics {
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+    .rm-topics li {
+      font-size: 0.86rem;
+      color: var(--walnut);
+      padding: 6px 10px 6px 26px;
+      position: relative;
+      border-radius: 8px;
+      background: rgba(245,234,216,0.5);
+      line-height: 1.4;
+    }
+    .rm-topics li::before {
+      content: attr(data-n);
+      position: absolute;
+      left: 8px;
+      top: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    /* ── Bundles ── */
+    .rm-bundles {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 24px 48px;
+    }
+    .rm-bundles h2 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .rm-bundle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .rm-bundle {
+      background: #fff;
+      border: 1px solid rgba(196,134,46,0.12);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    }
+    .rm-bundle.best {
+      border-color: var(--gold);
+      background: linear-gradient(160deg, #fffcf6, #fbf4e8);
+      box-shadow: 0 8px 32px rgba(196,134,46,0.12);
+      position: relative;
+    }
+    .rm-bundle.best::before {
+      content: 'Best Value';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 14px;
+      border-radius: 20px;
+    }
+    .rm-bundle h3 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+    .rm-bundle .rm-bundle-price {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    .rm-bundle .rm-bundle-detail {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .rm-bundle .rm-bundle-save {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--felt);
+      background: rgba(47,122,84,0.08);
+      padding: 3px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Included strip ── */
+    .rm-included {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+    }
+    .rm-included-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      background: var(--warm);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid rgba(196,134,46,0.1);
+    }
+    .rm-included-item {
+      text-align: center;
+      font-size: 0.82rem;
+    }
+    .rm-included-item strong {
+      display: block;
+      font-size: 0.88rem;
+      margin-bottom: 2px;
+      color: var(--ink);
+    }
+    .rm-included-item span { color: var(--muted); }
+
+    /* ── Footer ── */
+    .rm-foot {
+      background: var(--walnut-deep);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 20px;
+      font-size: 0.82rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .rm-timeline::before { left: 20px; }
+      .rm-level {
+        grid-template-columns: 1fr;
+        padding-left: 52px;
+        margin-bottom: 32px;
+      }
+      .rm-level::after {
+        left: 20px;
+        transform: translateX(-50%);
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+      }
+      .rm-level:nth-child(odd) .rm-level-card,
+      .rm-level:nth-child(even) .rm-level-card { grid-column: 1; }
+      .rm-level:nth-child(odd) .rm-level-meta,
+      .rm-level:nth-child(even) .rm-level-meta { grid-column: 1; grid-row: 1; text-align: left; }
+
+      .rm-bundle-grid { grid-template-columns: 1fr; max-width: 320px; margin: 0 auto; }
+      .rm-included-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="rm-header">
+    <a class="rm-brand" href="../">
+      <img src="../favicon-192.png" alt="PawnPilots" />
+      <span>PawnPilots<small>Academy</small></span>
+    </a>
+    <span class="rm-title">The Complete Pathway</span>
+  </div>
+
+  <div class="rm-hero">
+    <h1>From first move to <span>tournament player.</span></h1>
+    <p>5 structured levels. 10 topics each. One clear path for your child.</p>
+  </div>
+
+  <!-- ── Timeline ── -->
+  <div class="rm-timeline">
+
+    <!-- Level 1 -->
+    <div class="rm-level" data-num="1">
+      <div class="rm-level-meta">
+        <h2>Beginner Programme</h2>
+        <p class="rm-meta-line">5 months &middot; 10 topics</p>
+        <p class="rm-price">$379</p>
+      </div>
+      <div class="rm-level-card">
+        <h3>What they'll learn</h3>
+        <ol class="rm-topics">
+          <li data-n="1.">Board &amp; Pieces — coordinates, names, movement, captures</li>
+          <li data-n="2.">Pawn Mechanics — movement, en passant, promotion</li>
+          <li data-n="3.">Check, Checkmate &amp; Stalemate — how games end</li>
+          <li data-n="4.">Checkmate Patterns — back rank, scholar's mate, two rook roller</li>
+          <li data-n="5.">Piece Values &amp; Exchanges — when to trade and when not to</li>
+          <li data-n="6.">Forks, Pins &amp; Skewers — the three core tactical patterns</li>
+          <li data-n="7.">Opening Principles — centre control, development, castling</li>
+          <li data-n="8.">Opening Repertoire — simple lines as White and Black</li>
+          <li data-n="9.">Pawn &amp; Rook Endgames — king and pawn, rook endings</li>
+          <li data-n="10.">Game Review &amp; Graduation — Lichess review + certificate</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Level 2 -->
+    <div class="rm-level" data-num="2">
+      <div class="rm-level-meta">
+        <h2>Elementary Programme</h2>
+        <p class="rm-meta-line">5 months &middot; 10 topics</p>
+        <p class="rm-price">$379</p>
+      </div>
+      <div class="rm-level-card">
+        <h3>What they'll learn</h3>
+        <ol class="rm-topics">
+          <li data-n="1.">Tactical Combinations — multi-move forks, pins, skewers</li>
+          <li data-n="2.">Discovered Attacks &amp; Double Check</li>
+          <li data-n="3.">Piece Sacrifices — giving up material to win the game</li>
+          <li data-n="4.">Opening Theory — common traps and reliable repertoire</li>
+          <li data-n="5.">Pawn Structure — isolated, doubled, and passed pawns</li>
+          <li data-n="6.">Piece Coordination — rooks, bishops, knight outposts</li>
+          <li data-n="7.">Middlegame Planning — forming plans, identifying imbalances</li>
+          <li data-n="8.">King Safety &amp; Attack — attacking the castled king</li>
+          <li data-n="9.">Rook &amp; Queen Endgames — Lucena, Philidor, conversions</li>
+          <li data-n="10.">Tournament Prep &amp; Graduation — clock, nerves + certificate</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Level 3 -->
+    <div class="rm-level" data-num="3">
+      <div class="rm-level-meta">
+        <h2>Intermediate Programme</h2>
+        <p class="rm-meta-line">5 months &middot; 10 topics</p>
+        <p class="rm-price">$399</p>
+      </div>
+      <div class="rm-level-card">
+        <h3>What they'll learn</h3>
+        <ol class="rm-topics">
+          <li data-n="1.">Advanced Tactics — Zwischenzug, deflection, decoy, interference</li>
+          <li data-n="2.">Good &amp; Bad Bishops — weak squares, outposts, evaluation</li>
+          <li data-n="3.">Opening Repertoire Expansion — complete White &amp; Black systems</li>
+          <li data-n="4.">Prophylaxis — anticipating &amp; neutralising opponent's plans</li>
+          <li data-n="5.">Positional Imbalances — bishop vs knight, space, activity</li>
+          <li data-n="6.">Kingside Attack &amp; Defence — launching attacks, counterplay</li>
+          <li data-n="7.">Bishop &amp; Knight Endgames — converting &amp; saving positions</li>
+          <li data-n="8.">Game Annotation — annotating your own games on Lichess</li>
+          <li data-n="9.">Master Game Analysis — Fischer, Kasparov, Carlsen patterns</li>
+          <li data-n="10.">Tournament Review &amp; Graduation — strengths report + certificate</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Level 4 -->
+    <div class="rm-level" data-num="4">
+      <div class="rm-level-meta">
+        <h2>Advanced Programme</h2>
+        <p class="rm-meta-line">5 months &middot; 10 topics</p>
+        <p class="rm-price">$429</p>
+      </div>
+      <div class="rm-level-card">
+        <h3>What they'll learn</h3>
+        <ol class="rm-topics">
+          <li data-n="1.">Calculation &amp; Visualisation — 5+ moves, candidate moves</li>
+          <li data-n="2.">Complex Tactics — X-ray, windmill, back rank combos</li>
+          <li data-n="3.">Long-Term Strategic Planning — piece redeployment, weaknesses</li>
+          <li data-n="4.">Opening Preparation — opponent-specific lines, transpositions</li>
+          <li data-n="5.">Competitive Psychology — time pressure, complications vs simplify</li>
+          <li data-n="6.">Endgame Conversion — middlegame to winning endgame transitions</li>
+          <li data-n="7.">Defensive Technique — fortress, swindling, making it hard</li>
+          <li data-n="8.">Tournament Preparation — energy management, pre-game routine</li>
+          <li data-n="9.">Personal Game Analysis — recurring patterns in your own play</li>
+          <li data-n="10.">Performance Review &amp; Graduation — FIDE goals + roadmap</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Level 5 -->
+    <div class="rm-level elite" data-num="&#9819;">
+      <div class="rm-level-meta">
+        <h2>Elite Programme</h2>
+        <p class="rm-meta-line">Ongoing &middot; Personalised</p>
+        <p class="rm-price">$199/mo</p>
+      </div>
+      <div class="rm-level-card">
+        <h3>Fully personalised coaching</h3>
+        <ol class="rm-topics">
+          <li data-n="&#9823;">Continuous opening repertoire refinement</li>
+          <li data-n="&#9823;">Targeted tactical training — puzzles rated 1500+</li>
+          <li data-n="&#9823;">Deep tournament game analysis</li>
+          <li data-n="&#9823;">Opponent-specific preparation before events</li>
+          <li data-n="&#9823;">Monthly written performance report to parents</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Included with every level ── -->
+  <div class="rm-included">
+    <div class="rm-included-grid">
+      <div class="rm-included-item">
+        <strong>Daily Puzzles</strong>
+        <span>10–15 on Lichess</span>
+      </div>
+      <div class="rm-included-item">
+        <strong>Weekly Homework</strong>
+        <span>Analysis &amp; prep</span>
+      </div>
+      <div class="rm-included-item">
+        <strong>Class Reports</strong>
+        <span>After every session</span>
+      </div>
+      <div class="rm-included-item">
+        <strong>Progress Reports</strong>
+        <span>Bi-weekly updates</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bundles ── -->
+  <div class="rm-bundles">
+    <h2>Bundle &amp; Save</h2>
+    <div class="rm-bundle-grid">
+      <div class="rm-bundle">
+        <h3>Levels 1 + 2</h3>
+        <div class="rm-bundle-price">$699</div>
+        <p class="rm-bundle-detail">10 months &middot; 20 topics</p>
+        <span class="rm-bundle-save">Save $59</span>
+      </div>
+      <div class="rm-bundle best">
+        <h3>Levels 1 + 2 + 3</h3>
+        <div class="rm-bundle-price">$999</div>
+        <p class="rm-bundle-detail">15 months &middot; 30 topics</p>
+        <span class="rm-bundle-save">Save $157</span>
+      </div>
+      <div class="rm-bundle">
+        <h3>Full Pathway 1–4</h3>
+        <div class="rm-bundle-price">$1,399</div>
+        <p class="rm-bundle-detail">20 months &middot; 40 topics</p>
+        <span class="rm-bundle-save">Save $187</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rm-foot">
+    &copy; 2026 PawnPilots Academy &middot; pawnpilots.com
+  </div>
+
+</body>
+</html>
