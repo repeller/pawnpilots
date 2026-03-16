@@ -8,6 +8,10 @@ const { WebSocketServer } = require("ws");
 let mountMonitor = null;
 try { mountMonitor = require("./private/monitor-backend"); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") console.error("[monitor] Load error:", e.message); }
 
+// Conditionally load attendance module
+let attendance = null;
+try { attendance = require("./private/attendance"); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") console.error("[attendance] Load error:", e.message); }
+
 const PORT = process.env.PORT || 4173;
 const ROOT = __dirname;
 
@@ -64,6 +68,9 @@ let monitor = null;
 const server = http.createServer((req, res) => {
   // Handle monitor API routes (if loaded)
   if (monitor && monitor.handleRequest(req, res)) return;
+
+  // Handle attendance API routes (if loaded)
+  if (attendance && attendance.handleRequest(req, res)) return;
 
   let reqPath = req.url.split("?")[0];
   if (reqPath === "/") {

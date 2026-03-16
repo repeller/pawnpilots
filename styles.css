@@ -72,7 +72,6 @@
   -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
 }
 .page-top {
-  scroll-snap-align: start;
 }
 .page-banner + section,
 .page-banner + .coach-hero {
@@ -83,7 +82,6 @@
 *, *::before, *::after { box-sizing: border-box; }
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
   overflow-x: hidden;
   scrollbar-width: none;
 }
@@ -91,7 +89,6 @@ html::-webkit-scrollbar { display: none; }
 
 /* ── Snap sections ───────────────────── */
 .snap-section {
-  scroll-snap-align: start;
   min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
@@ -99,19 +96,15 @@ html::-webkit-scrollbar { display: none; }
 }
 
 main > .section:not(.snap-section) {
-  scroll-snap-align: start;
 }
 
 .cta-section {
-  scroll-snap-align: start;
 }
 
 .foot {
-  scroll-snap-align: end;
 }
 
 .page-top .section {
-  scroll-snap-align: none;
 }
 
 body {
@@ -2132,7 +2125,6 @@ a.explore-card:active {
   .explore-card { grid-template-columns: 1fr; }
   .explore-card:nth-child(even) { direction: ltr; }
   .explore-img-wrap img { aspect-ratio: 16/9; }
-  html { scroll-snap-type: none; }
   .snap-section { min-height: auto; }
   .wyg-grid { grid-template-columns: 1fr; }
   .wyg-compare { grid-template-columns: 1fr; }

@@ -589,7 +589,7 @@
   (function() {
     // ── Config ──
     var SHEET_ID = "16Wivt3E2C_HFZ4q6P0a-bJB3oRvSSxoFILyBFvlyZHo";
-    var CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/export?format=csv";
+    var CSV_URL = "http://localhost:9998";
 
     // Handle normal ?t=token or encoded ?t%3Dtoken
     var qs = window.location.search;
@@ -682,32 +682,61 @@
 
     function processCSV(csvText, token) {
       var lines = csvText.split(/\r?\n/).filter(function(l) { return l.trim(); });
-      if (lines.length < 2) return null;
+      // Needs at least 5 rows (some headers/dates) to be a valid 2D grid
+      if (lines.length < 5) return null;
 
-      var headers = parseCSVLine(lines[0]).map(function(h) {
-        return h.toLowerCase().replace(/\s+/g, "_");
-      });
+      // Parse all rows into a 2D array
+      var grid = lines.map(function(l) { return parseCSVLine(l); });
+
+      // Based on the user's screenshot layout:
+      // Row 4 (index 3) contains dates
+      var datesRow = grid[3];
+      
+      var COL_TOKEN = 1;      // Column B
+      var COL_NAME = 2;       // Column C
+      var COL_DATE_START = 3; // Column D (first date)
+      var COL_DATE_END = 10;  // Column K (last date)
+      var COL_TOPIC = 12;     // Column M
 
       var tokenLower = token.toLowerCase();
       var records = [];
       var studentName = "";
 
-      for (var i = 1; i < lines.length; i++) {
-        var fields = parseCSVLine(lines[i]);
-        var row = {};
-        for (var j = 0; j < headers.length; j++) {
-          row[headers[j]] = fields[j] || "";
-        }
-        if ((row.token || "").toLowerCase() === tokenLower) {
-          if (!studentName) studentName = row.student_name || row.name || "Student";
-          var status = cleanStatus(row.status);
-          records.push({
-            date: normalizeDate(row.date),
-            status: status.charAt(0).toUpperCase() + status.slice(1),
-            topic: row.topic || "",
-            duration: row.duration || "",
-            notes: row.notes || ""
-          });
+      // Loop through all data rows, starting below the headers
+      for (var i = 4; i < grid.length; i++) {
+        var row = grid[i];
+        
+        // Check if this row belongs to the target student
+        if ((row[COL_TOKEN] || "").toLowerCase() === tokenLower) {
+          if (!studentName) studentName = row[COL_NAME] || "Student";
+          
+          var rowTopic = row[COL_TOPIC] || "";
+
+          // Loop through each date column for this student
+          for (var c = COL_DATE_START; c <= COL_DATE_END; c++) {
+            var rawDate = datesRow[c];
+            var rawStatus = (row[c] || "").trim().toUpperCase();
+            
+            // Skip empty cells (no session/not marked yet)
+            if (!rawStatus) continue;
+
+            // Map the simple characters to full status words
+            var statusWord = "";
+            if (rawStatus === "P" || rawStatus === "TRUE") statusWord = "Present";
+            else if (rawStatus === "A" || rawStatus === "FALSE") statusWord = "Absent";
+            else if (rawStatus === "C") statusWord = "Cancelled";
+            else if (rawStatus === "R") statusWord = "Rescheduled";
+            else statusWord = rawStatus; // Fallback
+
+            // Build the flat record
+            records.push({
+              date: normalizeDate(rawDate),
+              status: cleanStatus(statusWord).replace(/^\w/, function(c){return c.toUpperCase()}),
+              topic: rowTopic,
+              duration: "40 mins", // Default from screenshot
+              notes: ""
+            });
+          }
         }
       }
 
