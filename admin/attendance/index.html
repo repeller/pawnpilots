@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Attendance — PawnPilots Academy</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../../favicon-32.png" sizes="32x32" type="image/png" />
+  <style>
+    :root {
+      --bg: #fffbf5;
+      --paper: #fff8ef;
+      --ink: #1a1209;
+      --muted: #7a6a5a;
+      --warm: #f5ead8;
+      --walnut: #5a3925;
+      --walnut-deep: #2e1b12;
+      --felt: #2f7a54;
+      --gold: #c4862e;
+      --line: rgba(90,57,37,0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 15px rgba(50,28,14,0.06);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .admin-header {
+      background: var(--walnut-deep);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      color: #fff;
+      border-bottom: 2px solid var(--gold);
+    }
+    .brand { font-family: 'Baloo 2'; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .brand img { width: 24px; border-radius: 6px; }
+    .header-actions button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'Outfit';
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .header-actions button:hover { background: rgba(255,255,255,0.2); }
+
+    /* Container */
+    .container { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
+
+    /* Cards */
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-family: 'Baloo 2';
+      font-size: 1.4rem;
+      color: var(--walnut-deep);
+      margin-bottom: 8px;
+    }
+    .card-subtitle { font-size: 0.9rem; color: var(--muted); margin-bottom: 20px; }
+
+    /* Forms & Inputs */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--walnut); margin-bottom: 6px; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit';
+      font-size: 0.95rem;
+      background: #fff;
+    }
+    .form-group input:focus { outline: none; border-color: var(--gold); }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit';
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--gold); color: #fff; }
+    .btn-primary:hover { background: #b37320; }
+    .btn-secondary { background: var(--warm); color: var(--walnut-deep); border: 1px solid var(--line); }
+    .btn-secondary:hover { background: #ecdac1; }
+    .btn-success { background: var(--felt); color: #fff; }
+
+    /* Setup Screen */
+    #setupScreen { display: none; max-width: 500px; margin: 60px auto; }
+    .setup-steps { margin-bottom: 24px; font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
+    .setup-steps ol { padding-left: 20px; margin-top: 10px; }
+    .setup-steps li { margin-bottom: 8px; }
+
+    /* Dashboard Grid */
+    #dashboardScreen { display: none; }
+    .grid-toolbar { display: flex; justify-content: space-between; margin-bottom: 16px; }
+    
+    .table-responsive { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; background: #fff; }
+    th, td { padding: 12px; border: 1px solid var(--line); text-align: left; font-size: 0.9rem; }
+    th { background: var(--warm); font-weight: 600; color: var(--walnut-deep); }
+    .cell-status { width: 100px; }
+    .cell-status select {
+      width: 100%; padding: 6px; border: 1px solid var(--line); border-radius: 4px; font-size: 0.85rem;
+    }
+    .status-p { background: rgba(47,122,84,0.1); color: var(--felt); font-weight: bold; }
+    .status-a { background: rgba(196,74,46,0.1); color: #c44a2e; font-weight: bold; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--walnut-deep); color: #fff;
+      padding: 12px 24px; border-radius: 8px;
+      font-weight: 500; font-size: 0.9rem;
+      opacity: 0; transform: translateY(20px);
+      transition: all 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="admin-header">
+    <div class="brand">
+      <img src="../../favicon-192.png" alt="PawnPilots" />
+      <span>Admin Attendance</span>
+    </div>
+    <div class="header-actions" id="headerActions" style="display:none;">
+      <button onclick="logout()">Settings / Logout</button>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- SETUP SCREEN -->
+    <div id="setupScreen" class="card">
+      <h2 class="card-title">Setup Database</h2>
+      <div class="setup-steps">
+        <p>Because the site is securely hosted on GitHub Pages, we use a free JSON bin to power the tracker.</p>
+        <ol>
+          <li>Go to <a href="https://jsonbin.io/" target="_blank" style="color:var(--gold);">JSONBin.io</a> and create a free account.</li>
+          <li>Click <strong>+ Create New</strong> to make a new empty Bin. Paste `{}` inside it and hit <strong>Save</strong>.</li>
+          <li>Click the <strong>Settings (gear)</strong> icon on that bin and switch it to <strong>Public</strong>.</li>
+          <li>Copy the <strong>Bin ID</strong> (from the URL or settings) and your <strong>Master API Key</strong> (from the API Keys section).</li>
+        </ol>
+      </div>
+      <div class="form-group">
+        <label>JSONBin ID</label>
+        <input type="text" id="setupBinId" placeholder="e.g. 64a...f92" />
+      </div>
+      <div class="form-group">
+        <label>Master API Key</label>
+        <input type="password" id="setupApiKey" placeholder="e.g. $2a$10$..." />
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveSetup()">Connect Database</button>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboardScreen">
+      
+      <div class="grid-toolbar">
+        <div>
+          <button class="btn btn-secondary" onclick="document.getElementById('addStudentModal').style.display='block'">+ Add Student</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('addSessionModal').style.display='block'">+ Add Session</button>
+        </div>
+        <button class="btn btn-success" onclick="saveData()">💾 Save to Database</button>
+      </div>
+
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div class="table-responsive">
+          <table id="attendanceTable">
+            <thead>
+              <tr id="tableHeaderRow">
+                <th>Token</th>
+                <th>Student Name</th>
+                <!-- Dates will go here -->
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Students will go here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Saved successfully!</div>
+
+  <script>
+    // System Data Structure
+    // {
+    //   "students": [{ token: "leo-x7k2", name: "Leo" }],
+    //   "sessions": [{ id: "2026-03-10", date: "2026-03-10", topic: "Openings" }],
+    //   "attendance": { "leo-x7k2": { "2026-03-10": "Present" } }
+    // }
+    
+    let db = { students: [], sessions: [], attendance: {} };
+    let binId = localStorage.getItem('att_binId');
+    let apiKey = localStorage.getItem('att_apiKey');
+
+    function init() {
+      if (!binId || !apiKey) {
+        document.getElementById('setupScreen').style.display = 'block';
+      } else {
+        document.getElementById('headerActions').style.display = 'block';
+        loadData();
+      }
+    }
+
+    function saveSetup() {
+      const b = document.getElementById('setupBinId').value.trim();
+      const k = document.getElementById('setupApiKey').value.trim();
+      if (!b || !k) return alert("Please enter both ID and Key");
+      
+      localStorage.setItem('att_binId', b);
+      localStorage.setItem('att_apiKey', k);
+      binId = b; apiKey = k;
+      
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('headerActions').style.display = 'block';
+      
+      // Initialize empty DB if new
+      saveData(true).then(() => loadData());
+    }
+
+    function logout() {
+      localStorage.removeItem('att_binId');
+      localStorage.removeItem('att_apiKey');
+      location.reload();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function loadData() {
+      const t = document.getElementById('dashboardScreen');
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+          headers: { 'X-Master-Key': apiKey }
+        });
+        if (!res.ok) throw new Error("Fetch failed");
+        const json = await res.json();
+        
+        // If empty bin
+        if (Object.keys(json.record).length === 0) {
+          db = { students: [], sessions: [], attendance: {} };
+        } else {
+          db = json.record;
+          if (!db.students) db.students = [];
+          if (!db.sessions) db.sessions = [];
+          if (!db.attendance) db.attendance = {};
+        }
+        
+        t.style.display = 'block';
+        renderTable();
+      } catch (err) {
+        alert("Error loading data. Check your API key and Bin ID.");
+        logout();
+      }
+    }
+
+    async function saveData(isInit = false) {
+      // Sync DOM state to DB object before saving
+      syncDOMtoDB();
+
+      const btn = document.querySelector('.btn-success');
+      if (btn) btn.textContent = "Saving...";
+
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': apiKey
+          },
+          body: JSON.stringify(db)
+        });
+        if (!res.ok) throw new Error("Save failed");
+        
+        if (!isInit) showToast("Saved to database!");
+      } catch (err) {
+        alert("Failed to save data to JSONBin.");
+      } finally {
+        if (btn) btn.textContent = "💾 Save to Database";
+      }
+    }
+
+    function renderTable() {
+      const thead = document.getElementById('tableHeaderRow');
+      const tbody = document.getElementById('tableBody');
+      
+      // Build Headers
+      let headHtml = `<th>Token</th><th>Student Name</th>`;
+      db.sessions.forEach(sess => {
+        headHtml += `<th>${sess.date}<br><small style="font-weight:normal;opacity:0.7">${sess.topic}</small></th>`;
+      });
+      thead.innerHTML = headHtml;
+
+      // Build Body
+      let bodyHtml = '';
+      db.students.forEach(stu => {
+        bodyHtml += `<tr>
+          <td style="font-family:monospace;font-size:0.8rem;color:var(--muted)">${stu.token}</td>
+          <td style="font-weight:600">${stu.name}</td>`;
+        
+        db.sessions.forEach(sess => {
+          const val = (db.attendance[stu.token] && db.attendance[stu.token][sess.id]) ? db.attendance[stu.token][sess.id] : "";
+          
+          let colorClass = "";
+          if (val === "Present") colorClass = "status-p";
+          if (val === "Absent") colorClass = "status-a";
+
+          bodyHtml += `
+            <td class="cell-status">
+              <select class="status-select ${colorClass}" data-stu="${stu.token}" data-sess="${sess.id}" onchange="updateSelectColor(this)">
+                <option value="" ${val===""?"selected":""}>-</option>
+                <option value="Present" ${val==="Present"?"selected":""}>Present</option>
+                <option value="Absent" ${val==="Absent"?"selected":""}>Absent</option>
+                <option value="Rescheduled" ${val==="Rescheduled"?"selected":""}>Rescheduled</option>
+                <option value="Cancelled" ${val==="Cancelled"?"selected":""}>Cancelled</option>
+              </select>
+            </td>
+          `;
+        });
+        bodyHtml += `</tr>`;
+      });
+      
+      if (db.students.length === 0) {
+        bodyHtml = `<tr><td colspan="${2 + db.sessions.length}" style="text-align:center;padding:32px;color:var(--muted)">No students added yet. Click "+ Add Student" to start.</td></tr>`;
+      }
+      
+      tbody.innerHTML = bodyHtml;
+    }
+
+    function updateSelectColor(select) {
+      select.className = "status-select";
+      if (select.value === "Present") select.classList.add("status-p");
+      if (select.value === "Absent") select.classList.add("status-a");
+    }
+
+    function syncDOMtoDB() {
+      const selects = document.querySelectorAll('.status-select');
+      selects.forEach(sel => {
+        const stu = sel.getAttribute('data-stu');
+        const sess = sel.getAttribute('data-sess');
+        const val = sel.value;
+        
+        if (!db.attendance[stu]) db.attendance[stu] = {};
+        db.attendance[stu][sess] = val;
+      });
+    }
+
+    // Modal Helpers (Would normally be actual modals, handled via prompt for simplicity in this V1)
+    window.addStudentModal = () => {}; // Used in button inline for placeholder logic. Overridden below.
+    window.addSessionModal = () => {};
+
+    document.querySelector('[onclick="document.getElementById(\'addStudentModal\').style.display=\'block\'"]').onclick = () => {
+      const name = prompt("Enter Student Name:");
+      if (!name) return;
+      // Generate standard random token
+      const rand = Math.random().toString(36).substring(2,6);
+      const token = name.split(' ')[0].toLowerCase() + '-' + rand;
+      
+      db.students.push({ token, name });
+      renderTable();
+    };
+
+    document.querySelector('[onclick="document.getElementById(\'addSessionModal\').style.display=\'block\'"]').onclick = () => {
+      const date = prompt("Enter Date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
+      if (!date) return;
+      const topic = prompt("Enter Topic (Optional):", "");
+      
+      const id = date + '-' + Math.random().toString(36).substring(2,5);
+      db.sessions.push({ id, date, topic });
+      renderTable();
+    };
+
+    init();
+  </script>
+</body>
+</html>
