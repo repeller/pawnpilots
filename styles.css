@@ -83,9 +83,39 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
-  scrollbar-width: none;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
 }
-html::-webkit-scrollbar { display: none; }
+
+html:hover {
+  scrollbar-color: rgba(90, 57, 37, 0.4) transparent;
+}
+
+/* Chrome/Safari/Edge */
+html::-webkit-scrollbar { 
+  width: 10px;
+  background-color: transparent;
+}
+
+html::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 10px;
+  border: 3px solid var(--bg); /* Adds padding around the thumb to make it look thinner */
+}
+
+html:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(90, 57, 37, 0.4);
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(90, 57, 37, 0.6);
+}
 
 /* ── Snap sections ───────────────────── */
 .snap-section {
