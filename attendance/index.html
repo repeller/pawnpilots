@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance — PawnPilots Academy</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png" />
+  <style>
+    :root {
+      --bg: #fffbf5;
+      --paper: #fff8ef;
+      --ink: #1a1209;
+      --muted: #7a6a5a;
+      --warm: #f5ead8;
+      --walnut: #5a3925;
+      --walnut-deep: #2e1b12;
+      --felt: #2f7a54;
+      --gold: #c4862e;
+      --wa-green: #25d366;
+      --line: rgba(90,57,37,0.1);
+      --radius: 20px;
+      --radius-sm: 14px;
+      --shadow: 0 12px 40px rgba(50,28,14,0.08);
+
+      --present: #2f7a54;
+      --present-bg: rgba(47,122,84,0.08);
+      --absent: #c44a2e;
+      --absent-bg: rgba(196,74,46,0.08);
+      --cancelled: #8a7a6a;
+      --cancelled-bg: rgba(138,122,106,0.06);
+      --rescheduled: #b8860b;
+      --rescheduled-bg: rgba(184,134,11,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .att-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(46,27,18,0.97);
+      backdrop-filter: blur(12px);
+      padding: 0 clamp(16px, 4vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .att-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .att-brand img { width: 28px; height: 28px; border-radius: 8px; }
+    .att-brand small {
+      display: block;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.52em;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+    .att-header-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.8;
+    }
+
+    /* ── Container ── */
+    .att-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px clamp(16px, 4vw, 32px) 60px;
+    }
+
+    /* ── Loading state ── */
+    .att-loading {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .att-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--line);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .att-loading p {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    /* ── Error state ── */
+    .att-error {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .att-error-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+    .att-error h2 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem;
+      color: var(--walnut-deep);
+      margin-bottom: 8px;
+    }
+    .att-error p {
+      color: var(--muted);
+      font-size: 0.92rem;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* ── Dashboard (hidden until loaded) ── */
+    .att-dashboard { display: none; }
+    .att-dashboard.visible { display: block; }
+
+    /* ── Student header ── */
+    .att-student {
+      margin-bottom: 28px;
+    }
+    .att-student-name {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      color: var(--walnut-deep);
+      line-height: 1.15;
+    }
+    .att-student-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Stats bar ── */
+    .att-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .att-stat {
+      text-align: center;
+      padding: 16px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .att-stat-num {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+    .att-stat-num.rate { color: var(--felt); }
+    .att-stat-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Attendance rate bar ── */
+    .att-rate-bar {
+      margin-bottom: 32px;
+      padding: 20px 24px;
+      border-radius: var(--radius);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .att-rate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .att-rate-header span {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .att-rate-header strong {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.3rem;
+      color: var(--felt);
+    }
+    .att-rate-track {
+      height: 10px;
+      border-radius: 10px;
+      background: rgba(47,122,84,0.1);
+      overflow: hidden;
+    }
+    .att-rate-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--felt), #4aad7a);
+      transition: width 1s cubic-bezier(.22,.61,.36,1);
+      width: 0;
+    }
+
+    /* ── Calendar heatmap ── */
+    .att-calendar {
+      margin-bottom: 32px;
+    }
+    .att-calendar-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--walnut-deep);
+      margin-bottom: 12px;
+    }
+    .att-months {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .att-month {
+      flex: 1;
+      min-width: 200px;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .att-month-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--walnut);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .att-month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+    .att-day-header {
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--muted);
+      opacity: 0.6;
+      padding: 2px 0;
+    }
+    .att-day {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      color: var(--muted);
+      background: transparent;
+    }
+    .att-day.has-class {
+      font-weight: 700;
+    }
+    .att-day.present {
+      background: var(--present-bg);
+      color: var(--present);
+      border: 1px solid rgba(47,122,84,0.2);
+    }
+    .att-day.absent {
+      background: var(--absent-bg);
+      color: var(--absent);
+      border: 1px solid rgba(196,74,46,0.2);
+    }
+    .att-day.cancelled {
+      background: var(--cancelled-bg);
+      color: var(--cancelled);
+      border: 1px solid rgba(138,122,106,0.15);
+    }
+    .att-day.rescheduled {
+      background: var(--rescheduled-bg);
+      color: var(--rescheduled);
+      border: 1px solid rgba(184,134,11,0.2);
+    }
+
+    .att-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .att-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+    .att-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+    .att-legend-dot.present-dot { background: var(--present); }
+    .att-legend-dot.absent-dot { background: var(--absent); }
+    .att-legend-dot.cancelled-dot { background: var(--cancelled); }
+    .att-legend-dot.rescheduled-dot { background: var(--rescheduled); }
+
+    /* ── Sessions table ── */
+    .att-table-section {
+      margin-bottom: 32px;
+    }
+    .att-table-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--walnut-deep);
+      margin-bottom: 12px;
+    }
+    .att-table-wrap {
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .att-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .att-table thead {
+      background: var(--walnut-deep);
+      color: #fff;
+    }
+    .att-table th {
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .att-table tbody tr {
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      transition: background 0.15s;
+    }
+    .att-table tbody tr:nth-child(even) {
+      background: rgba(245,234,216,0.3);
+    }
+    .att-table tbody tr:hover {
+      background: rgba(196,134,46,0.06);
+    }
+    .att-table td {
+      padding: 12px 16px;
+      vertical-align: top;
+    }
+    .att-table .date-cell {
+      font-weight: 600;
+      white-space: nowrap;
+      color: var(--walnut);
+    }
+    .att-table .topic-cell {
+      color: var(--ink);
+    }
+    .att-table .duration-cell {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .att-table .notes-cell {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    /* Status pill */
+    .status-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .status-pill.present {
+      background: var(--present-bg);
+      color: var(--present);
+      border: 1px solid rgba(47,122,84,0.2);
+    }
+    .status-pill.absent {
+      background: var(--absent-bg);
+      color: var(--absent);
+      border: 1px solid rgba(196,74,46,0.2);
+    }
+    .status-pill.cancelled {
+      background: var(--cancelled-bg);
+      color: var(--cancelled);
+      border: 1px solid rgba(138,122,106,0.15);
+    }
+    .status-pill.rescheduled {
+      background: var(--rescheduled-bg);
+      color: var(--rescheduled);
+      border: 1px solid rgba(184,134,11,0.2);
+    }
+
+    /* ── Footer ── */
+    .att-foot {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+    .att-foot a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .att-stats {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .att-month { min-width: 100%; }
+      .att-table-wrap { overflow-x: auto; }
+      .att-table { min-width: 560px; }
+    }
+    @media (max-width: 420px) {
+      .att-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in {
+      animation: fadeUp 0.6s cubic-bezier(.22,.61,.36,1) forwards;
+    }
+    .delay-1 { animation-delay: 0.08s; }
+    .delay-2 { animation-delay: 0.16s; }
+    .delay-3 { animation-delay: 0.24s; }
+    .delay-4 { animation-delay: 0.32s; }
+  </style>
+</head>
+<body>
+
+  <div class="att-header">
+    <a class="att-brand" href="../">
+      <img src="../favicon-192.png" alt="PawnPilots" />
+      <span>PawnPilots<small>Academy</small></span>
+    </a>
+    <span class="att-header-label">Attendance</span>
+  </div>
+
+  <!-- Loading state -->
+  <div class="att-loading" id="loadingState">
+    <div class="att-spinner"></div>
+    <p>Loading attendance data…</p>
+  </div>
+
+  <!-- Error state -->
+  <div class="att-error" id="errorState" style="display: none;">
+    <div class="att-error-icon">♟</div>
+    <h2 id="errorTitle">Student not found</h2>
+    <p id="errorMsg">This attendance link doesn't seem to be valid. Please check the URL you received.</p>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="att-dashboard" id="dashboard">
+    <div class="att-container">
+
+      <!-- Student header -->
+      <div class="att-student animate-in">
+        <h1 class="att-student-name" id="studentName"></h1>
+        <p class="att-student-sub">Attendance record · PawnPilots Academy</p>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="att-stats animate-in delay-1" id="statsBar">
+        <div class="att-stat">
+          <div class="att-stat-num" id="statTotal">–</div>
+          <div class="att-stat-label">Total</div>
+        </div>
+        <div class="att-stat">
+          <div class="att-stat-num" id="statPresent" style="color: var(--present);">–</div>
+          <div class="att-stat-label">Present</div>
+        </div>
+        <div class="att-stat">
+          <div class="att-stat-num" id="statAbsent" style="color: var(--absent);">–</div>
+          <div class="att-stat-label">Absent</div>
+        </div>
+        <div class="att-stat">
+          <div class="att-stat-num" id="statCancelled" style="color: var(--cancelled);">–</div>
+          <div class="att-stat-label">Cancelled</div>
+        </div>
+        <div class="att-stat">
+          <div class="att-stat-num rate" id="statRate">–</div>
+          <div class="att-stat-label">Rate</div>
+        </div>
+      </div>
+
+      <!-- Attendance rate bar -->
+      <div class="att-rate-bar animate-in delay-2" id="rateBar">
+        <div class="att-rate-header">
+          <span>Attendance rate</span>
+          <strong id="ratePercent">0%</strong>
+        </div>
+        <div class="att-rate-track">
+          <div class="att-rate-fill" id="rateFill"></div>
+        </div>
+      </div>
+
+      <!-- Calendar heatmap -->
+      <div class="att-calendar animate-in delay-3" id="calendarSection">
+        <h3 class="att-calendar-title">Session calendar</h3>
+        <div class="att-months" id="calendarGrid"></div>
+        <div class="att-legend">
+          <span class="att-legend-item"><span class="att-legend-dot present-dot"></span> Present</span>
+          <span class="att-legend-item"><span class="att-legend-dot absent-dot"></span> Absent</span>
+          <span class="att-legend-item"><span class="att-legend-dot cancelled-dot"></span> Cancelled</span>
+          <span class="att-legend-item"><span class="att-legend-dot rescheduled-dot"></span> Rescheduled</span>
+        </div>
+      </div>
+
+      <!-- Sessions table -->
+      <div class="att-table-section animate-in delay-4" id="tableSection">
+        <h3 class="att-table-title">All sessions</h3>
+        <div class="att-table-wrap">
+          <table class="att-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Topic</th>
+                <th>Duration</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="att-foot">
+    <a href="../">pawnpilots.com</a> · Attendance tracker
+  </div>
+
+  <script>
+  (function() {
+    // ── Config ──
+    var SHEET_ID = "16Wivt3E2C_HFZ4q6P0a-bJB3oRvSSxoFILyBFvlyZHo";
+    var CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/export?format=csv";
+
+    var params = new URLSearchParams(window.location.search);
+    var token = params.get("t");
+
+    var loadingEl = document.getElementById("loadingState");
+    var errorEl = document.getElementById("errorState");
+    var dashEl = document.getElementById("dashboard");
+
+    if (!token) {
+      showError("No attendance link", "This page needs a valid attendance link. Please use the link your coach shared with you.");
+      return;
+    }
+
+    // Fetch CSV directly from Google Sheets
+    fetch(CSV_URL)
+      .then(function(res) {
+        if (!res.ok) throw { userError: true, title: "Data unavailable", msg: "Could not load the attendance sheet. Please try again later." };
+        return res.text();
+      })
+      .then(function(csv) {
+        var data = processCSV(csv, token);
+        if (!data) {
+          showError("Student not found", "This attendance link doesn't match any student. Please check with your coach.");
+          return;
+        }
+        renderDashboard(data);
+      })
+      .catch(function(err) {
+        if (err.userError) {
+          showError(err.title, err.msg);
+        } else {
+          showError("Connection error", "Could not reach Google Sheets. Please check your internet connection and try again.");
+        }
+      });
+
+    // ── CSV parsing (runs in browser) ──
+
+    function parseCSVLine(line) {
+      var fields = [];
+      var current = "";
+      var inQuotes = false;
+      for (var i = 0; i < line.length; i++) {
+        var ch = line[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (i + 1 < line.length && line[i + 1] === '"') { current += '"'; i++; }
+            else { inQuotes = false; }
+          } else { current += ch; }
+        } else {
+          if (ch === '"') { inQuotes = true; }
+          else if (ch === ',') { fields.push(current.trim()); current = ""; }
+          else { current += ch; }
+        }
+      }
+      fields.push(current.trim());
+      return fields;
+    }
+
+    function cleanStatus(raw) {
+      // Strip emojis and extra whitespace: "Present 🟢" → "present"
+      return (raw || "").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}]/gu, "").trim().toLowerCase();
+    }
+
+    function normalizeDate(raw) {
+      if (!raw) return "";
+      raw = raw.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw; // Already ISO
+      var parts = raw.split("/");
+      if (parts.length === 3) {
+        // Google Sheets exports as D/M/YYYY based on locale
+        var d = parts[0].padStart(2, "0");
+        var m = parts[1].padStart(2, "0");
+        var y = parts[2].length === 2 ? "20" + parts[2] : parts[2];
+        return y + "-" + m + "-" + d;
+      }
+      return raw;
+    }
+
+    function processCSV(csvText, token) {
+      var lines = csvText.split(/\r?\n/).filter(function(l) { return l.trim(); });
+      if (lines.length < 2) return null;
+
+      var headers = parseCSVLine(lines[0]).map(function(h) {
+        return h.toLowerCase().replace(/\s+/g, "_");
+      });
+
+      var tokenLower = token.toLowerCase();
+      var records = [];
+      var studentName = "";
+
+      for (var i = 1; i < lines.length; i++) {
+        var fields = parseCSVLine(lines[i]);
+        var row = {};
+        for (var j = 0; j < headers.length; j++) {
+          row[headers[j]] = fields[j] || "";
+        }
+        if ((row.token || "").toLowerCase() === tokenLower) {
+          if (!studentName) studentName = row.student_name || row.name || "Student";
+          var status = cleanStatus(row.status);
+          records.push({
+            date: normalizeDate(row.date),
+            status: status.charAt(0).toUpperCase() + status.slice(1),
+            topic: row.topic || "",
+            duration: row.duration || "",
+            notes: row.notes || ""
+          });
+        }
+      }
+
+      if (records.length === 0) return null;
+
+      // Sort by date descending
+      records.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+
+      // Compute stats
+      var total = records.length;
+      var present = 0, absent = 0, cancelled = 0, rescheduled = 0;
+      records.forEach(function(r) {
+        var s = r.status.toLowerCase();
+        if (s === "present") present++;
+        else if (s === "absent") absent++;
+        else if (s === "cancelled") cancelled++;
+        else if (s === "rescheduled") rescheduled++;
+      });
+      var scheduled = present + absent;
+      var rate = scheduled > 0 ? Math.round((present / scheduled) * 100) : 0;
+
+      return {
+        student: studentName,
+        token: token,
+        records: records,
+        stats: { total: total, present: present, absent: absent, cancelled: cancelled, rescheduled: rescheduled, rate: rate }
+      };
+    }
+
+    // ── UI helpers ──
+
+    function showError(title, msg) {
+      loadingEl.style.display = "none";
+      document.getElementById("errorTitle").textContent = title;
+      document.getElementById("errorMsg").textContent = msg;
+      errorEl.style.display = "block";
+    }
+
+    function renderDashboard(data) {
+      loadingEl.style.display = "none";
+
+      document.getElementById("studentName").textContent = data.student + "'s Attendance";
+      document.title = data.student + " — Attendance · PawnPilots";
+
+      var s = data.stats;
+      document.getElementById("statTotal").textContent = s.total;
+      document.getElementById("statPresent").textContent = s.present;
+      document.getElementById("statAbsent").textContent = s.absent;
+      document.getElementById("statCancelled").textContent = s.cancelled + (s.rescheduled > 0 ? " + " + s.rescheduled : "");
+      document.getElementById("statRate").textContent = s.rate + "%";
+
+      document.getElementById("ratePercent").textContent = s.rate + "%";
+      setTimeout(function() {
+        document.getElementById("rateFill").style.width = s.rate + "%";
+      }, 200);
+
+      renderCalendar(data.records);
+      renderTable(data.records);
+      dashEl.classList.add("visible");
+    }
+
+    function renderCalendar(records) {
+      var monthMap = {};
+      records.forEach(function(r) {
+        if (!r.date) return;
+        var d = new Date(r.date);
+        if (isNaN(d)) return;
+        var key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+        if (!monthMap[key]) monthMap[key] = {};
+        monthMap[key][d.getDate()] = r.status.toLowerCase();
+      });
+
+      var months = Object.keys(monthMap).sort();
+      var grid = document.getElementById("calendarGrid");
+      grid.innerHTML = "";
+
+      var dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+      var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+      months.forEach(function(key) {
+        var parts = key.split("-");
+        var year = parseInt(parts[0]);
+        var month = parseInt(parts[1]) - 1;
+        var daysInMonth = new Date(year, month + 1, 0).getDate();
+        var firstDay = new Date(year, month, 1).getDay();
+        var sessionsThisMonth = monthMap[key];
+
+        var monthEl = document.createElement("div");
+        monthEl.className = "att-month";
+
+        var label = document.createElement("div");
+        label.className = "att-month-label";
+        label.textContent = monthNames[month] + " " + year;
+        monthEl.appendChild(label);
+
+        var mgrid = document.createElement("div");
+        mgrid.className = "att-month-grid";
+
+        dayNames.forEach(function(dn) {
+          var dh = document.createElement("div");
+          dh.className = "att-day-header";
+          dh.textContent = dn;
+          mgrid.appendChild(dh);
+        });
+
+        for (var e = 0; e < firstDay; e++) {
+          var empty = document.createElement("div");
+          empty.className = "att-day";
+          mgrid.appendChild(empty);
+        }
+
+        for (var d = 1; d <= daysInMonth; d++) {
+          var cell = document.createElement("div");
+          cell.className = "att-day";
+          cell.textContent = d;
+          if (sessionsThisMonth[d]) {
+            cell.classList.add("has-class", sessionsThisMonth[d]);
+          }
+          mgrid.appendChild(cell);
+        }
+
+        monthEl.appendChild(mgrid);
+        grid.appendChild(monthEl);
+      });
+    }
+
+    function renderTable(records) {
+      var tbody = document.getElementById("sessionsBody");
+      tbody.innerHTML = "";
+
+      if (records.length === 0) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = '<td colspan="5" style="text-align: center; padding: 32px; color: var(--muted);">No sessions recorded yet.</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+
+      records.forEach(function(r) {
+        var tr = document.createElement("tr");
+        var statusClass = (r.status || "").toLowerCase().replace(/\s+/g, "");
+        var dateStr = r.date;
+        try {
+          var d = new Date(r.date);
+          if (!isNaN(d)) {
+            dateStr = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+          }
+        } catch (e) {}
+
+        tr.innerHTML =
+          '<td class="date-cell">' + escapeHtml(dateStr) + '</td>' +
+          '<td><span class="status-pill ' + escapeHtml(statusClass) + '">' + escapeHtml(r.status) + '</span></td>' +
+          '<td class="topic-cell">' + escapeHtml(r.topic || "—") + '</td>' +
+          '<td class="duration-cell">' + escapeHtml(r.duration || "—") + '</td>' +
+          '<td class="notes-cell">' + escapeHtml(r.notes || "—") + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement("div");
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+  })();
+  </script>
+</body>
+</html>
