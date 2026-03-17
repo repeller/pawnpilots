@@ -188,6 +188,16 @@
       font-size: 1.4rem;
       font-weight: 700;
       color: var(--gold);
+      display: flex;
+      flex-direction: column;
+    }
+    .rm-price-orig {
+      font-size: 0.75em;
+      text-decoration: line-through;
+      color: var(--muted);
+      opacity: 0.6;
+      font-weight: 500;
+      margin-bottom: -4px;
     }
 
     .rm-level-card {
@@ -286,11 +296,22 @@
       font-size: 2rem;
       font-weight: 800;
       color: var(--gold);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .rm-bundle-price-orig {
+      font-size: 0.5em;
+      text-decoration: line-through;
+      color: var(--muted);
+      opacity: 0.6;
+      font-weight: 500;
+      margin-bottom: -6px;
     }
     .rm-bundle .rm-bundle-detail {
       font-size: 0.82rem;
       color: var(--muted);
-      margin-top: 2px;
+      margin-top: 4px;
     }
     .rm-bundle .rm-bundle-save {
       display: inline-block;
@@ -393,7 +414,10 @@
       <div class="rm-level-meta">
         <h2>Beginner Programme</h2>
         <p class="rm-meta-line">5 months &middot; 10 topics</p>
-        <p class="rm-price">$599</p>
+        <div class="rm-price">
+          <span class="rm-price-orig"></span>
+          <span class="rm-price-val"></span>
+        </div>
       </div>
       <div class="rm-level-card">
         <h3>What they'll learn</h3>
@@ -417,7 +441,10 @@
       <div class="rm-level-meta">
         <h2>Elementary Programme</h2>
         <p class="rm-meta-line">5 months &middot; 10 topics</p>
-        <p class="rm-price">$599</p>
+        <div class="rm-price">
+          <span class="rm-price-orig"></span>
+          <span class="rm-price-val"></span>
+        </div>
       </div>
       <div class="rm-level-card">
         <h3>What they'll learn</h3>
@@ -441,7 +468,10 @@
       <div class="rm-level-meta">
         <h2>Intermediate Programme</h2>
         <p class="rm-meta-line">5 months &middot; 10 topics</p>
-        <p class="rm-price">$629</p>
+        <div class="rm-price">
+          <span class="rm-price-orig"></span>
+          <span class="rm-price-val"></span>
+        </div>
       </div>
       <div class="rm-level-card">
         <h3>What they'll learn</h3>
@@ -465,7 +495,10 @@
       <div class="rm-level-meta">
         <h2>Advanced Programme</h2>
         <p class="rm-meta-line">5 months &middot; 10 topics</p>
-        <p class="rm-price">$679</p>
+        <div class="rm-price">
+          <span class="rm-price-orig"></span>
+          <span class="rm-price-val"></span>
+        </div>
       </div>
       <div class="rm-level-card">
         <h3>What they'll learn</h3>
@@ -489,7 +522,9 @@
       <div class="rm-level-meta">
         <h2>Elite Programme</h2>
         <p class="rm-meta-line">Ongoing &middot; Personalised</p>
-        <p class="rm-price">$319/mo</p>
+        <div class="rm-price">
+          <span class="rm-price-val"></span>
+        </div>
       </div>
       <div class="rm-level-card">
         <h3>Fully personalised coaching</h3>
@@ -533,21 +568,30 @@
     <div class="rm-bundle-grid">
       <div class="rm-bundle">
         <h3>Levels 1 + 2</h3>
-        <div class="rm-bundle-price">$1,099</div>
+        <div class="rm-bundle-price">
+          <span class="rm-bundle-price-orig"></span>
+          <span class="rm-bundle-price-val"></span>
+        </div>
         <p class="rm-bundle-detail">10 months &middot; 20 topics</p>
-        <span class="rm-bundle-save">Save $99</span>
+        <span class="rm-bundle-save"></span>
       </div>
       <div class="rm-bundle best">
         <h3>Levels 1 + 2 + 3</h3>
-        <div class="rm-bundle-price">$1,599</div>
+        <div class="rm-bundle-price">
+          <span class="rm-bundle-price-orig"></span>
+          <span class="rm-bundle-price-val"></span>
+        </div>
         <p class="rm-bundle-detail">15 months &middot; 30 topics</p>
-        <span class="rm-bundle-save">Save $228</span>
+        <span class="rm-bundle-save"></span>
       </div>
       <div class="rm-bundle">
         <h3>Full Pathway 1–4</h3>
-        <div class="rm-bundle-price">$2,199</div>
+        <div class="rm-bundle-price">
+          <span class="rm-bundle-price-orig"></span>
+          <span class="rm-bundle-price-val"></span>
+        </div>
         <p class="rm-bundle-detail">20 months &middot; 40 topics</p>
-        <span class="rm-bundle-save">Save $307</span>
+        <span class="rm-bundle-save"></span>
       </div>
     </div>
   </div>
@@ -559,36 +603,81 @@
   <script>
   (function() {
     var pricing = {
-      usd: { s: '$',  l1: '599', l2: '599', l3: '629', l4: '679', elite: '319', b12: '1,099', b123: '1,599', b1234: '2,199', s12: '99', s123: '228', s1234: '307' },
-      gbp: { s: '\u00a3', l1: '549', l2: '549', l3: '579', l4: '619', elite: '289', b12: '999', b123: '1,479', b1234: '1,999', s12: '99', s123: '198', s1234: '297' },
-      aud: { s: 'A$', l1: '749', l2: '749', l3: '789', l4: '849', elite: '399', b12: '1,399', b123: '1,999', b1234: '2,799', s12: '99', s123: '288', s1234: '337' },
-      nzd: { s: 'NZ$', l1: '799', l2: '799', l3: '849', l4: '899', elite: '419', b12: '1,499', b123: '2,149', b1234: '2,999', s12: '99', s123: '298', s1234: '347' }
+      usd: { 
+        s: '$', 
+        l1: '549', l2: '549', l3: '599', l4: '649', elite: '319',
+        l1_o: '799', l2_o: '799', l3_o: '849', l4_o: '899',
+        b12: '999', b123: '1,399', b1234: '1,899',
+        b12_o: '1,598', b123_o: '2,247', b1234_o: '2,946',
+        s12: '599', s123: '848', s1234: '1,047'
+      },
+      gbp: { 
+        s: '\u00a3', 
+        l1: '449', l2: '449', l3: '499', l4: '549', elite: '289',
+        l1_o: '649', l2_o: '649', l3_o: '699', l4_o: '749',
+        b12: '799', b123: '1,149', b1234: '1,599',
+        b12_o: '1,298', b123_o: '1,847', b1234_o: '2,446',
+        s12: '499', s123: '698', s1234: '847'
+      },
+      aud: { 
+        s: 'A$', 
+        l1: '649', l2: '649', l3: '699', l4: '749', elite: '399',
+        l1_o: '949', l2_o: '949', l3_o: '999', l4_o: '1,049',
+        b12: '1,199', b123: '1,699', b1234: '2,299',
+        b12_o: '1,898', b123_o: '2,647', b1234_o: '3,446',
+        s12: '699', s123: '948', s1234: '1,147'
+      },
+      nzd: { 
+        s: 'NZ$', 
+        l1: '699', l2: '699', l3: '749', l4: '799', elite: '419',
+        l1_o: '999', l2_o: '999', l3_o: '1,049', l4_o: '1,099',
+        b12: '1,299', b123: '1,849', b1234: '2,499',
+        b12_o: '1,998', b123_o: '2,797', b1234_o: '3,646',
+        s12: '699', s123: '948', s1234: '1,147'
+      }
     };
 
-    var prices = document.querySelectorAll('.rm-price');
-    var bundles = document.querySelectorAll('.rm-bundle-price');
+    var pOrigs = document.querySelectorAll('.rm-price-orig');
+    var pVals = document.querySelectorAll('.rm-price-val');
+    var bOrigs = document.querySelectorAll('.rm-bundle-price-orig');
+    var bVals = document.querySelectorAll('.rm-bundle-price-val');
     var saves = document.querySelectorAll('.rm-bundle-save');
     var btns = document.querySelectorAll('.rm-currency button');
 
     function apply(c) {
       var p = pricing[c];
       // Level prices
-      prices[0].textContent = p.s + p.l1;
-      prices[1].textContent = p.s + p.l2;
-      prices[2].textContent = p.s + p.l3;
-      prices[3].textContent = p.s + p.l4;
-      prices[4].textContent = p.s + p.elite + '/mo';
+      pOrigs[0].textContent = p.s + p.l1_o;
+      pOrigs[1].textContent = p.s + p.l2_o;
+      pOrigs[2].textContent = p.s + p.l3_o;
+      pOrigs[3].textContent = p.s + p.l4_o;
+
+      pVals[0].textContent = p.s + p.l1;
+      pVals[1].textContent = p.s + p.l2;
+      pVals[2].textContent = p.s + p.l3;
+      pVals[3].textContent = p.s + p.l4;
+      pVals[4].textContent = p.s + p.elite + '/mo';
+
       // Bundle prices
-      bundles[0].textContent = p.s + p.b12;
-      bundles[1].textContent = p.s + p.b123;
-      bundles[2].textContent = p.s + p.b1234;
+      bOrigs[0].textContent = p.s + p.b12_o;
+      bOrigs[1].textContent = p.s + p.b123_o;
+      bOrigs[2].textContent = p.s + p.b1234_o;
+
+      bVals[0].textContent = p.s + p.b12;
+      bVals[1].textContent = p.s + p.b123;
+      bVals[2].textContent = p.s + p.b1234;
+
       // Savings
       saves[0].textContent = 'Save ' + p.s + p.s12;
       saves[1].textContent = 'Save ' + p.s + p.s123;
       saves[2].textContent = 'Save ' + p.s + p.s1234;
+
       // Active button
       btns.forEach(function(b) { b.classList.toggle('active', b.dataset.c === c); });
     }
+
+    // Initialize
+    apply('usd');
 
     // Click handlers
     btns.forEach(function(b) {
