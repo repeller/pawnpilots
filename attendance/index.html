@@ -569,8 +569,8 @@
                 <th>Date</th>
                 <th>Status</th>
                 <th>Topic</th>
-                <th>Duration</th>
                 <th>Notes</th>
+                <th>Homework</th>
               </tr>
             </thead>
             <tbody id="sessionsBody"></tbody>
@@ -647,7 +647,6 @@
     // ── JSON parsing (runs in browser) ──
 
     function processJSON(response, targetToken) {
-      // JSONBin returns the actual data inside the 'record' property
       var db = response.record || response; 
       if (!db || !db.students) return null;
       
@@ -660,10 +659,9 @@
 
       // === Schedule-based: generate session dates from student's days array ===
       if (student.days && student.days.length > 0) {
-        // Generate dates for the last 6 months
         var today = new Date();
         var startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
-        var endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // End of current month
+        var endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
         for (var d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
           if (student.days.includes(d.getDay())) {
@@ -672,15 +670,18 @@
             var dd = String(d.getDate()).padStart(2, '0');
             var dateStr = yyyy + '-' + mm + '-' + dd;
             
-            var status = studentData[dateStr];
-            if (status) {
-              records.push({
-                date: dateStr,
-                status: status,
-                topic: "",
-                duration: "40 mins",
-                notes: ""
-              });
+            var valObj = studentData[dateStr];
+            if (valObj) {
+              var status = typeof valObj === 'string' ? valObj : valObj.status;
+              if (status) {
+                records.push({
+                  date: dateStr,
+                  status: status,
+                  topic: valObj.topic || "",
+                  notes: valObj.notes || "",
+                  hw: valObj.hw || ""
+                });
+              }
             }
           }
         }
@@ -688,26 +689,31 @@
       // === Fallback: old sessions-based format ===
       else if (db.sessions && db.sessions.length > 0) {
         (db.sessions || []).forEach(function(sess) {
-          var status = studentData[sess.id] || studentData[sess.date];
+          var valObj = studentData[sess.id] || studentData[sess.date];
+          if (!valObj) return;
+          var status = typeof valObj === 'string' ? valObj : valObj.status;
           if (!status) return;
           records.push({
             date: sess.date,
             status: status,
-            topic: sess.topic || "",
-            duration: "40 mins",
-            notes: ""
+            topic: valObj.topic || sess.topic || "",
+            notes: valObj.notes || "",
+            hw: valObj.hw || ""
           });
         });
       }
       // === Direct date keys (no schedule, no sessions) ===
       else {
         Object.keys(studentData).forEach(function(dateKey) {
+          var valObj = studentData[dateKey];
+          var status = typeof valObj === 'string' ? valObj : valObj.status;
+          if (!status) return;
           records.push({
             date: dateKey,
-            status: studentData[dateKey],
-            topic: "",
-            duration: "40 mins",
-            notes: ""
+            status: status,
+            topic: valObj.topic || "",
+            notes: valObj.notes || "",
+            hw: valObj.hw || ""
           });
         });
       }
@@ -835,6 +841,24 @@
       });
     }
 
+    function parseMarkdown(text) {
+      if (!text) return "";
+      var html = escapeHtml(text);
+      // Images: ![alt](url)
+      html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%; border-radius:6px; margin-top:6px; display:block;">');
+      // Markdown links: [text](url)
+      html = html.replace(/(^|[^!])\[(.*?)\]\((.*?)\)/g, '$1<a href="$3" target="_blank" style="color:var(--gold); text-decoration:underline;">$2</a>');
+      // Raw URLs: http://... (not inside a tag or quotes)
+      html = html.replace(/(^|\s)(https?:\/\/[^\s]+)/g, function(match, p1, p2) {
+        // Simple check to avoid replacing inside existing links from previous step
+        if (p1.includes('=')) return match; 
+        return p1 + '<a href="' + p2 + '" target="_blank" style="color:var(--gold); text-decoration:underline; word-break:break-all;">' + p2 + '</a>';
+      });
+      // Newlines to <br>
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+
     function renderTable(records) {
       var tbody = document.getElementById("sessionsBody");
       tbody.innerHTML = "";
@@ -857,12 +881,15 @@
           }
         } catch (e) {}
 
+        var parsedNotes = parseMarkdown(r.notes);
+        var parsedHw = parseMarkdown(r.hw);
+
         tr.innerHTML =
           '<td class="date-cell">' + escapeHtml(dateStr) + '</td>' +
           '<td><span class="status-pill ' + escapeHtml(statusClass) + '">' + escapeHtml(r.status) + '</span></td>' +
-          '<td class="topic-cell">' + escapeHtml(r.topic || "—") + '</td>' +
-          '<td class="duration-cell">' + escapeHtml(r.duration || "—") + '</td>' +
-          '<td class="notes-cell">' + escapeHtml(r.notes || "—") + '</td>';
+          '<td class="topic-cell"><strong>' + escapeHtml(r.topic || "—") + '</strong></td>' +
+          '<td class="notes-cell" style="line-height:1.5; font-size:0.9rem;">' + (parsedNotes || "—") + '</td>' +
+          '<td class="notes-cell" style="line-height:1.5; font-size:0.9rem;">' + (parsedHw || "—") + '</td>';
         tbody.appendChild(tr);
       });
     }

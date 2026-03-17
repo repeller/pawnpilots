@@ -93,6 +93,11 @@
       outline: none;
     }
     .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+    .form-group textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      font-family: 'Outfit'; font-size: 0.95rem; background: #fff; outline: none; resize: vertical;
+    }
+    .form-group textarea:focus { border-color: var(--gold); }
 
     /* Buttons */
     .btn {
@@ -221,6 +226,11 @@
     }
     .session-cell select.status-p { color: var(--felt); background: rgba(47,122,84,0.08); border-color: rgba(47,122,84,0.25); }
     .session-cell select.status-a { color: var(--red); background: rgba(196,74,46,0.08); border-color: rgba(196,74,46,0.25); }
+
+    .edit-session-btn {
+      background: none; border: none; cursor: pointer; font-size: 0.8rem; opacity: 0.5; transition: opacity 0.2s;
+    }
+    .edit-session-btn:hover { opacity: 1; }
 
     .no-sessions { padding: 20px; text-align: center; color: var(--muted); font-size: 0.9rem; }
 
@@ -361,6 +371,29 @@
     </div>
   </div>
 
+  <!-- SESSION DETAILS MODAL -->
+  <div class="modal-overlay" id="sessionModal">
+    <div class="modal">
+      <h2 id="sessionModalTitle" style="font-family: 'Outfit'; font-size: 1.1rem; color: var(--muted); margin-bottom: 20px;">Session Details</h2>
+      <div class="form-group">
+        <label>Session Topic (Optional)</label>
+        <input type="text" id="sessTopic" placeholder="e.g. Sicilian Defense" />
+      </div>
+      <div class="form-group">
+        <label>Notes & Links (Markdown supported)</label>
+        <textarea id="sessNotes" rows="3" placeholder="Notes for the student..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Homework (Markdown supported)</label>
+        <textarea id="sessHw" rows="3" placeholder="Homework assignment..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeSessionModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSessionDetails()">Save Details</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast">Saved!</div>
 
   <script>
@@ -392,6 +425,10 @@
     let apiKey = localStorage.getItem('att_apiKey');
     let viewYear, viewMonth; // 0-indexed month
     let editingStudentIndex = -1; // -1 = adding new
+    
+    // Session Edit State
+    let currentSessionStu = null;
+    let currentSessionDate = null;
 
     // =====================================================
     // INIT
@@ -518,10 +555,20 @@
         const token = sel.dataset.stu;
         const date = sel.dataset.date;
         if (!db.attendance[token]) db.attendance[token] = {};
+        
+        let existing = db.attendance[token][date] || {};
+        if (typeof existing === 'string') existing = { status: existing };
+        
         if (sel.value) {
-          db.attendance[token][date] = sel.value;
+          existing.status = sel.value;
+          db.attendance[token][date] = existing;
         } else {
-          delete db.attendance[token][date];
+          existing.status = '';
+          if (!existing.notes && !existing.hw && !existing.topic) {
+             delete db.attendance[token][date];
+          } else {
+             db.attendance[token][date] = existing;
+          }
         }
       });
     }
@@ -596,7 +643,12 @@
             const d = new Date(dateStr + 'T12:00:00');
             const dayName = DAY_NAMES[d.getDay()];
             const dayNum = d.getDate();
-            const val = (db.attendance[stu.token] && db.attendance[stu.token][dateStr]) || '';
+            
+            let valObj = (db.attendance[stu.token] && db.attendance[stu.token][dateStr]) || '';
+            let val = '';
+            if (typeof valObj === 'string') val = valObj;
+            else if (valObj && valObj.status) val = valObj.status;
+            
             let cls = val === 'Present' ? 'status-p' : val === 'Absent' ? 'status-a' : '';
             
             // Check if date is in the future
@@ -607,8 +659,9 @@
 
             html += `
               <div class="session-cell">
-                <div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
                   <span class="session-date">${dayName} ${dayNum}</span>
+                  <button class="edit-session-btn" title="Add Notes or Homework" onclick="openSessionModal('${stu.token}', '${dateStr}', '${stu.name.replace(/'/g, "\\'")}', '${dayName} ${dayNum}')">✏️</button>
                 </div>
                 <select class="att-select ${cls}" data-stu="${stu.token}" data-date="${dateStr}" onchange="updateColor(this)" ${isFuture ? 'style="opacity:0.4"' : ''}>
                   <option value="" ${val===''?'selected':''}>—</option>
@@ -782,7 +835,50 @@
     }
 
     // =====================================================
-    // TOAST
+    // SESSION DETAILS MODAL
+    // =====================================================
+    function openSessionModal(token, dateStr, stuName, displayDate) {
+      currentSessionStu = token;
+      currentSessionDate = dateStr;
+      document.getElementById('sessionModalTitle').innerHTML = `<strong>${stuName}</strong> — ${displayDate}`;
+      
+      let existing = (db.attendance[token] && db.attendance[token][dateStr]) || {};
+      if (typeof existing === 'string') existing = { status: existing };
+      
+      document.getElementById('sessTopic').value = existing.topic || '';
+      document.getElementById('sessNotes').value = existing.notes || '';
+      document.getElementById('sessHw').value = existing.hw || '';
+      
+      document.getElementById('sessionModal').classList.add('show');
+    }
+
+    function closeSessionModal() {
+      document.getElementById('sessionModal').classList.remove('show');
+    }
+
+    function saveSessionDetails() {
+      if (!currentSessionStu || !currentSessionDate) return;
+      
+      const topic = document.getElementById('sessTopic').value.trim();
+      const notes = document.getElementById('sessNotes').value.trim();
+      const hw = document.getElementById('sessHw').value.trim();
+      
+      // Update DOM to sync properly using the current dropdown value
+      const sel = document.querySelector(`select[data-stu="${currentSessionStu}"][data-date="${currentSessionDate}"]`);
+      const status = sel ? sel.value : '';
+
+      if (!db.attendance[currentSessionStu]) db.attendance[currentSessionStu] = {};
+      db.attendance[currentSessionStu][currentSessionDate] = { status, topic, notes, hw };
+      
+      closeSessionModal();
+      showToast('Session notes saved locally!');
+      
+      // Optional: Auto-save immediately if desired, but user can press Save Database.
+      // saveData();
+    }
+
+    // =====================================================
+    // TOAST & CLIPBOARD
     // =====================================================
     function copyLink(token, btn) {
       const url = 'https://pawnpilots.com/attendance/?t=' + token;
