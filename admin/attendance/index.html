@@ -342,6 +342,11 @@
         <label>Student Name</label>
         <input type="text" id="modalName" placeholder="e.g. Shashank" />
       </div>
+      <div class="form-group" id="tokenGroup" style="display:none;">
+        <label>Link ID (token)</label>
+        <input type="text" id="modalToken" placeholder="e.g. ianna-73mh" style="font-family:monospace;" />
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Changing this will update the student's attendance link.</div>
+      </div>
       <div class="form-group">
         <label>Session Days</label>
         <div class="day-toggles" id="modalDays">
@@ -769,6 +774,8 @@
       document.getElementById('modalTitle').textContent = 'Add Student';
       document.getElementById('modalSaveBtn').textContent = 'Add Student';
       document.getElementById('modalName').value = '';
+      document.getElementById('modalToken').value = '';
+      document.getElementById('tokenGroup').style.display = 'none';
       document.getElementById('modalTime').value = '16:00';
       document.getElementById('modalTimezone').value = 'America/New_York';
       // Clear all day toggles
@@ -782,6 +789,8 @@
       document.getElementById('modalTitle').textContent = 'Edit ' + stu.name;
       document.getElementById('modalSaveBtn').textContent = 'Save Changes';
       document.getElementById('modalName').value = stu.name;
+      document.getElementById('modalToken').value = stu.token;
+      document.getElementById('tokenGroup').style.display = 'block';
       document.getElementById('modalTime').value = stu.time || '16:00';
       document.getElementById('modalTimezone').value = stu.timezone || 'America/New_York';
       // Set day toggles
@@ -814,7 +823,19 @@
       const timezone = document.getElementById('modalTimezone').value;
 
       if (editingStudentIndex >= 0) {
-        // Editing existing
+        // Editing existing — check if token changed
+        const oldToken = db.students[editingStudentIndex].token;
+        const newToken = document.getElementById('modalToken').value.trim() || oldToken;
+        
+        if (newToken !== oldToken) {
+          // Migrate attendance data from old token to new token
+          if (db.attendance[oldToken]) {
+            db.attendance[newToken] = db.attendance[oldToken];
+            delete db.attendance[oldToken];
+          }
+        }
+        
+        db.students[editingStudentIndex].token = newToken;
         db.students[editingStudentIndex].name = name;
         db.students[editingStudentIndex].days = days;
         db.students[editingStudentIndex].time = time;
