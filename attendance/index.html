@@ -718,8 +718,6 @@
         });
       }
 
-      if (records.length === 0) return null;
-
       // Sort by date descending
       records.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
 
@@ -777,6 +775,14 @@
     }
 
     function renderCalendar(records) {
+      var grid = document.getElementById("calendarGrid");
+      grid.innerHTML = "";
+
+      if (!records || records.length === 0) {
+        grid.innerHTML = "<div style='padding: 16px; color: var(--muted);'>No sessions scheduled yet.</div>";
+        return;
+      }
+
       var monthMap = {};
       records.forEach(function(r) {
         if (!r.date) return;
@@ -788,8 +794,6 @@
       });
 
       var months = Object.keys(monthMap).sort();
-      var grid = document.getElementById("calendarGrid");
-      grid.innerHTML = "";
 
       var dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
       var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
