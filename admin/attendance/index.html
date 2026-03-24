@@ -721,8 +721,9 @@
       // time24 = "HH:MM"
       try {
         const [h, m] = time24.split(':').map(Number);
-        // Use a fixed reference date to convert
-        const ref = new Date(2026, 0, 15, h, m, 0);
+        // Use current date to reflect active daylight saving time
+        const now = new Date();
+        const ref = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
         
         // Get UTC offset for both timezones
         const fromStr = ref.toLocaleString('en-US', { timeZone: fromTZ });
