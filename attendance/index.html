@@ -479,57 +479,109 @@
     .delay-4 { animation-delay: 0.32s; }
 
     /* ── Training Plan Accordion ── */
-    .att-plan { margin-bottom: 32px; }
+    .att-plan { margin-bottom: 40px; position:relative; z-index:10; }
     .att-plan-title {
-      font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 700;
-      color: var(--walnut-deep); margin-bottom: 12px;
+      font-family: 'Baloo 2', sans-serif; font-size: 1.3rem; font-weight: 800;
+      color: var(--walnut-deep); margin-bottom: 20px;
     }
     .plan-month {
       border: 1px solid var(--line); border-radius: var(--radius-sm);
-      margin-bottom: 8px; overflow: hidden; background: var(--paper);
-      box-shadow: var(--shadow);
+      margin-bottom: 12px; overflow: hidden; background: #fff;
+      box-shadow: 0 4px 15px rgba(50,28,14,0.03);
+      transition: box-shadow 0.2s;
     }
+    .plan-month:hover { box-shadow: var(--shadow); }
+    
     .plan-month-header {
-      padding: 14px 20px; cursor: pointer; display: flex;
+      padding: 16px 24px; cursor: pointer; display: flex;
       justify-content: space-between; align-items: center;
-      font-weight: 700; color: var(--walnut-deep); font-size: 0.95rem;
-      user-select: none; transition: background 0.15s;
+      background: var(--paper);
+      font-weight: 700; color: var(--walnut-deep); font-size: 1.1rem;
+      user-select: none; transition: background 0.2s;
     }
     .plan-month-header:hover { background: var(--warm); }
     .plan-month-header .plan-arrow {
-      font-size: 0.7rem; transition: transform 0.2s; color: var(--muted);
+      font-size: 0.8rem; transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%; background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
-    .plan-month.open .plan-arrow { transform: rotate(90deg); }
-    .plan-month-body {
-      display: none; padding: 0 20px 16px;
+    .plan-month.open .plan-arrow { transform: rotate(90deg); background: var(--gold); color: #fff; }
+    
+    .plan-month-wrap {
+      display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .plan-month.open .plan-month-body { display: block; }
+    .plan-month.open .plan-month-wrap { grid-template-rows: 1fr; }
+    .plan-month-body { overflow: hidden; }
+    .plan-month-inner { padding: 0 24px 24px; }
+    
+    .plan-goal {
+      font-size: 0.9rem; color: var(--muted); margin: 16px 0 20px; font-style: italic;
+      padding-left: 14px; border-left: 3px solid var(--gold); line-height: 1.5;
+    }
+    
+    /* Timeline */
+    .plan-timeline {
+      position: relative; padding-left: 20px; margin-top: 10px;
+    }
+    .plan-timeline::before {
+      content: ''; position: absolute; left: 0; top: 18px; bottom: 18px;
+      width: 2px; background: rgba(196,134,46,0.2); border-radius: 2px;
+    }
     .plan-week {
-      padding: 10px 0; border-bottom: 1px solid var(--line);
+      position: relative; padding: 16px; margin-bottom: 16px;
+      background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s;
     }
-    .plan-week:last-child { border-bottom: none; }
+    .plan-week:last-child { margin-bottom: 0; }
+    .plan-week:hover {
+      transform: translateY(-2px); box-shadow: 0 8px 24px rgba(50,28,14,0.06); border-color: rgba(196,134,46,0.3);
+    }
+    .plan-week::before {
+      content: ''; position: absolute; left: -25px; top: 22px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; border: 3px solid var(--gold);
+      box-shadow: 0 0 0 4px #fff; z-index: 2; transition: background 0.3s, border-color 0.3s;
+    }
+    .plan-week.done::before { background: var(--felt); border-color: var(--felt); }
+    
     .plan-week-label {
-      font-size: 0.78rem; font-weight: 700; color: var(--gold);
-      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+      font-size: 0.75rem; font-weight: 800; color: var(--gold);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
     }
+    .plan-week.done .plan-week-label { color: var(--felt); }
+    
     .plan-week-topic {
-      font-size: 0.92rem; font-weight: 600; color: var(--ink); margin-bottom: 4px;
+      font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; font-family: 'Baloo 2', sans-serif;
     }
     .plan-week-detail {
-      font-size: 0.82rem; color: var(--muted); line-height: 1.5;
+      font-size: 0.88rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px;
     }
-    .plan-week-detail a {
-      color: var(--gold); text-decoration: underline;
-      word-break: break-all;
+    
+    /* Link Buttons */
+    .plan-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .plan-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      background: rgba(196,134,46,0.08); color: var(--gold);
+      text-decoration: none; font-size: 0.78rem; font-weight: 700;
+      transition: all 0.2s; border: 1px solid rgba(196,134,46,0.15);
     }
+    .plan-btn:hover {
+      background: var(--gold); color: #fff; transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(196,134,46,0.25); border-color: var(--gold);
+    }
+    .plan-btn svg { width: 14px; height: 14px; opacity: 0.8; }
+    
     .plan-progress {
-      height: 6px; border-radius: 6px; background: rgba(47,122,84,0.12);
-      margin-top: 6px; overflow: hidden;
+      height: 8px; border-radius: 8px; background: rgba(47,122,84,0.1);
+      margin-top: 24px; overflow: hidden;
     }
     .plan-progress-fill {
-      height: 100%; border-radius: 6px;
-      background: linear-gradient(90deg, var(--felt), #4aad7a);
-      transition: width 0.8s ease;
+      height: 100%; border-radius: 8px;
+      background: linear-gradient(90deg, #4aad7a, var(--felt));
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+      transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
     }
   </style>
 </head>
@@ -980,6 +1032,9 @@
 
       var html = '';
       var weekCounter = 0;
+      var linkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
+      var checkIcon = '<svg style="width:12px;height:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
       plan.forEach(function(month, mi) {
         var isFirst = mi === 0;
         html += '<div class="plan-month' + (isFirst ? ' open' : '') + '">';
@@ -987,35 +1042,43 @@
         html += '<span>' + escapeHtml(month.title || ('Month ' + (mi + 1))) + '</span>';
         html += '<span class="plan-arrow">&#9654;</span>';
         html += '</div>';
-        html += '<div class="plan-month-body">';
+        
+        // Wrap for CSS grid animation
+        html += '<div class="plan-month-wrap"><div class="plan-month-body"><div class="plan-month-inner">';
+        
         if (month.goal) {
-          html += '<div style="font-size:0.82rem;color:var(--muted);margin-bottom:10px;font-style:italic;">' + escapeHtml(month.goal) + '</div>';
+          html += '<div class="plan-goal">' + escapeHtml(month.goal) + '</div>';
         }
+        
+        html += '<div class="plan-timeline">';
         (month.weeks || []).forEach(function(week, wi) {
           weekCounter++;
           var done = weekCounter <= weeksCompleted;
-          html += '<div class="plan-week">';
-          html += '<div class="plan-week-label">' + (done ? '&#10003; ' : '') + escapeHtml(week.label || ('Week ' + (wi + 1))) + '</div>';
+          html += '<div class="plan-week' + (done ? ' done' : '') + '">';
+          html += '<div class="plan-week-label">' + (done ? checkIcon + ' ' : '') + escapeHtml(week.label || ('Week ' + (wi + 1))) + '</div>';
           html += '<div class="plan-week-topic">' + escapeHtml(week.topic || '') + '</div>';
           if (week.detail) {
-            html += '<div class="plan-week-detail">' + linkify(escapeHtml(week.detail)) + '</div>';
+             html += '<div class="plan-week-detail">' + escapeHtml(week.detail) + '</div>'; // Removed linkify so we don't accidentally make ugly text links here if they put raw urls, they should use the links field. Though we can keep linkify if they put external links in comments.
           }
           if (week.links && week.links.length > 0) {
-            html += '<div class="plan-week-detail" style="margin-top:4px;">';
+            html += '<div class="plan-links">';
             week.links.forEach(function(lnk) {
-              html += '<a href="' + escapeHtml(lnk.url) + '" target="_blank">' + escapeHtml(lnk.text || lnk.url) + '</a><br>';
+              html += '<a class="plan-btn" href="' + escapeHtml(lnk.url) + '" target="_blank">' + linkIcon + ' ' + escapeHtml(lnk.text || 'Study Link') + '</a>';
             });
             html += '</div>';
           }
           html += '</div>';
         });
+        html += '</div>'; // End timeline
+
         // Progress bar
         var monthWeeks = month.weeks ? month.weeks.length : 0;
         var monthStart = weekCounter - monthWeeks;
         var monthDone = Math.max(0, Math.min(monthWeeks, weeksCompleted - monthStart));
         var pct = monthWeeks > 0 ? Math.round((monthDone / monthWeeks) * 100) : 0;
         html += '<div class="plan-progress"><div class="plan-progress-fill" style="width:' + pct + '%"></div></div>';
-        html += '</div></div>';
+        
+        html += '</div></div></div></div>'; // End inner, body, wrap, month
       });
       container.innerHTML = html;
     }
