@@ -315,6 +315,7 @@
       }
 
       function fmt(n) { return '$' + n.toLocaleString('en-US'); }
+      function moStr() { return '<small style="font-size:0.45em;font-weight:600;margin-left:2px;color:var(--muted)">/mo</small>'; }
 
       function renderPrices() {
         var disc = getDiscount();
@@ -322,37 +323,34 @@
         var l4mo  = Math.round(L4_MO  * (1 - disc));
 
         // L1
-        var l1base = L13_MO * 5;
         var l1total = l13mo * 5;
         document.getElementById('price-l1').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(l1base) + '</span> ' : '') + fmt(l1total);
-        document.getElementById('price-l1-sub').textContent =
-          '5 months \u00b7 ' + fmt(l13mo) + '/mo' + (disc > 0 ? ' \u00b7 Save ' + Math.round(disc*100) + '%' : '');
+          (disc > 0 ? '<span class="price-orig">' + fmt(L13_MO) + '</span> ' : '') + fmt(l13mo) + moStr();
+        document.getElementById('price-l1-sub').innerHTML =
+          '5 months &middot; Total: ' + fmt(l1total) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
 
         // L1+L2
-        var l12base = L13_MO * 10;
         var l12total = l13mo * 10;
         document.getElementById('price-l12').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(l12base) + '</span> ' : '') + fmt(l12total);
-        document.getElementById('price-l12-sub').textContent =
-          '10 months \u00b7 ' + fmt(l13mo) + '/mo' + (disc > 0 ? ' \u00b7 Save ' + Math.round(disc*100) + '%' : '');
+          (disc > 0 ? '<span class="price-orig">' + fmt(L13_MO) + '</span> ' : '') + fmt(l13mo) + moStr();
+        document.getElementById('price-l12-sub').innerHTML =
+          '10 months &middot; Total: ' + fmt(l12total) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
 
         // L1+L2+L3
-        var l123base = L13_MO * 15;
         var l123total = l13mo * 15;
         document.getElementById('price-l123').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(l123base) + '</span> ' : '') + fmt(l123total);
-        document.getElementById('price-l123-sub').textContent =
-          '15 months \u00b7 ' + fmt(l13mo) + '/mo' + (disc > 0 ? ' \u00b7 Save ' + Math.round(disc*100) + '%' : '');
+          (disc > 0 ? '<span class="price-orig">' + fmt(L13_MO) + '</span> ' : '') + fmt(l13mo) + moStr();
+        document.getElementById('price-l123-sub').innerHTML =
+          '15 months &middot; Total: ' + fmt(l123total) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
 
         // Full 1-4
-        var fullBase = L13_MO * 15 + L4_MO * 5;
         var fullTotal = l13mo * 15 + l4mo * 5;
-        document.getElementById('price-l1234').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(fullBase) + '</span> ' : '') + fmt(fullTotal);
+        var avgMoBase = Math.round((L13_MO * 15 + L4_MO * 5) / 20);
         var avgMo = Math.round(fullTotal / 20);
-        document.getElementById('price-l1234-sub').textContent =
-          '20 months \u00b7 ~' + fmt(avgMo) + '/mo' + (disc > 0 ? ' \u00b7 Save ' + Math.round(disc*100) + '%' : '');
+        document.getElementById('price-l1234').innerHTML =
+          (disc > 0 ? '<span class="price-orig">' + fmt(avgMoBase) + '</span> ' : '') + fmt(avgMo) + moStr();
+        document.getElementById('price-l1234-sub').innerHTML =
+          '20 months &middot; Total: ' + fmt(fullTotal) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
       }
 
       renderPrices();
