@@ -948,12 +948,12 @@
       const stu = db.students[idx];
       planEditData = JSON.parse(JSON.stringify(stu.plan || []));
       document.getElementById('planModalTitle').textContent = 'Curriculum Plan — ' + stu.name;
-      document.getElementById('planModal').classList.add('active');
+      document.getElementById('planModal').classList.add('show');
       renderPlanEditor();
     }
 
     function closePlanModal() {
-      document.getElementById('planModal').classList.remove('active');
+      document.getElementById('planModal').classList.remove('show');
     }
 
     function renderPlanEditor() {
