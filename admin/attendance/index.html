@@ -399,6 +399,34 @@
     </div>
   </div>
 
+  <!-- PLAN EDITOR MODAL -->
+  <div class="modal-overlay" id="planModal">
+    <div class="modal" style="max-width:680px; max-height:85vh; overflow-y:auto;">
+      <h2 id="planModalTitle" style="font-family:'Outfit';font-size:1.1rem;color:var(--muted);margin-bottom:16px;">Curriculum Plan</h2>
+      <div id="planEditorContent"></div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-secondary btn-sm" onclick="addPlanMonth()">+ Add Month</button>
+      </div>
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn btn-secondary" onclick="closePlanModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="savePlan()">Save Plan</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .plan-editor-month { border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:12px; background:#fafafa; }
+    .plan-editor-month h4 { margin:0 0 8px; font-size:0.92rem; display:flex; justify-content:space-between; align-items:center; }
+    .plan-editor-week { background:#fff; border:1px solid #eee; border-radius:6px; padding:12px; margin-bottom:8px; }
+    .plan-editor-week label { font-size:0.78rem; font-weight:600; color:var(--muted); display:block; margin-bottom:2px; }
+    .plan-editor-week input, .plan-editor-week textarea { width:100%; padding:6px 8px; border:1px solid #ddd; border-radius:4px; font-size:0.85rem; margin-bottom:6px; font-family:'Outfit',sans-serif; }
+    .plan-editor-week textarea { resize:vertical; min-height:40px; }
+    .plan-link-row { display:flex; gap:6px; margin-bottom:4px; }
+    .plan-link-row input { flex:1; }
+    .plan-link-row button { flex-shrink:0; background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:0.75rem; }
+    .btn-xs { font-size:0.72rem; padding:3px 8px; }
+  </style>
+
   <div id="toast" class="toast">Saved!</div>
 
   <script>
@@ -640,6 +668,7 @@
                 </div>
               </div>
               <div class="student-card-actions">
+                <button class="btn btn-secondary btn-sm" onclick="openPlanEditor(${idx})" title="Curriculum Plan">📋 Plan</button>
                 <button class="btn btn-secondary btn-sm" onclick="editStudent(${idx})">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteStudent(${idx})">×</button>
               </div>
@@ -906,6 +935,105 @@
       
       // Auto-save to JSONBin
       saveData();
+    }
+
+    // =====================================================
+    // PLAN EDITOR
+    // =====================================================
+    let planEditIdx = -1;
+    let planEditData = [];
+
+    function openPlanEditor(idx) {
+      planEditIdx = idx;
+      const stu = db.students[idx];
+      planEditData = JSON.parse(JSON.stringify(stu.plan || []));
+      document.getElementById('planModalTitle').textContent = 'Curriculum Plan — ' + stu.name;
+      document.getElementById('planModal').classList.add('active');
+      renderPlanEditor();
+    }
+
+    function closePlanModal() {
+      document.getElementById('planModal').classList.remove('active');
+    }
+
+    function renderPlanEditor() {
+      const container = document.getElementById('planEditorContent');
+      if (planEditData.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No plan yet. Click "+ Add Month" to start building one.</p>';
+        return;
+      }
+      let html = '';
+      planEditData.forEach((month, mi) => {
+        html += `<div class="plan-editor-month">`;
+        html += `<h4><span>Month ${mi+1}</span><button class="btn btn-danger btn-xs" onclick="removePlanMonth(${mi})">Remove</button></h4>`;
+        html += `<div style="margin-bottom:8px;"><label style="font-size:0.78rem;font-weight:600;color:var(--muted);">Title</label><input value="${escHtml(month.title||'')}" onchange="planEditData[${mi}].title=this.value" placeholder="e.g. The King's Indian & Kingside Storm"/></div>`;
+        html += `<div style="margin-bottom:8px;"><label style="font-size:0.78rem;font-weight:600;color:var(--muted);">Goal</label><input value="${escHtml(month.goal||'')}" onchange="planEditData[${mi}].goal=this.value" placeholder="Month goal description"/></div>`;
+        (month.weeks || []).forEach((week, wi) => {
+          html += `<div class="plan-editor-week">`;
+          html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">`;
+          html += `<label style="margin:0;">Week ${wi+1}</label>`;
+          html += `<button class="btn btn-danger btn-xs" onclick="removePlanWeek(${mi},${wi})">×</button></div>`;
+          html += `<label>Label</label><input value="${escHtml(week.label||'')}" onchange="planEditData[${mi}].weeks[${wi}].label=this.value" placeholder="e.g. Week 1 (Classes 1-2)"/>`;
+          html += `<label>Topic</label><input value="${escHtml(week.topic||'')}" onchange="planEditData[${mi}].weeks[${wi}].topic=this.value" placeholder="Main topic"/>`;
+          html += `<label>Detail / Homework</label><textarea onchange="planEditData[${mi}].weeks[${wi}].detail=this.value" placeholder="Details, homework description...">${escHtml(week.detail||'')}</textarea>`;
+          // Links
+          html += `<label>Study Links</label>`;
+          (week.links || []).forEach((lnk, li) => {
+            html += `<div class="plan-link-row">`;
+            html += `<input value="${escHtml(lnk.text||'')}" onchange="planEditData[${mi}].weeks[${wi}].links[${li}].text=this.value" placeholder="Link label"/>`;
+            html += `<input value="${escHtml(lnk.url||'')}" onchange="planEditData[${mi}].weeks[${wi}].links[${li}].url=this.value" placeholder="https://lichess.org/..."/>`;
+            html += `<button onclick="removePlanLink(${mi},${wi},${li})">×</button></div>`;
+          });
+          html += `<button class="btn btn-secondary btn-xs" style="margin-top:4px;" onclick="addPlanLink(${mi},${wi})">+ Link</button>`;
+          html += `</div>`;
+        });
+        html += `<button class="btn btn-secondary btn-xs" style="margin-top:6px;" onclick="addPlanWeek(${mi})">+ Add Week</button>`;
+        html += `</div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function addPlanMonth() {
+      planEditData.push({ title: 'Month ' + (planEditData.length + 1), goal: '', weeks: [{ label: 'Week 1', topic: '', detail: '', links: [] }] });
+      renderPlanEditor();
+    }
+
+    function removePlanMonth(mi) {
+      planEditData.splice(mi, 1);
+      renderPlanEditor();
+    }
+
+    function addPlanWeek(mi) {
+      if (!planEditData[mi].weeks) planEditData[mi].weeks = [];
+      planEditData[mi].weeks.push({ label: 'Week ' + (planEditData[mi].weeks.length + 1), topic: '', detail: '', links: [] });
+      renderPlanEditor();
+    }
+
+    function removePlanWeek(mi, wi) {
+      planEditData[mi].weeks.splice(wi, 1);
+      renderPlanEditor();
+    }
+
+    function addPlanLink(mi, wi) {
+      if (!planEditData[mi].weeks[wi].links) planEditData[mi].weeks[wi].links = [];
+      planEditData[mi].weeks[wi].links.push({ text: '', url: '' });
+      renderPlanEditor();
+    }
+
+    function removePlanLink(mi, wi, li) {
+      planEditData[mi].weeks[wi].links.splice(li, 1);
+      renderPlanEditor();
+    }
+
+    function savePlan() {
+      db.students[planEditIdx].plan = planEditData;
+      closePlanModal();
+      showToast('Plan saved locally!');
+      saveData();
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     // =====================================================
