@@ -183,22 +183,9 @@
     <!-- ── Payment Plans ────────────────────── -->
     <section id="pricing" class="section pricing-section">
       <div class="section-head-center" data-reveal>
-        <p class="kicker">Flexible payment</p>
-        <h2>Pay your way. Save when you commit.</h2>
+        <p class="kicker">Pricing Plans</p>
+        <h2>Commit to mastery.</h2>
         <p class="sub-center">All plans include free trial, daily puzzles, homework, and progress reports.</p>
-      </div>
-
-      <!-- Payment toggle -->
-      <div class="plan-toggle-wrap" data-reveal>
-        <div class="plan-toggle" id="planToggle">
-          <button class="plan-toggle-btn active" data-plan="monthly" onclick="switchPlan('monthly')">Monthly</button>
-          <button class="plan-toggle-btn" data-plan="quarterly" onclick="switchPlan('quarterly')">
-            Quarterly <span class="plan-save-tag">Save 10%</span>
-          </button>
-          <button class="plan-toggle-btn" data-plan="full" onclick="switchPlan('full')">
-            Full Plan <span class="plan-save-tag">Save 15%</span>
-          </button>
-        </div>
       </div>
 
       <div class="pricing-grid quad" data-reveal>
@@ -258,36 +245,17 @@
     </section>
 
     <style>
-      .plan-toggle-wrap { text-align: center; margin-bottom: 28px; }
-      .plan-toggle {
-        display: inline-flex; gap: 0; border-radius: 12px; overflow: hidden;
-        border: 2px solid var(--line); background: var(--paper);
-        box-shadow: var(--shadow);
-      }
-      .plan-toggle-btn {
-        padding: 12px 24px; border: none; background: transparent;
-        font-family: 'Outfit', sans-serif; font-size: 0.92rem; font-weight: 600;
-        cursor: pointer; color: var(--muted); transition: all 0.25s;
-        position: relative;
-      }
-      .plan-toggle-btn.active {
-        background: var(--gold); color: #fff;
-      }
-      .plan-toggle-btn:hover:not(.active) { background: var(--warm); color: var(--walnut-deep); }
       .plan-save-tag {
         display: inline-block; font-size: 0.68rem; font-weight: 700;
         background: var(--felt); color: #fff; padding: 2px 6px; border-radius: 4px;
         margin-left: 4px; vertical-align: middle; letter-spacing: 0.3px;
       }
-      .plan-toggle-btn.active .plan-save-tag { background: rgba(255,255,255,0.25); }
       .pricing-grid.quad {
         display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
       }
       @media (max-width: 900px) { .pricing-grid.quad { grid-template-columns: repeat(2, 1fr); } }
       @media (max-width: 520px) {
         .pricing-grid.quad { grid-template-columns: 1fr; }
-        .plan-toggle { flex-direction: column; }
-        .plan-toggle-btn { padding: 10px 20px; }
       }
     </style>
 
@@ -297,60 +265,33 @@
       var L13_MO = 99;   // sale price per month
       var L4_MO  = 129;  // standard price per month
 
-      var currentPlan = 'monthly';
-
-      function switchPlan(plan) {
-        currentPlan = plan;
-        document.querySelectorAll('.plan-toggle-btn').forEach(function(b) {
-          b.classList.toggle('active', b.dataset.plan === plan);
-        });
-        renderPrices();
-      }
-      window.switchPlan = switchPlan;
-
-      function getDiscount() {
-        if (currentPlan === 'quarterly') return 0.10;
-        if (currentPlan === 'full') return 0.15;
-        return 0;
-      }
-
       function fmt(n) { return '$' + n.toLocaleString('en-US'); }
       function moStr() { return '<small style="font-size:0.45em;font-weight:600;margin-left:2px;color:var(--muted)">/mo</small>'; }
 
       function renderPrices() {
-        var disc = getDiscount();
-        var l13mo = Math.round(L13_MO * (1 - disc));
-        var l4mo  = Math.round(L4_MO  * (1 - disc));
+        var l13mo = L13_MO;
+        var l4mo  = L4_MO;
 
         // L1
         var l1total = l13mo * 5;
-        document.getElementById('price-l1').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(L13_MO) + '</span> ' : '') + fmt(l13mo) + moStr();
-        document.getElementById('price-l1-sub').innerHTML =
-          '5 months &middot; Total: ' + fmt(l1total) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
+        document.getElementById('price-l1').innerHTML = fmt(l13mo) + moStr();
+        document.getElementById('price-l1-sub').innerHTML = '5 months &middot; Total: ' + fmt(l1total);
 
         // L1+L2
         var l12total = l13mo * 10;
-        document.getElementById('price-l12').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(L13_MO) + '</span> ' : '') + fmt(l13mo) + moStr();
-        document.getElementById('price-l12-sub').innerHTML =
-          '10 months &middot; Total: ' + fmt(l12total) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
+        document.getElementById('price-l12').innerHTML = fmt(l13mo) + moStr();
+        document.getElementById('price-l12-sub').innerHTML = '10 months &middot; Total: ' + fmt(l12total);
 
         // L1+L2+L3
         var l123total = l13mo * 15;
-        document.getElementById('price-l123').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(L13_MO) + '</span> ' : '') + fmt(l13mo) + moStr();
-        document.getElementById('price-l123-sub').innerHTML =
-          '15 months &middot; Total: ' + fmt(l123total) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
+        document.getElementById('price-l123').innerHTML = fmt(l13mo) + moStr();
+        document.getElementById('price-l123-sub').innerHTML = '15 months &middot; Total: ' + fmt(l123total);
 
         // Full 1-4
         var fullTotal = l13mo * 15 + l4mo * 5;
-        var avgMoBase = Math.round((L13_MO * 15 + L4_MO * 5) / 20);
         var avgMo = Math.round(fullTotal / 20);
-        document.getElementById('price-l1234').innerHTML =
-          (disc > 0 ? '<span class="price-orig">' + fmt(avgMoBase) + '</span> ' : '') + fmt(avgMo) + moStr();
-        document.getElementById('price-l1234-sub').innerHTML =
-          '20 months &middot; Total: ' + fmt(fullTotal) + (disc > 0 ? ' <br><strong style="color:var(--wa-green)">Save ' + Math.round(disc*100) + '%</strong>' : '');
+        document.getElementById('price-l1234').innerHTML = fmt(avgMo) + moStr();
+        document.getElementById('price-l1234-sub').innerHTML = '20 months &middot; Total: ' + fmt(fullTotal);
       }
 
       renderPrices();
