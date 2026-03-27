@@ -884,7 +884,8 @@
 
       renderCalendar(data.records);
       renderTable(data.records);
-      if (data.plan && data.plan.length > 0) renderPlan(data.plan, data.records);
+      var planMonths = data.plan && data.plan.months ? data.plan.months : (Array.isArray(data.plan) ? data.plan : []);
+      if (planMonths.length > 0) renderPlan(data.plan, planMonths, data.records);
       dashEl.classList.add("visible");
     }
 
@@ -1018,48 +1019,124 @@
       return div.innerHTML;
     }
 
-    function renderPlan(plan, records) {
+    function renderPlan(planObj, months, records) {
       var section = document.getElementById('planSection');
       var container = document.getElementById('planAccordion');
-      if (!plan || plan.length === 0) return;
+      if (!months || months.length === 0) return;
       section.style.display = 'block';
 
-      // Count completed sessions
-      var totalWeeks = 0;
-      plan.forEach(function(m) { totalWeeks += (m.weeks ? m.weeks.length : 0); });
-      var completedSessions = records ? records.length : 0;
-      var weeksCompleted = Math.min(Math.ceil(completedSessions / 2), totalWeeks);
+      // Update title if plan object has one
+      if (planObj && planObj.title) {
+        document.querySelector('.att-plan-title').textContent = planObj.title;
+      }
 
-      var html = '';
-      var weekCounter = 0;
+      // Count totals from done flags
+      var totalClasses = 0, doneClasses = 0, totalHw = 0, doneHw = 0;
+      var currentMonthIdx = -1, currentWeekIdx = -1, foundCurrent = false;
+      months.forEach(function(m, mi) {
+        (m.weeks || []).forEach(function(w, wi) {
+          var weekAllDone = true;
+          (w.classes || []).forEach(function(c) { totalClasses++; if (c.done) doneClasses++; else weekAllDone = false; });
+          // Support old format (single topic per week, no classes array)
+          if (!w.classes && w.topic) { totalClasses++; }
+          if (w.homework) { totalHw++; if (w.homework.done) doneHw++; else weekAllDone = false; }
+          if (!foundCurrent && !weekAllDone) { currentMonthIdx = mi; currentWeekIdx = wi; foundCurrent = true; }
+        });
+      });
+      if (!foundCurrent && totalClasses > 0) { currentMonthIdx = months.length - 1; currentWeekIdx = (months[months.length-1].weeks||[]).length - 1; }
+
+      var overallPct = totalClasses > 0 ? Math.round((doneClasses / totalClasses) * 100) : 0;
+
+      var checkIcon = '<svg style="width:12px;height:12px;vertical-align:middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
       var linkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
-      var checkIcon = '<svg style="width:12px;height:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
-      plan.forEach(function(month, mi) {
-        var isFirst = mi === 0;
-        html += '<div class="plan-month' + (isFirst ? ' open' : '') + '">';
+      // Overall progress summary
+      var html = '';
+      html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">';
+      html += '<span style="font-size:0.85rem; font-weight:600; color:var(--muted);">' + doneClasses + ' of ' + totalClasses + ' classes done';
+      if (totalHw > 0) html += ' · ' + doneHw + '/' + totalHw + ' homework';
+      html += '</span>';
+      html += '<span style="font-family:Baloo 2,sans-serif; font-size:1.2rem; font-weight:700; color:var(--felt);">' + overallPct + '%</span>';
+      html += '</div>';
+      html += '<div class="plan-progress" style="margin-bottom:24px;"><div class="plan-progress-fill" style="width:' + overallPct + '%"></div></div>';
+
+      var classNum = 0;
+      months.forEach(function(month, mi) {
+        var isCurrent = mi === currentMonthIdx;
+        var isPast = mi < currentMonthIdx || (doneClasses === totalClasses && totalClasses > 0);
+        var monthDone = 0, monthTotal = 0;
+        (month.weeks || []).forEach(function(w) {
+          (w.classes || []).forEach(function(c) { monthTotal++; if (c.done) monthDone++; });
+          if (!w.classes && w.topic) monthTotal++;
+        });
+        var monthPct = monthTotal > 0 ? Math.round((monthDone / monthTotal) * 100) : 0;
+
+        var openClass = isCurrent ? ' open' : (isPast && mi === 0 ? ' open' : '');
+        html += '<div class="plan-month' + openClass + '">';
         html += '<div class="plan-month-header" onclick="this.parentElement.classList.toggle(\'open\')">';
-        html += '<span>' + escapeHtml(month.title || ('Month ' + (mi + 1))) + '</span>';
+        html += '<span style="display:flex;align-items:center;gap:8px;">';
+        html += escapeHtml(month.name || month.title || ('Month ' + (mi + 1)));
+        if (isPast) html += ' <span style="font-size:0.7rem;background:var(--present-bg);color:var(--present);padding:2px 8px;border-radius:10px;font-weight:700;">Done</span>';
+        else if (isCurrent) html += ' <span style="font-size:0.7rem;background:rgba(196,134,46,0.1);color:var(--gold);padding:2px 8px;border-radius:10px;font-weight:700;">In Progress</span>';
+        html += '</span>';
+        html += '<span style="display:flex;align-items:center;gap:10px;">';
+        html += '<span style="font-size:0.78rem;color:var(--muted);font-weight:600;">' + monthDone + '/' + monthTotal + '</span>';
         html += '<span class="plan-arrow">&#9654;</span>';
+        html += '</span>';
         html += '</div>';
-        
-        // Wrap for CSS grid animation
+
         html += '<div class="plan-month-wrap"><div class="plan-month-body"><div class="plan-month-inner">';
-        
+
         if (month.goal) {
           html += '<div class="plan-goal">' + escapeHtml(month.goal) + '</div>';
         }
-        
+
         html += '<div class="plan-timeline">';
         (month.weeks || []).forEach(function(week, wi) {
-          weekCounter++;
-          var done = weekCounter <= weeksCompleted;
-          html += '<div class="plan-week' + (done ? ' done' : '') + '">';
-          html += '<div class="plan-week-label">' + (done ? checkIcon + ' ' : '') + escapeHtml(week.label || ('Week ' + (wi + 1))) + '</div>';
-          html += '<div class="plan-week-topic">' + escapeHtml(week.topic || '') + '</div>';
-          if (week.detail) {
-             html += '<div class="plan-week-detail">' + escapeHtml(week.detail) + '</div>'; // Removed linkify so we don't accidentally make ugly text links here if they put raw urls, they should use the links field. Though we can keep linkify if they put external links in comments.
+          var isCurrentWeek = isCurrent && wi === currentWeekIdx;
+          var weekDone = true;
+          (week.classes || []).forEach(function(c) { if (!c.done) weekDone = false; });
+          if (week.homework && !week.homework.done) weekDone = false;
+
+          html += '<div class="plan-week' + (weekDone ? ' done' : '') + '"' + (isCurrentWeek ? ' style="border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,134,46,0.15);"' : '') + '>';
+          html += '<div class="plan-week-label">';
+          if (weekDone) html += checkIcon + ' ';
+          else if (isCurrentWeek) html += '<span style="color:var(--gold);">&#9654; </span>';
+          html += escapeHtml(week.label || ('Week ' + (wi + 1)));
+          html += '</div>';
+
+          // New format: classes array
+          if (week.classes && week.classes.length > 0) {
+            week.classes.forEach(function(c) {
+              classNum++;
+              html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;">';
+              if (c.done) html += '<span style="color:var(--felt);font-size:0.85rem;margin-top:1px;">&#10003;</span>';
+              else html += '<span style="color:var(--muted);opacity:0.3;font-size:0.85rem;margin-top:1px;">&#9675;</span>';
+              html += '<span style="font-size:0.92rem;color:' + (c.done ? 'var(--ink)' : 'var(--muted)') + ';"><strong style="color:var(--muted);opacity:0.5;font-size:0.8rem;">' + classNum + '.</strong> ' + escapeHtml(c.topic) + '</span>';
+              html += '</div>';
+            });
           }
+          // Old format: single topic
+          else if (week.topic) {
+            html += '<div class="plan-week-topic">' + escapeHtml(week.topic) + '</div>';
+          }
+          if (week.detail) {
+            html += '<div class="plan-week-detail">' + escapeHtml(week.detail) + '</div>';
+          }
+
+          // Homework
+          if (week.homework) {
+            var hw = week.homework;
+            html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0 0;margin-top:6px;border-top:1px solid var(--line);">';
+            if (hw.done) html += '<span style="color:var(--felt);font-size:0.85rem;margin-top:1px;">&#10003;</span>';
+            else html += '<span style="color:var(--gold);font-size:0.85rem;margin-top:1px;">&#9998;</span>';
+            html += '<div>';
+            html += '<span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:' + (hw.done ? 'var(--felt)' : 'var(--gold)') + ';">Homework' + (hw.done ? ' — Done' : '') + '</span>';
+            html += '<p style="font-size:0.85rem;color:var(--muted);margin-top:2px;">' + escapeHtml(hw.text) + '</p>';
+            html += '</div></div>';
+          }
+
+          // Links (old format support)
           if (week.links && week.links.length > 0) {
             html += '<div class="plan-links">';
             week.links.forEach(function(lnk) {
@@ -1069,16 +1146,12 @@
           }
           html += '</div>';
         });
-        html += '</div>'; // End timeline
+        html += '</div>';
 
-        // Progress bar
-        var monthWeeks = month.weeks ? month.weeks.length : 0;
-        var monthStart = weekCounter - monthWeeks;
-        var monthDone = Math.max(0, Math.min(monthWeeks, weeksCompleted - monthStart));
-        var pct = monthWeeks > 0 ? Math.round((monthDone / monthWeeks) * 100) : 0;
-        html += '<div class="plan-progress"><div class="plan-progress-fill" style="width:' + pct + '%"></div></div>';
-        
-        html += '</div></div></div></div>'; // End inner, body, wrap, month
+        // Month progress bar
+        html += '<div class="plan-progress"><div class="plan-progress-fill" style="width:' + monthPct + '%"></div></div>';
+
+        html += '</div></div></div></div>';
       });
       container.innerHTML = html;
     }
