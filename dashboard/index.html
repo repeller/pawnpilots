@@ -279,6 +279,7 @@ tailwind.config={
             <button onclick="showSolution()" id="pzSolution" class="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-high transition-colors plusJakartaSans">Solution</button>
             <button onclick="resetPuzzle()" class="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-high transition-colors plusJakartaSans">Reset</button>
             <button onclick="nextPuzzleInTheme()" id="pzNext" class="px-4 py-2.5 bg-secondary text-white rounded-xl font-bold text-xs hover:bg-felt-glow transition-colors plusJakartaSans">Next →</button>
+            <button onclick="backToThemes()" id="pzFinish" class="px-4 py-2.5 bg-gold text-white rounded-xl font-bold text-xs hover:bg-gold-glow transition-colors plusJakartaSans" style="display:none">Done — Back to Themes</button>
           </div>
           <!-- Dots -->
           <div class="flex gap-1.5 justify-center mt-3" id="puzzleDots"></div>
@@ -869,8 +870,10 @@ function setupBoard(fen,solution,triggerMove,puzzleData){
   startClock();startHintCountdown();
   // Update nav buttons
   var puzzles=getActivePuzzles();
+  var isLast=pz.puzzleIdx>=puzzles.length-1;
   document.getElementById('pzPrev').disabled=pz.puzzleIdx<=0;
-  document.getElementById('pzNext').disabled=pz.puzzleIdx>=puzzles.length-1;
+  document.getElementById('pzNext').style.display=isLast?'none':'';
+  document.getElementById('pzFinish').style.display=isLast?'':'none';
 }
 
 function getActivePuzzles(){
