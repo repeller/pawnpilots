@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Flight Deck — Pawn Pilots</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"/>
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png"/>
+<style>
+  .plusJakartaSans{font-family:'Plus Jakarta Sans',sans-serif}
+  .inter{font-family:'Inter',sans-serif}
+  .horizon-gradient{background:linear-gradient(135deg,#2e1b12 0%,#5a3925 100%)}
+  .board-b72b1d img{filter:drop-shadow(0 1px 3px rgba(0,0,0,.25))}
+  .puzzle-board-wrap .board-b72b1d{border-radius:8px;overflow:hidden}
+  @keyframes pulse-glow{0%,100%{box-shadow:0 0 0 0 rgba(196,134,46,.3)}50%{box-shadow:0 0 16px 4px rgba(196,134,46,.15)}}
+  .glow-pulse{animation:pulse-glow 2s ease infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .float-anim{animation:float 3s ease infinite}
+  @keyframes pop{0%{transform:scale(.7);opacity:0}50%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  .pop-in{animation:pop .4s ease forwards}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .shake-anim{animation:shake .4s ease}
+  @media(max-width:640px){#puzzleBoard{max-width:92vw;margin:0 auto} .puzzle-board-wrap .board-b72b1d{width:100%!important;height:auto!important}}
+  .hint-square{box-shadow:inset 0 0 0 4px rgba(196,134,46,0.7)!important;background:rgba(196,134,46,0.15)!important}
+  @keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .spin-slow{animation:spin-slow 1s linear infinite}
+</style>
+<script>
+tailwind.config={
+  theme:{extend:{
+    colors:{
+      "primary":"#2e1b12","primary-container":"#5a3925",
+      "secondary":"#2f7a54","secondary-container":"#c4862e",
+      "tertiary":"#201100","tertiary-container":"#3c2300","tertiary-fixed-dim":"#ffb95f",
+      "surface":"#fef9ee","surface-container":"#f2ede3","surface-container-high":"#ece8dd",
+      "surface-container-low":"#f8f3e8","surface-container-lowest":"#ffffff",
+      "on-surface":"#1d1c15","on-surface-variant":"#45464e",
+      "on-secondary-container":"#1d5e3c","on-primary":"#ffffff",
+      "outline-variant":"#c6c5d0","error":"#ba1a1a",
+      "felt":"#2f7a54","felt-glow":"#4aad7a","gold":"#c4862e","gold-glow":"#e8a840"
+    },
+    fontFamily:{"headline":["Plus Jakarta Sans"],"body":["Inter"],"label":["Inter"]}
+  }}
+}
+</script>
+</head>
+<body class="bg-surface text-on-surface inter selection:bg-secondary-container">
+
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 fixed top-0 z-50 bg-gradient-to-r from-[#2e1b12] to-[#5a3925] shadow-[0_32px_32px_rgba(29,28,21,0.06)]">
+  <a href="../" class="flex items-center gap-3">
+    <img src="../favicon-192.png" alt="PP" class="w-8 h-8 rounded-lg"/>
+    <span class="text-xl font-black text-[#fef9ee] tracking-tighter plusJakartaSans">Pawn Pilots</span>
+  </a>
+  <div class="hidden md:flex items-center gap-6">
+    <nav class="flex gap-4 text-sm plusJakartaSans font-bold">
+      <a class="text-[#c4862e]" href="#">Dashboard</a>
+      <a class="text-[#fef9ee]/70 hover:bg-white/10 px-2 py-1 rounded transition-colors" href="#" onclick="switchTab('plan');return false">Flight Plan</a>
+      <a class="text-[#fef9ee]/70 hover:bg-white/10 px-2 py-1 rounded transition-colors" href="#" onclick="switchTab('puzzles');return false">Puzzles</a>
+      <a class="text-[#fef9ee]/70 hover:bg-white/10 px-2 py-1 rounded transition-colors" href="#" onclick="switchTab('stats');return false">Stats</a>
+      <a class="text-[#fef9ee]/70 hover:bg-white/10 px-2 py-1 rounded transition-colors" href="#" onclick="switchTab('badges');return false">Medals</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-3" id="headerRight" style="display:none;">
+    <span class="material-symbols-outlined text-[#fef9ee]/70 hover:bg-white/10 p-2 rounded-full cursor-pointer transition-colors" style="font-variation-settings:'FILL' 1" onclick="switchTab('badges')">military_tech</span>
+    <div class="w-10 h-10 rounded-full border-2 border-[#c4862e] bg-gradient-to-br from-[#c4862e] to-[#2f7a54] flex items-center justify-center text-white font-black plusJakartaSans" id="headerAvatar">?</div>
+  </div>
+</header>
+
+<!-- Sidebar (Desktop) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 py-8 px-4 border-r border-[#2e1b12]/10 bg-[#fef9ee] z-40 mt-[72px]">
+  <div class="mb-10 px-2">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">rocket_launch</span>
+      <span class="text-lg font-bold text-[#2e1b12] plusJakartaSans">Flight Deck</span>
+    </div>
+    <div class="bg-surface-container-high rounded-lg p-3">
+      <p class="text-[10px] uppercase tracking-widest font-bold text-primary/60 inter">Current Rank</p>
+      <p class="text-sm font-bold text-primary plusJakartaSans" id="sideRank">Loading…</p>
+    </div>
+  </div>
+  <nav class="flex-grow space-y-1" id="sideNav">
+    <a class="side-link active flex items-center gap-3 px-4 py-3 text-[#2f7a54] font-bold border-r-4 border-[#2f7a54] bg-[#2f7a54]/5 transition-all" href="#" data-tab="recaps" onclick="switchTab('recaps');return false">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">grid_view</span>
+      <span class="plusJakartaSans font-bold uppercase tracking-widest text-xs">Dashboard</span>
+    </a>
+    <a class="side-link flex items-center gap-3 px-4 py-3 text-[#2e1b12]/60 hover:text-[#2f7a54] hover:bg-[#2f7a54]/5 transition-all" href="#" data-tab="plan" onclick="switchTab('plan');return false">
+      <span class="material-symbols-outlined">map</span>
+      <span class="plusJakartaSans font-bold uppercase tracking-widest text-xs">Flight Plan</span>
+    </a>
+    <a class="side-link flex items-center gap-3 px-4 py-3 text-[#2e1b12]/60 hover:text-[#2f7a54] hover:bg-[#2f7a54]/5 transition-all" href="#" data-tab="puzzles" onclick="switchTab('puzzles');return false">
+      <span class="material-symbols-outlined">rocket_launch</span>
+      <span class="plusJakartaSans font-bold uppercase tracking-widest text-xs">Puzzles</span>
+    </a>
+    <a class="side-link flex items-center gap-3 px-4 py-3 text-[#2e1b12]/60 hover:text-[#2f7a54] hover:bg-[#2f7a54]/5 transition-all" href="#" data-tab="stats" onclick="switchTab('stats');return false">
+      <span class="material-symbols-outlined">trending_up</span>
+      <span class="plusJakartaSans font-bold uppercase tracking-widest text-xs">Flight Status</span>
+    </a>
+    <a class="side-link flex items-center gap-3 px-4 py-3 text-[#2e1b12]/60 hover:text-[#2f7a54] hover:bg-[#2f7a54]/5 transition-all" href="#" data-tab="badges" onclick="switchTab('badges');return false">
+      <span class="material-symbols-outlined">military_tech</span>
+      <span class="plusJakartaSans font-bold uppercase tracking-widest text-xs">Medals</span>
+    </a>
+  </nav>
+  <button class="mt-auto horizon-gradient text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:scale-105 transition-transform" onclick="switchTab('puzzles')">
+    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">rocket</span>
+    <span class="plusJakartaSans uppercase tracking-widest text-xs">Start Puzzle</span>
+  </button>
+</aside>
+
+<!-- Loading -->
+<div id="loadingState" class="md:ml-64 pt-40 flex flex-col items-center justify-center min-h-screen">
+  <span class="material-symbols-outlined text-secondary text-5xl animate-spin mb-4">progress_activity</span>
+  <p class="text-on-surface-variant text-sm font-bold inter">Initializing Flight Deck…</p>
+</div>
+<!-- Error -->
+<div id="errorState" class="md:ml-64 pt-40 flex flex-col items-center justify-center min-h-screen" style="display:none">
+  <span class="material-symbols-outlined text-error text-5xl mb-4">error</span>
+  <h2 class="plusJakartaSans text-xl font-bold text-primary mb-2" id="errorTitle">Comms Lost</h2>
+  <p class="text-on-surface-variant text-sm" id="errorMsg">Could not establish connection.</p>
+</div>
+
+<!-- Main Content -->
+<main id="dashboard" class="md:ml-64 pt-24 px-6 pb-24 md:pb-12 min-h-screen" style="display:none">
+<div class="max-w-7xl mx-auto space-y-8">
+
+  <!-- ═══ Bento Status Header ═══ -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statusGrid">
+    <!-- XP Card -->
+    <div class="col-span-2 bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-secondary flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <span class="inter text-[10px] font-bold uppercase tracking-widest text-secondary">Active Status</span>
+          <h2 class="plusJakartaSans text-2xl font-extrabold text-primary" id="pilotRank">Cadet Pilot</h2>
+        </div>
+        <div class="bg-secondary-container/20 px-3 py-1 rounded-full text-secondary text-xs font-black" id="pilotLevel">LVL 1</div>
+      </div>
+      <div>
+        <div class="flex justify-between text-xs font-bold mb-2 inter uppercase tracking-widest">
+          <span>XP Progress</span>
+          <span id="xpNumbers">0 / 200</span>
+        </div>
+        <div class="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+          <div class="h-full bg-secondary-container shadow-[0_0_12px_rgba(196,134,46,0.5)] transition-all duration-1000" id="xpBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Streak -->
+    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-tertiary-fixed-dim">
+      <div class="flex flex-col items-center justify-center h-full text-center">
+        <span class="material-symbols-outlined text-tertiary-fixed-dim text-4xl mb-2 float-anim" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+        <p class="text-3xl font-black text-primary plusJakartaSans" id="streakCount">—</p>
+        <p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Session Streak</p>
+      </div>
+    </div>
+    <!-- Flight Hours -->
+    <div class="bg-primary p-6 rounded-xl shadow-sm border-l-4 border-secondary-container">
+      <div class="flex flex-col justify-between h-full">
+        <div class="flex items-center gap-2 text-secondary-container">
+          <span class="material-symbols-outlined text-sm">schedule</span>
+          <span class="inter text-[10px] font-bold uppercase tracking-widest">Flight Hours</span>
+        </div>
+        <p class="text-3xl font-black text-[#fef9ee] plusJakartaSans" id="flightHours">—<span class="text-sm font-normal ml-1 opacity-60">HRS</span></p>
+        <div class="flex items-center gap-2 text-white/60 mt-2">
+          <span class="material-symbols-outlined text-sm">emoji_events</span>
+          <span class="text-xs font-bold" id="badgeCount">0 Medals</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Tab Content ═══ -->
+  <!-- DASHBOARD / RECAPS -->
+  <div id="panel-recaps" class="dash-panel grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+    <div class="lg:col-span-2 space-y-6" id="recapsList"></div>
+    <!-- Right sidebar: Mission Briefing -->
+    <aside class="space-y-6">
+      <section class="bg-white p-6 rounded-lg shadow-sm border border-outline-variant/15 relative overflow-hidden" id="missionBriefing">
+        <div class="absolute top-0 right-0 bg-error text-white px-3 py-1 text-[8px] font-black uppercase tracking-tighter rotate-12 translate-x-3 translate-y-2">Classified</div>
+        <div class="flex items-center gap-3 mb-4 border-b border-surface-container pb-4">
+          <span class="material-symbols-outlined text-primary">description</span>
+          <h4 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary">Mission Briefing</h4>
+        </div>
+        <div class="space-y-4 inter text-sm text-on-surface-variant" id="briefingContent">
+          <p class="italic opacity-60">No briefings yet. Await your coach's orders, pilot.</p>
+        </div>
+      </section>
+      <!-- Next Class Countdown -->
+      <section class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-felt" id="nextClassCard" style="display:none">
+        <h4 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary mb-3">
+          <span class="material-symbols-outlined text-felt text-sm align-middle mr-1">event</span> Next Class
+        </h4>
+        <div id="nextClassContent"></div>
+      </section>
+      <!-- Parent Summary -->
+      <section class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-secondary" id="parentSummaryCard" style="display:none">
+        <h4 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary mb-3">
+          <span class="material-symbols-outlined text-secondary text-sm align-middle mr-1">summarize</span> This Month
+        </h4>
+        <div id="parentSummaryContent"></div>
+      </section>
+      <!-- Plan Progress Quick Card -->
+      <section class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-gold" id="planQuickCard" style="display:none">
+        <h4 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary mb-3">
+          <span class="material-symbols-outlined text-gold text-sm align-middle mr-1">map</span> Flight Plan
+        </h4>
+        <div id="planQuickContent"></div>
+        <button class="w-full mt-4 bg-gold/10 text-gold py-2.5 rounded-xl font-bold plusJakartaSans uppercase tracking-widest text-xs hover:bg-gold/20 transition-colors" onclick="switchTab('plan')">
+          View Full Plan →
+        </button>
+      </section>
+      <!-- Puzzle Quick Launch -->
+      <section class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-tertiary">
+        <h4 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary mb-4">Active Puzzles</h4>
+        <div id="puzzleQuickList" class="space-y-2"></div>
+        <button class="w-full mt-4 horizon-gradient text-white py-3 rounded-xl font-bold plusJakartaSans uppercase tracking-widest text-xs hover:scale-[1.02] transition-transform" onclick="switchTab('puzzles')">
+          <span class="material-symbols-outlined text-sm align-middle mr-1">rocket</span> Launch All
+        </button>
+      </section>
+    </aside>
+  </div>
+
+  <!-- PUZZLES / SORTIES -->
+  <div id="panel-puzzles" class="dash-panel" style="display:none">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div class="bg-surface-container-lowest p-4 md:p-6 rounded-2xl shadow-sm">
+        <div id="puzzleBoard" style="width:100%"></div>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-secondary">
+          <div class="flex justify-between items-start mb-3">
+            <h3 class="plusJakartaSans text-xl font-extrabold text-primary" id="puzzleTitle">Puzzle 1</h3>
+            <div id="puzzleMeta" class="flex gap-2"></div>
+          </div>
+          <div class="px-4 py-3 rounded-xl text-center font-bold plusJakartaSans transition-all" id="puzzleStatus"></div>
+        </div>
+        <div class="flex gap-3 justify-center flex-wrap">
+          <button onclick="prevPuzzle()" id="prevBtn" disabled class="px-6 py-3 bg-surface-container-lowest border border-outline-variant/20 rounded-xl font-bold text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors disabled:opacity-30 plusJakartaSans">← Prev</button>
+          <button onclick="puzzleHint()" id="hintBtn" class="px-5 py-3 bg-gold/10 text-gold border border-gold/20 rounded-xl font-bold text-sm hover:bg-gold/20 transition-colors plusJakartaSans">💡 Hint</button>
+          <button onclick="puzzleReset()" id="resetBtn" class="px-5 py-3 bg-surface-container-lowest border border-outline-variant/20 rounded-xl font-bold text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors plusJakartaSans">↺ Reset</button>
+          <button onclick="nextPuzzle()" id="nextBtn" class="px-6 py-3 bg-secondary-container text-on-secondary-container rounded-xl font-bold text-sm hover:scale-105 transition-transform plusJakartaSans">Next →</button>
+        </div>
+        <div class="flex gap-2 justify-center" id="puzzleDots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS / FLIGHT STATUS -->
+  <div id="panel-stats" class="dash-panel" style="display:none">
+    <!-- Stats loading overlay -->
+    <div id="statsLoading" class="bg-surface-container-lowest p-12 rounded-2xl text-center mb-6" style="display:none">
+      <span class="material-symbols-outlined text-secondary text-4xl spin-slow mb-3 block">progress_activity</span>
+      <p class="plusJakartaSans font-bold text-primary">Fetching live ratings...</p>
+      <p class="text-sm text-on-surface-variant">Connecting to Lichess & Chess.com</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6" id="statsGrid"></div>
+    <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="plusJakartaSans text-lg font-extrabold text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary">trending_up</span> Rating Altitude
+        </h3>
+        <button onclick="refreshStats()" class="flex items-center gap-1 px-3 py-1.5 bg-secondary/10 text-secondary rounded-lg text-xs font-bold hover:bg-secondary/20 transition-colors plusJakartaSans" id="refreshStatsBtn">
+          <span class="material-symbols-outlined text-sm">refresh</span> Refresh
+        </button>
+      </div>
+      <canvas id="ratingChart" style="width:100%;height:200px"></canvas>
+    </div>
+    <p class="text-xs text-on-surface-variant text-right mt-2 opacity-50 inter" id="statsUpdated"></p>
+  </div>
+
+  <!-- FLIGHT PLAN / CURRICULUM -->
+  <div id="panel-plan" class="dash-panel" style="display:none">
+    <!-- Progress header -->
+    <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-gold mb-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
+        <div>
+          <span class="inter text-[10px] font-bold uppercase tracking-widest text-gold">Training Plan</span>
+          <h2 class="plusJakartaSans text-xl font-extrabold text-primary" id="planTitle">Curriculum</h2>
+          <p class="inter text-xs text-on-surface-variant mt-1" id="planPace"></p>
+        </div>
+        <div class="text-right">
+          <p class="plusJakartaSans text-3xl font-black text-primary" id="planProgress">0/0</p>
+          <p class="inter text-[10px] text-on-surface-variant uppercase tracking-widest">Classes Done</p>
+        </div>
+      </div>
+      <div class="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+        <div class="h-full bg-gold shadow-[0_0_12px_rgba(196,134,46,0.5)] transition-all duration-1000 rounded-full" id="planBar" style="width:0%"></div>
+      </div>
+      <div class="flex justify-between mt-2">
+        <span class="inter text-[10px] text-on-surface-variant" id="planHwStatus"></span>
+        <span class="inter text-[10px] text-on-surface-variant" id="planPct"></span>
+      </div>
+    </div>
+    <!-- Timeline -->
+    <div id="planTimeline" class="space-y-8"></div>
+  </div>
+
+  <!-- BADGES / MEDALS -->
+  <div id="panel-badges" class="dash-panel" style="display:none">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="badgesGrid"></div>
+  </div>
+
+</div>
+</main>
+
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#fef9ee] shadow-[0_-8px_24px_rgba(0,0,0,.05)] px-4 py-3 flex justify-around items-center z-50">
+  <button class="mob-tab flex flex-col items-center gap-1 text-[#2f7a54]" data-tab="recaps" onclick="switchTab('recaps')">
+    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">grid_view</span>
+    <span class="text-[10px] font-bold uppercase">Deck</span>
+  </button>
+  <button class="mob-tab flex flex-col items-center gap-1 text-[#2e1b12]/60" data-tab="plan" onclick="switchTab('plan')">
+    <span class="material-symbols-outlined">map</span>
+    <span class="text-[10px] font-bold uppercase">Plan</span>
+  </button>
+  <button class="mob-tab flex flex-col items-center gap-1 text-[#2e1b12]/60" data-tab="puzzles" onclick="switchTab('puzzles')">
+    <span class="material-symbols-outlined">rocket_launch</span>
+    <span class="text-[10px] font-bold uppercase">Puzzles</span>
+  </button>
+  <button class="mob-tab flex flex-col items-center gap-1 text-[#2e1b12]/60" data-tab="stats" onclick="switchTab('stats')">
+    <span class="material-symbols-outlined">trending_up</span>
+    <span class="text-[10px] font-bold uppercase">Stats</span>
+  </button>
+  <button class="mob-tab flex flex-col items-center gap-1 text-[#2e1b12]/60" data-tab="badges" onclick="switchTab('badges')">
+    <span class="material-symbols-outlined">military_tech</span>
+    <span class="text-[10px] font-bold uppercase">Medals</span>
+  </button>
+</nav>
+
+<!-- Badge Toast -->
+<div id="badgeToast" class="fixed top-20 left-1/2 -translate-x-1/2 -translate-y-4 bg-white border border-secondary-container shadow-2xl rounded-2xl px-6 py-4 z-[200] opacity-0 transition-all duration-500 pointer-events-none text-center">
+  <span class="text-3xl block mb-1" id="toastIcon">🏆</span>
+  <div class="plusJakartaSans font-bold text-primary" id="toastText">Medal Earned!</div>
+  <div class="text-xs text-on-surface-variant" id="toastSub"></div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<script>
+(function(){
+'use strict';
+var BIN='69b859a2aa77b81da9ee0ccc';
+var qs=new URLSearchParams(location.search);
+var token=qs.get('t');
+if(!token){showError('No link','This page needs a valid student link.');return}
+
+var student=null, puzzleState={index:0,game:null,board:null,moveIndex:0,solved:[]}, statsLoaded=false;
+
+var RANKS=['Cadet Pilot','Pawn Pilot','Knight Aviator','Bishop Navigator','Rook Commander','Lieutenant','Captain','Major','Colonel','Air Marshal'];
+var ALL_BADGES=[
+  {id:'first_login',name:'First Steps',icon:'👣',desc:'Visited your dashboard'},
+  {id:'rating_800',name:'Pawn Power',icon:'♟',desc:'Reached 800 rating'},
+  {id:'rating_1000',name:'Bronze Knight',icon:'🐴',desc:'Reached 1000 rating'},
+  {id:'rating_1200',name:'Silver Bishop',icon:'🏅',desc:'Reached 1200 rating'},
+  {id:'rating_1500',name:'Gold Rook',icon:'🏰',desc:'Reached 1500 rating'},
+  {id:'rating_2000',name:'Diamond Queen',icon:'👑',desc:'Reached 2000 rating'},
+  {id:'puzzle_5',name:'Puzzle Starter',icon:'🧩',desc:'Solved 5 puzzles'},
+  {id:'puzzle_25',name:'Puzzle Master',icon:'🧠',desc:'Solved 25 puzzles'},
+  {id:'streak_5',name:'On Fire',icon:'🔥',desc:'5 classes in a row'},
+  {id:'streak_10',name:'Unstoppable',icon:'⚡',desc:'10 classes in a row'},
+  {id:'sessions_10',name:'Dedicated',icon:'📚',desc:'Completed 10 sessions'},
+  {id:'sessions_40',name:'Level Complete',icon:'🎓',desc:'Completed a full level'}
+];
+
+fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest')
+.then(function(r){if(!r.ok)throw{ue:1,t:'Data unavailable',m:'Could not load.'};return r.json()})
+.then(function(j){
+  var db=j.record||j;
+  if(!db||!db.students){showError('Empty','No data.');return}
+  var s=db.students.find(function(x){return x.token.toLowerCase()===token.toLowerCase()});
+  if(!s){showError('Not found',"This link doesn't match any student.");return}
+  student={name:s.name,token:s.token,recaps:s.recaps||[],puzzles:s.puzzles||[],stats:s.stats||{},badges:s.badges||[],plan:s.plan||null,lichessUsername:s.lichessUsername||'',chesscomUsername:s.chesscomUsername||'',attendance:db.attendance?(db.attendance[s.token]||{}):{}};
+  render();
+}).catch(function(e){
+  if(e.ue)showError(e.t,e.m);else{console.error(e);showError('Connection error','Could not reach database.')}
+});
+
+function showError(t,m){
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('errorTitle').textContent=t;
+  document.getElementById('errorMsg').textContent=m;
+  document.getElementById('errorState').style.display='flex';
+}
+function esc(s){if(!s)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function fmtDate(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}catch(e){return s}}
+
+// Tab switching
+window.switchTab=function(id){
+  document.querySelectorAll('.dash-panel').forEach(function(p){p.style.display=p.id==='panel-'+id?'':'none'});
+  document.querySelectorAll('.side-link').forEach(function(a){
+    if(a.dataset.tab===id){a.className='side-link active flex items-center gap-3 px-4 py-3 text-[#2f7a54] font-bold border-r-4 border-[#2f7a54] bg-[#2f7a54]/5 transition-all'}
+    else{a.className='side-link flex items-center gap-3 px-4 py-3 text-[#2e1b12]/60 hover:text-[#2f7a54] hover:bg-[#2f7a54]/5 transition-all'}
+  });
+  document.querySelectorAll('.mob-tab').forEach(function(b){
+    if(b.dataset.tab===id){b.className='mob-tab flex flex-col items-center gap-1 text-[#2f7a54]';b.querySelector('.material-symbols-outlined').style.fontVariationSettings="'FILL' 1"}
+    else{b.className='mob-tab flex flex-col items-center gap-1 text-[#2e1b12]/60';b.querySelector('.material-symbols-outlined').style.fontVariationSettings="'FILL' 0"}
+  });
+  // Top nav highlight
+  var tabMap={recaps:'dashboard',plan:'flight plan',puzzles:'puzzles',stats:'stats',badges:'medals'};
+  document.querySelectorAll('header nav a').forEach(function(a){a.className=a.textContent.trim().toLowerCase()===tabMap[id]?'text-[#c4862e]':'text-[#fef9ee]/70 hover:bg-white/10 px-2 py-1 rounded transition-colors'});
+  if(id==='puzzles'&&!puzzleState.board&&student.puzzles.length>0)setTimeout(initPuzzle,100);
+  if(id==='stats'&&!statsLoaded)fetchStats();
+};
+
+function render(){
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('headerRight').style.display='flex';
+  document.getElementById('headerAvatar').textContent=student.name.charAt(0);
+  document.title=student.name+"'s Flight Deck — Pawn Pilots";
+
+  // XP calc
+  var totalXP=(student.recaps.length*50)+(student.puzzles.filter(function(p){return p.solved}).length*30)+(student.badges.length*20);
+  var lvl=Math.floor(totalXP/200)+1;
+  var xpIn=totalXP%200;
+  var pct=Math.round((xpIn/200)*100);
+  var rank=RANKS[Math.min(lvl-1,RANKS.length-1)];
+
+  document.getElementById('pilotRank').textContent=rank;
+  document.getElementById('pilotLevel').textContent='LVL '+lvl;
+  document.getElementById('xpNumbers').textContent=xpIn+' / 200';
+  document.getElementById('xpBar').style.width=pct+'%';
+  document.getElementById('sideRank').textContent=rank;
+  document.getElementById('badgeCount').textContent=student.badges.length+' Medal'+(student.badges.length!==1?'s':'');
+
+  // Real streak calculation from attendance
+  var streak=0;
+  if(student.attendance){
+    var dates=Object.keys(student.attendance).sort().reverse();
+    for(var i=0;i<dates.length;i++){
+      var val=student.attendance[dates[i]];
+      var status=typeof val==='string'?val:(val&&val.status?val.status:'');
+      if(status==='Present')streak++;
+      else if(status==='Absent')break;
+    }
+  }
+  if(streak===0&&student.recaps.length>0)streak=student.recaps.length; // fallback
+  document.getElementById('streakCount').textContent=streak>0?streak+' ✓':'—';
+  var hrs=(student.recaps.length*0.75).toFixed(1);
+  document.getElementById('flightHours').innerHTML=hrs+'<span class="text-sm font-normal ml-1 opacity-60">HRS</span>';
+
+  renderRecaps();
+  renderNextClass();
+  renderParentSummary();
+  renderPlan();
+  renderPlanQuick();
+  renderPuzzlesPanel();
+  renderStatsPanel();
+  renderBadges();
+}
+
+// ═══ RECAPS ═══
+function renderRecaps(){
+  var el=document.getElementById('recapsList');
+  var rr=student.recaps.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date)});
+  if(rr.length===0){el.innerHTML='<div class="bg-surface-container-lowest p-12 rounded-2xl text-center"><span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4 block">description</span><p class="plusJakartaSans font-bold text-primary">Awaiting orders</p><p class="text-sm text-on-surface-variant">Your coach will post session recaps here.</p></div>';return}
+
+  // Latest recap → mission briefing
+  var latest=rr[0];
+  var moods={great:'🔥',good:'👍',ok:'😐',challenging:'💪',tough:'😤'};
+  var brief=document.getElementById('briefingContent');
+  brief.innerHTML='<p class="font-mono text-[11px] opacity-60">TIMESTAMP: '+esc(latest.date)+' // SESSION DEBRIEF</p>';
+  if(latest.bullets)latest.bullets.forEach(function(b){brief.innerHTML+='<p class="leading-relaxed">"'+esc(b)+'"</p>'});
+
+  // Cards
+  var h='';
+  rr.forEach(function(r,i){
+    var mood=moods[r.mood]||'📝';
+    var borderColor=r.mood==='great'?'border-tertiary-fixed-dim':r.mood==='good'?'border-felt-glow':r.mood==='challenging'?'border-error':'border-secondary';
+    h+='<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm '+borderColor+' border-l-4">';
+    h+='<div class="flex justify-between items-start mb-3">';
+    h+='<div><span class="inter text-[10px] font-bold uppercase tracking-widest text-secondary">Session '+(rr.length-i)+'</span>';
+    h+='<h3 class="plusJakartaSans text-lg font-extrabold text-primary">'+esc(r.title)+'</h3></div>';
+    h+='<span class="text-2xl float-anim">'+mood+'</span></div>';
+    h+='<p class="text-xs text-on-surface-variant mb-3 inter">'+esc(fmtDate(r.date))+'</p>';
+    if(r.bullets){h+='<div class="space-y-2">';r.bullets.forEach(function(b){
+      h+='<div class="flex gap-3 items-start bg-surface-container-low p-3 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-secondary text-sm mt-0.5" style="font-variation-settings:\'FILL\' 1">check_circle</span><span class="text-sm inter text-on-surface">'+esc(b)+'</span></div>';
+    });h+='</div>'}
+    h+='</div>';
+  });
+  el.innerHTML=h;
+
+  // Puzzle quick list — unsolved first
+  var ql=document.getElementById('puzzleQuickList');
+  if(student.puzzles.length===0){ql.innerHTML='<p class="text-xs text-on-surface-variant italic">No puzzles assigned yet. Your coach will add them here.</p>';return}
+  var unsolved=student.puzzles.filter(function(p){return!p.solved}),solvedCount=student.puzzles.length-unsolved.length;
+  var qh='';
+  if(unsolved.length===0)qh+='<p class="text-xs text-felt font-bold mb-2">All puzzles complete! 🎉</p>';
+  else qh+='<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-2">'+unsolved.length+' unsolved of '+student.puzzles.length+'</p>';
+  student.puzzles.forEach(function(p,i){
+    var solved=p.solved;
+    qh+='<div class="flex items-center gap-3 p-3 rounded-lg '+(solved?'bg-felt-glow/10 opacity-60':'bg-surface-container-high')+' cursor-pointer hover:scale-[1.02] transition-transform" onclick="switchTab(\'puzzles\')">';
+    qh+='<span class="material-symbols-outlined text-sm '+(solved?'text-felt-glow':'text-secondary')+'" style="font-variation-settings:\'FILL\' 1">'+(solved?'check_circle':'rocket_launch')+'</span>';
+    qh+='<div class="flex-grow"><p class="text-xs font-bold text-primary plusJakartaSans">Puzzle '+(i+1)+'</p><p class="text-[10px] text-on-surface-variant">'+esc(p.theme||'Tactics')+' · '+p.rating+'</p></div>';
+    if(!solved)qh+='<span class="text-[10px] font-black text-secondary uppercase">GO</span>';
+    qh+='</div>';
+  });
+  ql.innerHTML=qh;
+}
+
+// ═══ PUZZLES ═══
+function renderPuzzlesPanel(){
+  if(student.puzzles.length===0){document.getElementById('panel-puzzles').innerHTML='<div class="bg-surface-container-lowest p-12 rounded-2xl text-center"><span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4 block">rocket_launch</span><p class="plusJakartaSans font-bold text-primary">No Puzzles Assigned</p><p class="text-sm text-on-surface-variant">Your coach will assign puzzle missions here.</p></div>';return}
+  puzzleState.solved=student.puzzles.map(function(p){return!!p.solved});
+  renderDots();
+}
+function renderDots(){
+  var d=document.getElementById('puzzleDots');if(!d)return;
+  var h='';student.puzzles.forEach(function(p,i){
+    var active=i===puzzleState.index,solved=puzzleState.solved[i];
+    h+='<div class="w-3 h-3 rounded-full transition-all '+(active?'bg-secondary-container scale-125 ring-4 ring-secondary-container/20':solved?'bg-felt-glow':'bg-surface-container-high')+'"></div>';
+  });d.innerHTML=h;
+}
+function initPuzzle(){loadPuzzle(0);startHintTimer()}
+function loadPuzzle(idx){
+  var p=student.puzzles[idx];if(!p)return;
+  puzzleState.index=idx;puzzleState.moveIndex=0;
+  var g=new Chess(p.fen);puzzleState.game=g;
+  document.getElementById('puzzleTitle').textContent='Puzzle '+(idx+1)+' of '+student.puzzles.length;
+  var m='';
+  if(p.rating)m+='<span class="bg-secondary-container/20 text-secondary px-3 py-1 rounded-full text-xs font-black">⭐ '+p.rating+'</span>';
+  if(p.theme)m+='<span class="bg-felt-glow/10 text-felt px-3 py-1 rounded-full text-xs font-black">'+esc(p.theme)+'</span>';
+  document.getElementById('puzzleMeta').innerHTML=m;
+  var st=document.getElementById('puzzleStatus');
+  if(puzzleState.solved[idx]){st.className='px-4 py-3 rounded-xl text-center font-bold plusJakartaSans bg-felt-glow/10 text-felt pop-in';st.textContent='✓ Puzzle Complete!'}
+  else{st.className='px-4 py-3 rounded-xl text-center font-bold plusJakartaSans bg-secondary-container/10 text-secondary glow-pulse';st.textContent=(g.turn()==='w'?'White':'Black')+' to move. Find the best continuation!'}
+  var orient=g.turn()==='w'?'white':'black';
+  if(puzzleState.board){puzzleState.board.position(p.fen);puzzleState.board.orientation(orient)}
+  else{puzzleState.board=Chessboard('puzzleBoard',{position:p.fen,orientation:orient,draggable:true,pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',onDrop:onDrop,onSnapEnd:onSnap})}
+  document.getElementById('prevBtn').disabled=idx===0;
+  document.getElementById('nextBtn').disabled=idx>=student.puzzles.length-1;
+  renderDots();
+}
+function onDrop(src,tgt){
+  var p=student.puzzles[puzzleState.index];
+  if(puzzleState.solved[puzzleState.index])return'snapback';
+  var mv=puzzleState.game.move({from:src,to:tgt,promotion:'q'});
+  if(!mv)return'snapback';
+  var exp=(p.moves||'').split(' '),eu=exp[puzzleState.moveIndex],mu=mv.from+mv.to;
+  if(mu===eu||mu+'q'===eu){
+    puzzleState.moveIndex++;
+    if(puzzleState.moveIndex>=exp.length){puzzleState.solved[puzzleState.index]=true;var s=document.getElementById('puzzleStatus');s.className='px-4 py-3 rounded-xl text-center font-bold plusJakartaSans bg-felt-glow/10 text-felt pop-in';s.textContent='🎉 Puzzle Complete!';renderDots();if(typeof confetti!=='undefined')confetti({particleCount:60,spread:60,origin:{y:.7}})}
+    else{var ou=exp[puzzleState.moveIndex];puzzleState.moveIndex++;setTimeout(function(){puzzleState.game.move({from:ou.substring(0,2),to:ou.substring(2,4),promotion:ou.length>4?ou[4]:undefined});puzzleState.board.position(puzzleState.game.fen());if(puzzleState.moveIndex>=exp.length){puzzleState.solved[puzzleState.index]=true;var s=document.getElementById('puzzleStatus');s.className='px-4 py-3 rounded-xl text-center font-bold plusJakartaSans bg-felt-glow/10 text-felt pop-in';s.textContent='🎉 Puzzle Complete!';renderDots();if(typeof confetti!=='undefined')confetti({particleCount:60,spread:60,origin:{y:.7}})}else{document.getElementById('puzzleStatus').textContent='Good move! Keep going…'}},400)}
+  }else{puzzleState.game.undo();var s=document.getElementById('puzzleStatus');s.className='px-4 py-3 rounded-xl text-center font-bold plusJakartaSans bg-error/10 text-error shake-anim';s.textContent='✗ Not quite. Try again!';setTimeout(function(){if(!puzzleState.solved[puzzleState.index]){s.className='px-4 py-3 rounded-xl text-center font-bold plusJakartaSans bg-secondary-container/10 text-secondary glow-pulse';s.textContent=(puzzleState.game.turn()==='w'?'White':'Black')+' to move.'}},1500);return'snapback'}
+}
+function onSnap(){if(puzzleState.board)puzzleState.board.position(puzzleState.game.fen())}
+// Hint system
+var hintTimer=null;
+function clearHintTimer(){if(hintTimer){clearTimeout(hintTimer);hintTimer=null}}
+function startHintTimer(){clearHintTimer();hintTimer=setTimeout(function(){showHintHighlight()},30000)}
+function showHintHighlight(){
+  var p=student.puzzles[puzzleState.index];if(!p||puzzleState.solved[puzzleState.index])return;
+  var exp=(p.moves||'').split(' '),eu=exp[puzzleState.moveIndex];if(!eu)return;
+  var sq=eu.substring(0,2);
+  document.querySelectorAll('.square-55d63').forEach(function(el){el.classList.remove('hint-square')});
+  var sqEl=document.querySelector('.square-'+sq);if(sqEl)sqEl.classList.add('hint-square');
+}
+window.puzzleHint=function(){
+  if(puzzleState.solved[puzzleState.index])return;
+  showHintHighlight();
+  var st=document.getElementById('puzzleStatus');
+  st.className='px-4 py-3 rounded-xl text-center font-bold plusJakartaSans bg-gold/10 text-gold';
+  st.textContent='💡 Look at the highlighted square!';
+};
+window.puzzleReset=function(){
+  puzzleState.solved[puzzleState.index]=false;
+  clearHintTimer();
+  document.querySelectorAll('.square-55d63').forEach(function(el){el.classList.remove('hint-square')});
+  loadPuzzle(puzzleState.index);
+  startHintTimer();
+};
+window.prevPuzzle=function(){if(puzzleState.index>0){clearHintTimer();loadPuzzle(puzzleState.index-1);startHintTimer()}};
+window.nextPuzzle=function(){if(puzzleState.index<student.puzzles.length-1){clearHintTimer();loadPuzzle(puzzleState.index+1);startHintTimer()}};
+
+// ═══ FLIGHT PLAN ═══
+function getPlanStats(){
+  var plan=student.plan;
+  if(!plan||!plan.months)return{total:0,done:0,hwTotal:0,hwDone:0,currentMonth:-1,currentWeek:-1};
+  var total=0,done=0,hwTotal=0,hwDone=0,currentMonth=-1,currentWeek=-1,foundCurrent=false;
+  plan.months.forEach(function(m,mi){
+    m.weeks.forEach(function(w,wi){
+      var weekAllDone=true;
+      w.classes.forEach(function(c){total++;if(c.done)done++;else weekAllDone=false});
+      if(w.homework){hwTotal++;if(w.homework.done)hwDone++;else weekAllDone=false}
+      if(!foundCurrent&&!weekAllDone){currentMonth=mi;currentWeek=wi;foundCurrent=true}
+    });
+  });
+  if(!foundCurrent&&total>0){currentMonth=plan.months.length-1;currentWeek=plan.months[currentMonth].weeks.length-1}
+  return{total:total,done:done,hwTotal:hwTotal,hwDone:hwDone,currentMonth:currentMonth,currentWeek:currentWeek};
+}
+
+function renderPlan(){
+  var plan=student.plan;
+  var el=document.getElementById('planTimeline');
+  if(!plan||!plan.months||plan.months.length===0){
+    document.getElementById('planTitle').textContent='No Plan Yet';
+    document.getElementById('planProgress').textContent='—';
+    document.getElementById('planPct').textContent='';
+    document.getElementById('planHwStatus').textContent='';
+    el.innerHTML='<div class="bg-surface-container-lowest p-12 rounded-2xl text-center"><span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4 block">map</span><p class="plusJakartaSans font-bold text-primary">Awaiting Your Flight Plan</p><p class="text-sm text-on-surface-variant">Your coach will set up your personalized training curriculum here.</p></div>';
+    return;
+  }
+  var s=getPlanStats();
+  var pct=s.total>0?Math.round((s.done/s.total)*100):0;
+  document.getElementById('planTitle').textContent=plan.title||'Training Plan';
+  document.getElementById('planPace').textContent=plan.pace?('Pace: '+plan.pace):'';
+  document.getElementById('planProgress').textContent=s.done+'/'+s.total;
+  document.getElementById('planBar').style.width=pct+'%';
+  document.getElementById('planPct').textContent=pct+'% complete';
+  document.getElementById('planHwStatus').textContent=s.hwTotal>0?('Homework: '+s.hwDone+'/'+s.hwTotal+' done'):'';
+
+  var h='';var classNum=0;
+  plan.months.forEach(function(m,mi){
+    var monthDone=0,monthTotal=0;
+    m.weeks.forEach(function(w){w.classes.forEach(function(c){monthTotal++;if(c.done)monthDone++})});
+    var monthPct=monthTotal>0?Math.round((monthDone/monthTotal)*100):0;
+    var isCurrent=mi===s.currentMonth;
+    var isPast=mi<s.currentMonth||(s.done===s.total&&s.total>0);
+    var isFuture=mi>s.currentMonth&&s.done<s.total;
+
+    h+='<div class="relative">';
+    // Month header
+    h+='<div class="flex items-center gap-4 mb-4">';
+    h+='<div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black plusJakartaSans shrink-0 '+(isPast?'bg-felt text-white':isCurrent?'bg-gold text-white':'bg-surface-container-high text-on-surface-variant')+'">'+(mi+1)+'</div>';
+    h+='<div class="flex-grow">';
+    h+='<div class="flex items-center gap-3 flex-wrap">';
+    h+='<h3 class="plusJakartaSans text-lg font-extrabold text-primary">'+esc(m.name)+'</h3>';
+    if(isPast)h+='<span class="bg-felt/10 text-felt text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Done</span>';
+    else if(isCurrent)h+='<span class="bg-gold/10 text-gold text-[10px] font-black px-2 py-0.5 rounded-full uppercase">In Progress</span>';
+    h+='</div>';
+    if(m.goal)h+='<p class="inter text-xs text-on-surface-variant mt-1">'+esc(m.goal)+'</p>';
+    h+='</div>';
+    h+='<div class="text-right shrink-0"><span class="plusJakartaSans text-sm font-black '+(isPast?'text-felt':isCurrent?'text-gold':'text-on-surface-variant/50')+'">'+monthDone+'/'+monthTotal+'</span></div>';
+    h+='</div>';
+
+    // Weeks
+    m.weeks.forEach(function(w,wi){
+      var isCurrentWeek=isCurrent&&wi===s.currentWeek;
+      var weekDone=w.classes.every(function(c){return c.done})&&(!w.homework||w.homework.done);
+      var weekFuture=isFuture||(isCurrent&&wi>s.currentWeek);
+
+      h+='<div class="ml-5 pl-6 border-l-2 '+(weekDone?'border-felt/30':isCurrentWeek?'border-gold/50':'border-surface-container-high')+' pb-6">';
+      h+='<div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm '+(isCurrentWeek?'ring-2 ring-gold/30':'')+' '+(weekFuture&&!weekDone?'opacity-60':'')+'">';
+      h+='<div class="flex items-center gap-2 mb-3">';
+      if(weekDone)h+='<span class="material-symbols-outlined text-felt text-base" style="font-variation-settings:\'FILL\' 1">check_circle</span>';
+      else if(isCurrentWeek)h+='<span class="material-symbols-outlined text-gold text-base float-anim" style="font-variation-settings:\'FILL\' 1">arrow_forward</span>';
+      else h+='<span class="material-symbols-outlined text-on-surface-variant/40 text-base">radio_button_unchecked</span>';
+      h+='<span class="plusJakartaSans text-sm font-bold text-primary uppercase tracking-widest">'+esc(w.label||('Week '+(wi+1)))+'</span>';
+      h+='</div>';
+
+      // Classes
+      w.classes.forEach(function(c){
+        classNum++;
+        h+='<div class="flex items-start gap-3 py-2 '+(c.done?'':'')+ '">';
+        h+='<span class="material-symbols-outlined text-sm mt-0.5 '+(c.done?'text-felt':'text-on-surface-variant/30')+'" style="font-variation-settings:\'FILL\' 1">'+(c.done?'check_circle':'circle')+'</span>';
+        h+='<div class="flex-grow">';
+        h+='<p class="inter text-sm '+(c.done?'text-on-surface':'text-on-surface-variant')+'"><span class="font-bold text-on-surface-variant/50 mr-1">'+classNum+'.</span> '+esc(c.topic)+'</p>';
+        if(c.date)h+='<p class="inter text-[10px] text-on-surface-variant/50 mt-0.5">'+fmtDate(c.date)+'</p>';
+        h+='</div>';
+        h+='</div>';
+      });
+
+      // Homework
+      if(w.homework){
+        h+='<div class="flex items-start gap-3 mt-3 pt-3 border-t border-surface-container">';
+        h+='<span class="material-symbols-outlined text-sm mt-0.5 '+(w.homework.done?'text-felt':'text-gold')+'" style="font-variation-settings:\'FILL\' 1">'+(w.homework.done?'task_alt':'assignment')+'</span>';
+        h+='<div class="flex-grow">';
+        h+='<p class="inter text-[10px] font-bold uppercase tracking-widest '+(w.homework.done?'text-felt':'text-gold')+'">Homework'+(w.homework.done?' — Done':'')+'</p>';
+        h+='<p class="inter text-xs text-on-surface-variant mt-0.5">'+esc(w.homework.text)+'</p>';
+        h+='</div>';
+        h+='</div>';
+      }
+      // Study Links
+      if(w.links&&w.links.length>0){
+        h+='<div class="mt-3 pt-3 border-t border-surface-container">';
+        h+='<p class="inter text-[10px] font-bold uppercase tracking-widest text-secondary mb-2">Study Links</p>';
+        h+='<div class="flex flex-wrap gap-2">';
+        w.links.forEach(function(lnk){
+          h+='<a href="'+esc(lnk.url)+'" target="_blank" rel="noopener" class="inline-flex items-center gap-1 px-3 py-1.5 bg-secondary/5 text-secondary text-xs font-bold rounded-lg hover:bg-secondary/15 transition-colors">';
+          h+='<span class="material-symbols-outlined text-xs">open_in_new</span> '+esc(lnk.text||'Link');
+          h+='</a>';
+        });
+        h+='</div></div>';
+      }
+
+      h+='</div></div>';
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+
+function renderPlanQuick(){
+  var card=document.getElementById('planQuickCard');
+  var el=document.getElementById('planQuickContent');
+  var plan=student.plan;
+  if(!plan||!plan.months||plan.months.length===0){card.style.display='none';return}
+  card.style.display='block';
+  var s=getPlanStats();
+  var pct=s.total>0?Math.round((s.done/s.total)*100):0;
+  var h='';
+  // Progress bar
+  h+='<div class="mb-3">';
+  h+='<div class="flex justify-between text-[10px] font-bold inter uppercase tracking-widest mb-1"><span>Progress</span><span>'+s.done+'/'+s.total+' ('+pct+'%)</span></div>';
+  h+='<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden"><div class="h-full bg-gold rounded-full transition-all" style="width:'+pct+'%"></div></div>';
+  h+='</div>';
+  // Current focus
+  if(s.currentMonth>=0&&plan.months[s.currentMonth]){
+    var cm=plan.months[s.currentMonth];
+    var cw=cm.weeks[s.currentWeek];
+    h+='<div class="bg-gold/5 p-3 rounded-lg">';
+    h+='<p class="text-[10px] font-bold uppercase tracking-widest text-gold inter mb-1">Now</p>';
+    h+='<p class="text-xs font-bold text-primary plusJakartaSans">'+esc(cm.name)+'</p>';
+    if(cw){
+      var next=cw.classes.find(function(c){return!c.done});
+      if(next)h+='<p class="text-[11px] text-on-surface-variant mt-1">Next: '+esc(next.topic)+'</p>';
+    }
+    h+='</div>';
+  }
+  el.innerHTML=h;
+}
+
+// ═══ STATS ═══
+function renderStatsPanel(){
+  var g=document.getElementById('statsGrid');
+  if(!student.lichessUsername&&!student.chesscomUsername){g.innerHTML='<div class="col-span-full bg-surface-container-lowest p-12 rounded-2xl text-center"><span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4 block">trending_up</span><p class="plusJakartaSans font-bold text-primary">No accounts linked</p><p class="text-sm text-on-surface-variant">Ask your coach to link your Lichess or Chess.com username.</p></div>';return}
+  var li=student.stats.lichess||{},cc=student.stats.chesscom||{},h='';
+  function sc(icon,val,label,plat){return'<div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm text-center hover:scale-[1.02] transition-transform"><span class="material-symbols-outlined text-secondary text-2xl mb-2 block" style="font-variation-settings:\'FILL\' 1">'+icon+'</span><p class="plusJakartaSans text-2xl font-black text-primary">'+val+'</p><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mt-1">'+label+'</p><p class="inter text-[9px] text-on-surface-variant/50 mt-1">'+plat+'</p></div>'}
+  if(student.lichessUsername){h+=sc('bolt',li.rapid||'—','Rapid','Lichess');h+=sc('target',li.blitz||'—','Blitz','Lichess');h+=sc('extension',li.puzzle||'—','Puzzles','Lichess')}
+  if(student.chesscomUsername){h+=sc('bolt',cc.rapid||'—','Rapid','Chess.com');h+=sc('target',cc.blitz||'—','Blitz','Chess.com')}
+  g.innerHTML=h;
+  if(student.stats.history&&student.stats.history.length>0)drawChart(student.stats.history);
+}
+function fetchStats(){
+  statsLoaded=true;var pp=[];
+  var loadEl=document.getElementById('statsLoading');
+  var gridEl=document.getElementById('statsGrid');
+  if(loadEl){loadEl.style.display='block'}
+  if(gridEl)gridEl.style.opacity='0.3';
+  if(student.lichessUsername)pp.push(fetch('https://lichess.org/api/user/'+encodeURIComponent(student.lichessUsername)).then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.perfs)student.stats.lichess={rapid:d.perfs.rapid?d.perfs.rapid.rating:null,blitz:d.perfs.blitz?d.perfs.blitz.rating:null,puzzle:d.perfs.puzzle?d.perfs.puzzle.rating:null,fetchedAt:new Date().toISOString()}}).catch(function(){}));
+  if(student.chesscomUsername)pp.push(fetch('https://api.chess.com/pub/player/'+encodeURIComponent(student.chesscomUsername)+'/stats').then(function(r){return r.ok?r.json():null}).then(function(d){if(d)student.stats.chesscom={rapid:d.chess_rapid?d.chess_rapid.last.rating:null,blitz:d.chess_blitz?d.chess_blitz.last.rating:null,fetchedAt:new Date().toISOString()}}).catch(function(){}));
+  Promise.all(pp).then(function(){
+    if(loadEl)loadEl.style.display='none';
+    if(gridEl)gridEl.style.opacity='1';
+    renderStatsPanel();
+    var u=document.getElementById('statsUpdated');if(u)u.textContent='Last updated: just now';
+  });
+}
+window.refreshStats=function(){statsLoaded=false;fetchStats()};
+function drawChart(history){
+  var c=document.getElementById('ratingChart');if(!c)return;var ctx=c.getContext('2d');
+  var W=c.parentElement.clientWidth-48,H=200;c.width=W*2;c.height=H*2;c.style.width=W+'px';c.style.height=H+'px';ctx.scale(2,2);
+  if(history.length<2){ctx.fillStyle='#45464e';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Need more data points',W/2,H/2);return}
+  var vals=history.map(function(h){return h.lichessRapid||h.lichessBlitz||0}),mn=Math.min.apply(null,vals)-50,mx=Math.max.apply(null,vals)+50,rng=mx-mn||1,sx=W/(vals.length-1);
+  ctx.strokeStyle='rgba(47,122,84,0.08)';ctx.lineWidth=1;
+  for(var g=0;g<5;g++){var gy=H-(g/4)*H;ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke()}
+  ctx.beginPath();ctx.strokeStyle='#2f7a54';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  vals.forEach(function(v,i){var x=i*sx,y=H-((v-mn)/rng)*(H-20)-10;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
+  var gd=ctx.createLinearGradient(0,0,0,H);gd.addColorStop(0,'rgba(196,134,46,0.15)');gd.addColorStop(1,'rgba(196,134,46,0)');ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fillStyle=gd;ctx.fill();
+  vals.forEach(function(v,i){var x=i*sx,y=H-((v-mn)/rng)*(H-20)-10;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#2f7a54';ctx.fill();ctx.strokeStyle='#fef9ee';ctx.lineWidth=2;ctx.stroke()});
+}
+
+// ═══ NEXT CLASS COUNTDOWN ═══
+function renderNextClass(){
+  var card=document.getElementById('nextClassCard');
+  var el=document.getElementById('nextClassContent');
+  var plan=student.plan;
+  if(!plan||!plan.months){card.style.display='none';return}
+  var today=new Date();today.setHours(0,0,0,0);
+  var nextClass=null,nextDate=null;
+  plan.months.forEach(function(m){
+    m.weeks.forEach(function(w){
+      w.classes.forEach(function(c){
+        if(c.date&&!c.done){
+          var d=new Date(c.date+'T12:00:00');
+          if(d>=today&&(!nextDate||d<nextDate)){nextDate=d;nextClass=c}
+        }
+      });
+    });
+  });
+  if(!nextClass){card.style.display='none';return}
+  card.style.display='block';
+  var diff=Math.ceil((nextDate-today)/(1000*60*60*24));
+  var dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var dayLabel=diff===0?'Today!':diff===1?'Tomorrow':dayNames[nextDate.getDay()]+' (in '+diff+' days)';
+  var h='';
+  h+='<div class="bg-felt/5 p-4 rounded-xl">';
+  h+='<p class="plusJakartaSans text-xl font-black text-felt">'+dayLabel+'</p>';
+  h+='<p class="inter text-sm text-primary mt-2 font-bold">'+esc(nextClass.topic)+'</p>';
+  h+='<p class="inter text-[10px] text-on-surface-variant mt-1">'+fmtDate(nextClass.date)+'</p>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+// ═══ PARENT SUMMARY ═══
+function renderParentSummary(){
+  var card=document.getElementById('parentSummaryCard');
+  var el=document.getElementById('parentSummaryContent');
+  var plan=student.plan;
+  if(!plan||!plan.months){card.style.display='none';return}
+  card.style.display='block';
+  var now=new Date();
+  var thisMonth=now.getMonth(),thisYear=now.getFullYear();
+  // Classes done this month
+  var monthClasses=0,monthDone=0;
+  plan.months.forEach(function(m){
+    m.weeks.forEach(function(w){
+      w.classes.forEach(function(c){
+        if(c.date){
+          var d=new Date(c.date+'T12:00:00');
+          if(d.getMonth()===thisMonth&&d.getFullYear()===thisYear){monthClasses++;if(c.done)monthDone++}
+        }
+      });
+    });
+  });
+  // Overall stats
+  var s=getPlanStats();
+  var pct=s.total>0?Math.round((s.done/s.total)*100):0;
+  // Rating info
+  var li=student.stats.lichess||{};
+  var h='';
+  h+='<div class="space-y-3">';
+  h+='<div class="flex justify-between items-center p-3 bg-surface-container-low rounded-lg">';
+  h+='<span class="inter text-xs text-on-surface-variant">Classes this month</span>';
+  h+='<span class="plusJakartaSans font-black text-primary">'+monthDone+'/'+monthClasses+'</span>';
+  h+='</div>';
+  h+='<div class="flex justify-between items-center p-3 bg-surface-container-low rounded-lg">';
+  h+='<span class="inter text-xs text-on-surface-variant">Overall progress</span>';
+  h+='<span class="plusJakartaSans font-black text-primary">'+pct+'%</span>';
+  h+='</div>';
+  if(li.rapid||li.blitz){
+    h+='<div class="flex justify-between items-center p-3 bg-surface-container-low rounded-lg">';
+    h+='<span class="inter text-xs text-on-surface-variant">Lichess Rating</span>';
+    h+='<span class="plusJakartaSans font-black text-primary">'+(li.rapid||li.blitz||'—')+'</span>';
+    h+='</div>';
+  }
+  h+='<div class="flex justify-between items-center p-3 bg-surface-container-low rounded-lg">';
+  h+='<span class="inter text-xs text-on-surface-variant">Homework</span>';
+  h+='<span class="plusJakartaSans font-black text-primary">'+s.hwDone+'/'+s.hwTotal+' done</span>';
+  h+='</div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+// ═══ BADGES ═══
+function renderBadges(){
+  var el=document.getElementById('badgesGrid'),earned=student.badges||[],eids=earned.map(function(b){return b.id}),h='';
+  ALL_BADGES.forEach(function(b){
+    var is=eids.indexOf(b.id)>=0,ed=is?earned.find(function(x){return x.id===b.id}):null;
+    h+='<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm text-center transition-all '+(is?'hover:scale-105 hover:shadow-lg border-2 border-secondary-container/30 cursor-default':'opacity-30 grayscale')+' relative overflow-hidden">';
+    if(is)h+='<div class="absolute inset-0 bg-gradient-to-b from-secondary-container/5 to-transparent pointer-events-none"></div>';
+    else h+='<span class="absolute top-2 right-2 material-symbols-outlined text-sm text-on-surface-variant/30">lock</span>';
+    h+='<span class="text-3xl block mb-2'+(is?' float-anim':'')+'">'+(is?(ed.icon||b.icon):b.icon)+'</span>';
+    h+='<p class="plusJakartaSans text-sm font-bold text-primary">'+esc(b.name)+'</p>';
+    h+='<p class="inter text-[10px] text-on-surface-variant mt-1">'+esc(b.desc)+'</p>';
+    if(is&&ed.earnedAt)h+='<p class="inter text-[9px] text-felt-glow font-bold mt-2">Earned '+fmtDate(ed.earnedAt)+'</p>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+  // New badge toast
+  var key='pp_seen_badges_'+token,seen=JSON.parse(localStorage.getItem(key)||'[]'),fresh=earned.filter(function(b){return seen.indexOf(b.id)<0});
+  if(fresh.length>0){setTimeout(function(){showToast(fresh[0])},600);localStorage.setItem(key,JSON.stringify(eids))}
+}
+function showToast(b){
+  var t=document.getElementById('badgeToast');
+  document.getElementById('toastIcon').textContent=b.icon||'🏆';
+  document.getElementById('toastText').textContent='Medal Earned: '+(b.name||b.id);
+  document.getElementById('toastSub').textContent=b.desc||'';
+  t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  if(typeof confetti!=='undefined')confetti({particleCount:100,spread:70,origin:{y:.3}});
+  setTimeout(function(){t.style.opacity='0';t.style.transform='translateX(-50%) translateY(-20px)'},4000);
+}
+})();
+</script>
+</body>
+</html>
