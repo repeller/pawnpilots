@@ -1241,7 +1241,36 @@ function fetchStats(){
       student.stats.history=pts.map(function(p){var m=p[1]+1;var entry={date:p[0]+'-'+(m<10?'0':'')+m+'-'+(p[2]<10?'0':'')+p[2]};if(src.name==='Rapid')entry.lichessRapid=p[3];else entry.lichessBlitz=p[3];return entry});
     }).catch(function(e){console.warn('Rating history fetch failed:',e)}));
   }
-  if(student.chesscomUsername)pp.push(fetch('https://api.chess.com/pub/player/'+encodeURIComponent(student.chesscomUsername)+'/stats').then(function(r){return r.ok?r.json():null}).then(function(d){if(d)student.stats.chesscom={rapid:d.chess_rapid?d.chess_rapid.last.rating:null,blitz:d.chess_blitz?d.chess_blitz.last.rating:null,fetchedAt:new Date().toISOString()}}).catch(function(){}));
+  if(student.chesscomUsername){
+    var ccUser=encodeURIComponent(student.chesscomUsername);
+    pp.push(fetch('https://api.chess.com/pub/player/'+ccUser+'/stats').then(function(r){return r.ok?r.json():null}).then(function(d){if(d)student.stats.chesscom={rapid:d.chess_rapid?d.chess_rapid.last.rating:null,blitz:d.chess_blitz?d.chess_blitz.last.rating:null,fetchedAt:new Date().toISOString()}}).catch(function(){}));
+    // Chess.com rating history from game archives
+    pp.push(fetch('https://api.chess.com/pub/player/'+ccUser+'/games/archives').then(function(r){return r.ok?r.json():null}).then(function(data){
+      if(!data||!data.archives||data.archives.length===0)return;
+      var recent=data.archives.slice(-4);
+      return Promise.all(recent.map(function(url){return fetch(url).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}));
+    }).then(function(months){
+      if(!months)return;
+      var allGames=[];months.forEach(function(m){if(m&&m.games)allGames=allGames.concat(m.games)});
+      var rapidGames=allGames.filter(function(g){return g.time_class==='rapid'});
+      if(rapidGames.length<2)rapidGames=allGames.filter(function(g){return g.time_class==='blitz'});
+      if(rapidGames.length<2)return;
+      rapidGames.sort(function(a,b){return a.end_time-b.end_time});
+      var step=Math.max(1,Math.floor(rapidGames.length/30)),sampled=[];
+      for(var i=0;i<rapidGames.length;i+=step)sampled.push(rapidGames[i]);
+      if(sampled[sampled.length-1]!==rapidGames[rapidGames.length-1])sampled.push(rapidGames[rapidGames.length-1]);
+      var uname=student.chesscomUsername.toLowerCase(),isRapid=sampled[0].time_class==='rapid';
+      if(!student.stats.history||student.stats.history.length===0){
+        student.stats.history=sampled.map(function(g){
+          var d=new Date(g.end_time*1000);
+          var rating=g.white.username.toLowerCase()===uname?g.white.rating:g.black.rating;
+          var entry={date:d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)};
+          if(isRapid)entry.chesscomRapid=rating;else entry.chesscomBlitz=rating;
+          return entry;
+        });
+      }
+    }).catch(function(e){console.warn('Chess.com history fetch failed:',e)}));
+  }
   Promise.all(pp).then(function(){
     if(loadEl)loadEl.style.display='none';
     if(gridEl)gridEl.style.opacity='1';
@@ -1274,7 +1303,7 @@ function drawChart(history){
   var c=document.getElementById('ratingChart');if(!c)return;var ctx=c.getContext('2d');
   var W=c.parentElement.clientWidth-48,H=200;c.width=W*2;c.height=H*2;c.style.width=W+'px';c.style.height=H+'px';ctx.scale(2,2);
   if(history.length<2){ctx.fillStyle='#45464e';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Need more data points',W/2,H/2);return}
-  var vals=history.map(function(h){return h.lichessRapid||h.lichessBlitz||0}),mn=Math.min.apply(null,vals)-50,mx=Math.max.apply(null,vals)+50,rng=mx-mn||1,sx=W/(vals.length-1);
+  var vals=history.map(function(h){return h.lichessRapid||h.lichessBlitz||h.chesscomRapid||h.chesscomBlitz||0}),mn=Math.min.apply(null,vals)-50,mx=Math.max.apply(null,vals)+50,rng=mx-mn||1,sx=W/(vals.length-1);
   ctx.strokeStyle='rgba(47,122,84,0.08)';ctx.lineWidth=1;
   for(var g=0;g<5;g++){var gy=H-(g/4)*H;ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke()}
   ctx.beginPath();ctx.strokeStyle='#2f7a54';ctx.lineWidth=2.5;ctx.lineJoin='round';
