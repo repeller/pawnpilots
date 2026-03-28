@@ -27,7 +27,7 @@
   .theme-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,.1)}
   .progress-ring{transform:rotate(-90deg)}
   /* Chess Board */
-  .board-sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+  .board-sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;aspect-ratio:1}
   .sq-light{background:#f0d9b5}.sq-dark{background:#b58863}
   .sq-selected.sq-light{background:#829769!important}.sq-selected.sq-dark{background:#646d40!important}
   .sq-legal::after{content:'';position:absolute;width:28%;height:28%;background:rgba(0,0,0,.14);border-radius:50%;z-index:2;pointer-events:none}
@@ -270,7 +270,7 @@ tailwind.config={
               <div class="text-center"><span class="material-symbols-outlined text-secondary text-4xl spin-slow block mb-2">progress_activity</span><p class="plusJakartaSans text-sm font-bold text-primary">Loading puzzle...</p></div>
             </div>
             <!-- Board -->
-            <div id="puzzleBoard" class="grid grid-cols-8 rounded-xl overflow-hidden shadow-lg border-2 border-primary/10" style="aspect-ratio:1;display:none"></div>
+            <div id="puzzleBoard" class="grid grid-cols-8 overflow-hidden shadow-lg border-2 border-primary/10" style="aspect-ratio:1;grid-template-rows:repeat(8,1fr);display:none"></div>
           </div>
           <!-- Controls -->
           <div class="flex gap-2 justify-center mt-4 flex-wrap">
@@ -296,17 +296,6 @@ tailwind.config={
               </div>
               <div id="missionMeta" class="flex gap-2"></div>
             </div>
-          </div>
-          <!-- Altimeter -->
-          <div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm">
-            <p class="inter text-[10px] font-bold uppercase tracking-widest text-primary mb-3">Altimeter</p>
-            <div class="space-y-1.5">
-              <div class="flex items-center gap-2"><div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div id="altBar" class="h-full bg-gold rounded-full transition-all" style="width:0%"></div></div></div>
-              <div class="flex justify-between text-[9px] font-bold inter text-on-surface-variant/50 uppercase">
-                <span>Ground</span><span>Pawn</span><span>Knight</span><span>Pilot</span>
-              </div>
-            </div>
-            <p class="text-center mt-2 plusJakartaSans font-black text-primary" id="altRating">—</p>
           </div>
           <!-- Flight Log -->
           <div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm">
@@ -451,6 +440,13 @@ fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest')
   var s=db.students.find(function(x){return x.token.toLowerCase()===token.toLowerCase()});
   if(!s){showError('Not found',"This link doesn't match any student.");return}
   student={name:s.name,token:s.token,recaps:s.recaps||[],puzzles:s.puzzles||[],puzzleLog:s.puzzleLog||[],stats:s.stats||{},badges:s.badges||[],plan:s.plan||null,lichessUsername:s.lichessUsername||'',chesscomUsername:s.chesscomUsername||'',attendance:db.attendance?(db.attendance[s.token]||{}):{}};
+  // Merge puzzle pool — add pool puzzles not already in student.puzzles
+  var existingIds={};student.puzzles.forEach(function(p){existingIds[p.id]=1});
+  var solves=JSON.parse(localStorage.getItem('pp_puzzleSolves_'+token)||'[]');
+  var solvedIds={};solves.forEach(function(sv){solvedIds[sv.id]=1});
+  PUZZLE_POOL.forEach(function(pp){
+    if(!existingIds[pp.id]){student.puzzles.push({id:pp.id,rating:pp.rating,theme:pp.theme,solved:!!solvedIds[pp.id],fen:'',moves:''})}
+  });
   render();
 }).catch(function(e){
   if(e.ue)showError(e.t,e.m);else{console.error(e);showError('Connection error','Could not reach database.')}
@@ -601,6 +597,32 @@ var THEME_META={
   'Back Rank Mate':{icon:'🚪',desc:'Rook or Queen mates on the back rank',key:'backRankMate'},
   'Hook Mate':{icon:'🪝',desc:'Rook + Knight + Pawn create a deadly net',key:'hookMate'}
 };
+// Puzzle Pool — 10+ easy puzzles per theme (fetched from Lichess, rated ≤1400)
+var PUZZLE_POOL=[
+  // Fork
+  {id:'002GQ',rating:654,theme:'Fork'},{id:'Fz3Cm',rating:866,theme:'Fork'},{id:'qW6dW',rating:891,theme:'Fork'},{id:'dF2s4',rating:900,theme:'Fork'},{id:'0dQ9Y',rating:942,theme:'Fork'},{id:'Xr0N6',rating:972,theme:'Fork'},{id:'WyQhj',rating:993,theme:'Fork'},{id:'UNkj3',rating:1037,theme:'Fork'},{id:'WmYOi',rating:1049,theme:'Fork'},{id:'rC07N',rating:1090,theme:'Fork'},{id:'6P03N',rating:1099,theme:'Fork'},{id:'wWrco',rating:1107,theme:'Fork'},
+  // Pin
+  {id:'TKoLI',rating:1288,theme:'Pin'},{id:'I8hR9',rating:1304,theme:'Pin'},{id:'MGQTI',rating:1331,theme:'Pin'},{id:'syuWw',rating:1331,theme:'Pin'},{id:'TjXTT',rating:1351,theme:'Pin'},{id:'0516t',rating:1362,theme:'Pin'},{id:'QHfqe',rating:1397,theme:'Pin'},{id:'Ib1Q5',rating:1287,theme:'Pin'},{id:'ApOMA',rating:1423,theme:'Pin'},{id:'1s3Ah',rating:1410,theme:'Pin'},
+  // Skewer
+  {id:'FjCiI',rating:776,theme:'Skewer'},{id:'vqDo3',rating:919,theme:'Skewer'},{id:'Bh2Bm',rating:1028,theme:'Skewer'},{id:'LplWy',rating:1092,theme:'Skewer'},{id:'RI8Bn',rating:1134,theme:'Skewer'},{id:'VwNHC',rating:1156,theme:'Skewer'},{id:'JOpVB',rating:1294,theme:'Skewer'},{id:'lLujX',rating:1345,theme:'Skewer'},{id:'DLny3',rating:1352,theme:'Skewer'},{id:'2P083',rating:1358,theme:'Skewer'},{id:'IUogL',rating:1368,theme:'Skewer'},{id:'5JOmf',rating:1388,theme:'Skewer'},
+  // Discovered Attack
+  {id:'bFxgn',rating:874,theme:'Discovered Attack'},{id:'DP5WT',rating:1193,theme:'Discovered Attack'},{id:'SDZNx',rating:1267,theme:'Discovered Attack'},{id:'WVr7h',rating:1269,theme:'Discovered Attack'},{id:'e5Xc5',rating:1283,theme:'Discovered Attack'},{id:'wrUT7',rating:1288,theme:'Discovered Attack'},{id:'4Lpq4',rating:1305,theme:'Discovered Attack'},{id:'zyeYg',rating:1307,theme:'Discovered Attack'},{id:'U2zpr',rating:1308,theme:'Discovered Attack'},{id:'do1xi',rating:1498,theme:'Discovered Attack'},
+  // Anastasia Mate
+  {id:'28ahg',rating:1075,theme:'Anastasia Mate'},{id:'4ZOds',rating:1109,theme:'Anastasia Mate'},{id:'4rQPE',rating:1365,theme:'Anastasia Mate'},{id:'woEGv',rating:1413,theme:'Anastasia Mate'},{id:'Z6pek',rating:1410,theme:'Anastasia Mate'},{id:'aWomD',rating:1441,theme:'Anastasia Mate'},{id:'Tg7Ni',rating:1454,theme:'Anastasia Mate'},{id:'t7B40',rating:1490,theme:'Anastasia Mate'},{id:'ZSNz4',rating:1553,theme:'Anastasia Mate'},{id:'6yQLx',rating:1538,theme:'Anastasia Mate'},
+  // Arabian Mate
+  {id:'9VZD4',rating:1104,theme:'Arabian Mate'},{id:'7MHaR',rating:1125,theme:'Arabian Mate'},{id:'yq6WT',rating:1268,theme:'Arabian Mate'},{id:'Jyvg7',rating:1472,theme:'Arabian Mate'},{id:'BENlW',rating:1476,theme:'Arabian Mate'},{id:'l5U9H',rating:1470,theme:'Arabian Mate'},{id:'NhYr6',rating:1532,theme:'Arabian Mate'},{id:'DfTGc',rating:1559,theme:'Arabian Mate'},{id:'AvK7s',rating:1611,theme:'Arabian Mate'},{id:'F8UhT',rating:1472,theme:'Arabian Mate'},
+  // Deflection
+  {id:'0rH82',rating:1296,theme:'Deflection'},{id:'NNBpN',rating:1313,theme:'Deflection'},{id:'FlNIx',rating:1397,theme:'Deflection'},{id:'BBrCL',rating:1404,theme:'Deflection'},{id:'VQdfp',rating:1455,theme:'Deflection'},{id:'8aWP8',rating:1405,theme:'Deflection'},{id:'ZvasE',rating:1414,theme:'Deflection'},{id:'ezNp3',rating:1427,theme:'Deflection'},{id:'OQHsv',rating:1437,theme:'Deflection'},{id:'blewu',rating:1440,theme:'Deflection'},
+  // Kingside Attack
+  {id:'cRXQF',rating:1301,theme:'Kingside Attack'},{id:'jMwD7',rating:1328,theme:'Kingside Attack'},{id:'W6OGZ',rating:1349,theme:'Kingside Attack'},{id:'VLtD6',rating:1351,theme:'Kingside Attack'},{id:'csPIi',rating:1360,theme:'Kingside Attack'},{id:'IAyI7',rating:1362,theme:'Kingside Attack'},{id:'hKiJt',rating:1367,theme:'Kingside Attack'},{id:'tVEU0',rating:1366,theme:'Kingside Attack'},{id:'CBxMs',rating:1371,theme:'Kingside Attack'},{id:'N7B8f',rating:1377,theme:'Kingside Attack'},{id:'kbl9G',rating:1387,theme:'Kingside Attack'},
+  // Smothered Mate
+  {id:'O7axC',rating:1268,theme:'Smothered Mate'},{id:'qiqaJ',rating:1335,theme:'Smothered Mate'},{id:'fe3a3',rating:1354,theme:'Smothered Mate'},{id:'d2m8c',rating:1360,theme:'Smothered Mate'},{id:'qxYWM',rating:1366,theme:'Smothered Mate'},{id:'sFEBL',rating:1376,theme:'Smothered Mate'},{id:'Q12Tu',rating:1385,theme:'Smothered Mate'},{id:'eQPgB',rating:1388,theme:'Smothered Mate'},{id:'6z2RU',rating:1397,theme:'Smothered Mate'},{id:'Fa6mM',rating:1556,theme:'Smothered Mate'},
+  // Back Rank Mate
+  {id:'o1SXq',rating:815,theme:'Back Rank Mate'},{id:'rqz64',rating:936,theme:'Back Rank Mate'},{id:'BQKBR',rating:963,theme:'Back Rank Mate'},{id:'h9dOj',rating:1008,theme:'Back Rank Mate'},{id:'0Nh8C',rating:1075,theme:'Back Rank Mate'},{id:'IELww',rating:1248,theme:'Back Rank Mate'},{id:'gXr1N',rating:1278,theme:'Back Rank Mate'},{id:'CwSHZ',rating:1301,theme:'Back Rank Mate'},{id:'D3dCv',rating:1315,theme:'Back Rank Mate'},{id:'ltMa0',rating:1340,theme:'Back Rank Mate'},{id:'FLERo',rating:1352,theme:'Back Rank Mate'},{id:'fBGwu',rating:1373,theme:'Back Rank Mate'},
+  // Hook Mate
+  {id:'GBDMR',rating:1259,theme:'Hook Mate'},{id:'DWR38',rating:1267,theme:'Hook Mate'},{id:'xHNEW',rating:1268,theme:'Hook Mate'},{id:'shpWT',rating:1288,theme:'Hook Mate'},{id:'2lW4B',rating:1338,theme:'Hook Mate'},{id:'8h0F3',rating:1344,theme:'Hook Mate'},{id:'nQKnY',rating:1362,theme:'Hook Mate'},{id:'ZfVr4',rating:1364,theme:'Hook Mate'},{id:'Jtqby',rating:1372,theme:'Hook Mate'},{id:'nXz5o',rating:1376,theme:'Hook Mate'},{id:'7Lsqw',rating:1379,theme:'Hook Mate'},{id:'IyqHz',rating:1384,theme:'Hook Mate'}
+];
+
 // Preload pieces
 ['wK','wQ','wR','wB','wN','wP','bK','bQ','bR','bB','bN','bP'].forEach(function(p){new Image().src=PIECE_URL+p+'.png'});
 
@@ -751,7 +773,6 @@ function puzzleSolved(){
   pz.solved=true;stopClock();clearTimeout(pz.hintTimer);
   var p=getActivePuzzles()[pz.puzzleIdx];if(p)p.solved=true;
   var xp=pz.attempts===0?30:pz.attempts<=2?20:10;
-  updateStatus('Puzzle Complete! +'+xp+' XP','success');
   renderBoard();renderPuzzleDots();
   if(typeof confetti!=='undefined')confetti({particleCount:80,spread:60,origin:{y:.7}});
   // Save solve
@@ -759,6 +780,17 @@ function puzzleSolved(){
   var solves=JSON.parse(localStorage.getItem(key)||'[]');
   solves.push({id:p?p.id:'',theme:pz.themeKey,xp:xp,attempts:pz.attempts,time:pz.clockSecs,date:new Date().toISOString().split('T')[0]});
   localStorage.setItem(key,JSON.stringify(solves));
+  // Check if all puzzles in theme are done
+  var puzzles=getActivePuzzles();var allDone=puzzles.every(function(pp){return pp.solved});
+  if(allDone){
+    updateStatus('Theme Complete! All '+puzzles.length+' puzzles solved! 🎉','success');
+    document.getElementById('pzNext').disabled=true;
+    if(typeof confetti!=='undefined')setTimeout(function(){confetti({particleCount:200,spread:120,origin:{y:.5}})},400);
+  } else if(pz.puzzleIdx>=puzzles.length-1){
+    updateStatus('Puzzle Complete! +'+xp+' XP — Last puzzle in set!','success');
+  } else {
+    updateStatus('Puzzle Complete! +'+xp+' XP','success');
+  }
 }
 
 // ── Puzzle Setup (fetch from Lichess API) ──
@@ -826,7 +858,6 @@ function setupBoard(fen,solution,triggerMove,puzzleData){
   document.getElementById('puzzleBoard').style.display='grid';
   renderBoard();
   updateMissionInfo(puzzleData);
-  updateAltimeter(puzzleData.rating);
   updateStatus((playerColor==='w'?'White':'Black')+' to move — find the best continuation!','active');
   renderFlightLog();renderPuzzleDots();
   startClock();startHintCountdown();
@@ -859,13 +890,6 @@ function updateMissionInfo(p){
   var mh='';
   if(p.rating)mh+='<span class="bg-gold/15 text-gold px-2.5 py-1 rounded-lg text-[10px] font-black">'+p.rating+'</span>';
   document.getElementById('missionMeta').innerHTML=mh;
-}
-
-function updateAltimeter(rating){
-  var r=rating||1000;
-  var pct=Math.min(100,Math.max(5,Math.round(((r-400)/2000)*100)));
-  document.getElementById('altBar').style.width=pct+'%';
-  document.getElementById('altRating').textContent='ALT '+r;
 }
 
 function renderFlightLog(){
@@ -930,7 +954,7 @@ window.showSolution=function(){
 window.loadPuzzleAtIndex=loadPuzzleAtIndex;
 window.resetPuzzle=function(){loadPuzzleAtIndex(pz.puzzleIdx)};
 window.prevPuzzleInTheme=function(){if(pz.puzzleIdx>0)loadPuzzleAtIndex(pz.puzzleIdx-1)};
-window.nextPuzzleInTheme=function(){var puzzles=getActivePuzzles();if(pz.puzzleIdx<puzzles.length-1)loadPuzzleAtIndex(pz.puzzleIdx+1)};
+window.nextPuzzleInTheme=function(){var puzzles=getActivePuzzles();if(pz.puzzleIdx<puzzles.length-1)loadPuzzleAtIndex(pz.puzzleIdx+1);else updateStatus('You\'ve reached the last puzzle in this theme!','hint')};
 
 // ── Theme Flow ──
 window.startTheme=function(themeName){
