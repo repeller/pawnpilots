@@ -117,8 +117,8 @@
 
         // Check token access
         if (token) {
-          if (userDoc.role === 'coach') {
-            // Coach can access all tokens
+          if (userDoc.role === 'coach' || userDoc.role === 'viewer') {
+            // Coach and viewer can access all tokens
             return { user: user, userDoc: userDoc };
           }
           var tokens = userDoc.studentTokens || [];
