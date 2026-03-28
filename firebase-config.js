@@ -14,7 +14,7 @@
   // ── Firebase Project Config ──
   // TODO: Fill these in after creating your Firebase project
   var firebaseConfig = {
-    apiKey: "AIzaSyByCqvKty9KDcAiMuXMn6OFM4-UlpQk_w",
+    apiKey: "AIzaSyByCqvKvly9KDcAiMwXMn6OFM4-UIpQk_w",
     authDomain: "pawn-pilots.firebaseapp.com",
     projectId: "pawn-pilots",
     storageBucket: "pawn-pilots.firebasestorage.app",
