@@ -18,8 +18,8 @@
     authDomain: "pawn-pilots.firebaseapp.com",
     projectId: "pawn-pilots",
     storageBucket: "pawn-pilots.firebasestorage.app",
-    messagingSenderId: "1088804670138",
-    appId: "1:1088804670138:web:6e70db2065ba99ce5ad7ab"
+    messagingSenderId: "1088804670130",
+    appId: "1:1088804670130:web:6e70db2065ba99ce5ad7ab"
   };
 
   // Initialize Firebase (only once)
