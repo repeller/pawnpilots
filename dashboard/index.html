@@ -321,6 +321,7 @@ tailwind.config={
       <p class="text-sm text-on-surface-variant">Connecting to Lichess & Chess.com</p>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6" id="statsGrid"></div>
+    <div id="h2hPanel" class="mb-6" style="display:none"></div>
     <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm">
       <div class="flex justify-between items-center mb-4">
         <h3 class="plusJakartaSans text-lg font-extrabold text-primary flex items-center gap-2">
@@ -444,7 +445,7 @@ fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest')
   if(!db||!db.students){showError('Empty','No data.');return}
   var s=db.students.find(function(x){return x.token.toLowerCase()===token.toLowerCase()});
   if(!s){showError('Not found',"This link doesn't match any student.");return}
-  student={name:s.name,token:s.token,recaps:s.recaps||[],puzzles:s.puzzles||[],puzzleLog:s.puzzleLog||[],stats:s.stats||{},badges:s.badges||[],plan:s.plan||null,lichessUsername:s.lichessUsername||'',chesscomUsername:s.chesscomUsername||'',attendance:db.attendance?(db.attendance[s.token]||{}):{}};
+  student={name:s.name,token:s.token,recaps:s.recaps||[],puzzles:s.puzzles||[],puzzleLog:s.puzzleLog||[],stats:s.stats||{},badges:s.badges||[],plan:s.plan||null,lichessUsername:s.lichessUsername||'',chesscomUsername:s.chesscomUsername||'',h2h:s.h2h||null,attendance:db.attendance?(db.attendance[s.token]||{}):{}};
   // Merge solves: cloud (JSONBin) + local (localStorage), deduplicated by puzzle ID
   var cloudSolves=s.puzzleSolves||[];
   var localSolves=JSON.parse(localStorage.getItem('pp_puzzleSolves_'+token)||'[]');
@@ -1188,6 +1189,31 @@ function renderStatsPanel(){
   if(student.lichessUsername){h+=sc('bolt',li.rapid||'—','Rapid','Lichess');h+=sc('target',li.blitz||'—','Blitz','Lichess');h+=sc('extension',li.puzzle||'—','Puzzles','Lichess')}
   if(student.chesscomUsername){h+=sc('bolt',cc.rapid||'—','Rapid','Chess.com');h+=sc('target',cc.blitz||'—','Blitz','Chess.com')}
   g.innerHTML=h;
+  // Head-to-head panel
+  var h2hEl=document.getElementById('h2hPanel');
+  if(h2hEl&&student.h2h){
+    var d=student.h2h,total=d.wins+d.draws+d.losses;
+    var wPct=total?Math.round(d.wins/total*100):0,dPct=total?Math.round(d.draws/total*100):0,lPct=total?Math.round(d.losses/total*100):0;
+    var hh='<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm">';
+    hh+='<h3 class="plusJakartaSans text-lg font-extrabold text-primary flex items-center gap-2 mb-5"><span class="material-symbols-outlined text-secondary" style="font-variation-settings:\'FILL\' 1">swords</span> Head to Head</h3>';
+    hh+='<div class="flex items-center justify-center gap-6 sm:gap-10 mb-5">';
+    hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">'+(d.opponentLabel||d.opponent)+'</p><p class="plusJakartaSans text-3xl sm:text-4xl font-black text-primary">'+d.opponentScore+'</p></div>';
+    hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">vs</p><p class="inter text-xs text-on-surface-variant mt-1">'+total+' games</p></div>';
+    hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">'+student.name+'</p><p class="plusJakartaSans text-3xl sm:text-4xl font-black text-secondary">'+d.studentScore+'</p></div>';
+    hh+='</div>';
+    // Win/Draw/Loss bar
+    hh+='<div class="flex rounded-full overflow-hidden h-3 mb-2">';
+    if(d.wins)hh+='<div class="bg-felt" style="width:'+wPct+'%"></div>';
+    if(d.draws)hh+='<div class="bg-on-surface-variant/30" style="width:'+dPct+'%"></div>';
+    if(d.losses)hh+='<div class="bg-error/70" style="width:'+lPct+'%"></div>';
+    hh+='</div>';
+    hh+='<div class="flex justify-between text-[10px] font-bold inter">';
+    hh+='<span class="text-felt">'+d.wins+'W</span>';
+    hh+='<span class="text-on-surface-variant/50">'+d.draws+'D</span>';
+    hh+='<span class="text-error">'+d.losses+'L</span>';
+    hh+='</div></div>';
+    h2hEl.innerHTML=hh;h2hEl.style.display='';
+  }
   var canvas=document.getElementById('ratingChart');
   if(student.stats.history&&student.stats.history.length>=2){
     if(canvas)canvas.style.display='';

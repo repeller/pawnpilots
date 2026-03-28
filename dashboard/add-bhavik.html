@@ -1,0 +1,324 @@
+<!doctype html>
+<html><head>
+<meta charset="UTF-8"><title>Add Bhavik's Dashboard</title>
+<style>body{font-family:monospace;background:#1a1209;color:#f5ead8;padding:40px;max-width:600px;margin:0 auto}
+button{padding:12px 24px;background:#c4862e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;margin-top:20px}
+button:hover{background:#e8a840}
+#log{margin-top:20px;padding:16px;background:#0f0a06;border-radius:8px;white-space:pre-wrap;font-size:0.85rem;line-height:1.6}
+.ok{color:#4aad7a}.err{color:#c44a2e}</style>
+</head><body>
+<h2>Add Bhavik's Sample Dashboard</h2>
+<p>This will add Bhavik as a student with chess.com stats, puzzles, and a curriculum.<br>
+You must have previously logged into the <a href="../admin/attendance/" style="color:#c4862e">Admin Dashboard</a> so the API key is stored.</p>
+<button onclick="run()">Add Bhavik Now</button>
+<div id="log"></div>
+<script>
+var LOG = document.getElementById('log');
+function log(msg, ok) { LOG.innerHTML += '<span class="'+(ok?'ok':'err')+'\">' + msg + '</span>\n'; }
+
+async function run() {
+  LOG.innerHTML = '';
+  var binId = localStorage.getItem('att_binId') || '69b859a2aa77b81da9ee0ccc';
+  var apiKey = localStorage.getItem('att_apiKey');
+  if (!apiKey) { log('❌ No API key found. Please log into the Admin Dashboard first.', false); return; }
+
+  log('📡 Fetching current data...', true);
+  var res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', { headers: { 'X-Master-Key': apiKey } });
+  if (!res.ok) { log('❌ Fetch failed: ' + res.status, false); return; }
+  var json = await res.json();
+  var db = json.record;
+
+  // Check if Bhavik already exists
+  var idx = db.students.findIndex(function(s) { return s.token === 'bhavik-d4rm'; });
+  if (idx >= 0) {
+    log('⚠️ Bhavik already exists at index ' + idx + ' — updating in place', true);
+  } else {
+    db.students.push({ token: 'bhavik-d4rm', name: 'Bhavik', days: [2, 4], time: '19:00', timezone: 'Asia/Kolkata' });
+    idx = db.students.length - 1;
+    log('✓ Created Bhavik at index ' + idx, true);
+  }
+
+  var s = db.students[idx];
+
+  // Chess.com username
+  s.chesscomUsername = 'I_Bang_the_Drum';
+  s.lichessUsername = '';
+  log('✓ Set Chess.com username: I_Bang_the_Drum', true);
+
+  // Stats (from Chess.com API — fetched Mar 28 2026)
+  s.stats = {
+    lichess: {},
+    chesscom: { rapid: 1637, blitz: 1380, fetchedAt: '2026-03-28T00:00:00Z' },
+    history: []
+  };
+  log('✓ Set stats — Rapid 1637, Blitz 1380', true);
+
+  // Head-to-head record vs coach
+  s.h2h = {
+    opponent: 'repeller69',
+    opponentLabel: 'Coach Himanshu',
+    studentScore: 137.5,
+    opponentScore: 726.5,
+    wins: 118,
+    draws: 39,
+    losses: 707,
+    totalGames: 864
+  };
+  log('✓ Set head-to-head: repeller69 726.5 — 137.5 I_Bang_the_Drum (707W/39D/118L)', true);
+
+  // Recaps (sample sessions)
+  s.recaps = [
+    { date: '2026-03-18', title: 'Middlegame Planning', mood: 'good', bullets: ['Practiced identifying pawn breaks in closed positions', 'Worked on piece coordination — rooks behind passed pawns', 'Need to calculate 1 move deeper before committing'] },
+    { date: '2026-03-21', title: 'Tactical Combinations', mood: 'great', bullets: ['Solved 3-move combinations consistently', 'Found a beautiful Queen sacrifice in practice game', 'Deflection + discovered attack combos clicking well'] },
+    { date: '2026-03-25', title: 'Endgame Technique', mood: 'challenging', bullets: ['Rook endgames still tricky — need more practice with Lucena position', 'Good understanding of King activity in endgames', 'Homework: 5 rook endgame positions from Silman'] }
+  ];
+  log('✓ Added 3 sample recaps', true);
+
+  // Badges
+  s.badges = [
+    { id: 'first_login', name: 'First Steps', icon: '👣', desc: 'Visited your dashboard' },
+    { id: 'rating_800', name: 'Pawn Power', icon: '♟', desc: 'Reached 800 rating' },
+    { id: 'rating_1000', name: 'Bronze Knight', icon: '🐴', desc: 'Reached 1000 rating' },
+    { id: 'rating_1200', name: 'Silver Bishop', icon: '🏅', desc: 'Reached 1200 rating' },
+    { id: 'rating_1500', name: 'Gold Rook', icon: '🏰', desc: 'Reached 1500 rating' },
+    { id: 'puzzle_5', name: 'Puzzle Starter', icon: '🧩', desc: 'Solved 5 puzzles' },
+    { id: 'puzzle_10', name: 'Puzzle Pilot', icon: '🧩', desc: 'Logged 10 practice puzzles' },
+    { id: 'sessions_10', name: 'Dedicated', icon: '📚', desc: 'Completed 10 sessions' }
+  ];
+  log('✓ Added 8 badges', true);
+
+  // Puzzles — intermediate level (1200-1700 range)
+  s.puzzles = [
+    { id: "ItVBM", fen: "", moves: "", rating: 1362, theme: "Skewer", solved: false },
+    { id: "v8mvy", fen: "", moves: "", rating: 1367, theme: "Skewer", solved: false },
+    { id: "mXbXs", fen: "", moves: "", rating: 1399, theme: "Discovered Attack", solved: false },
+    { id: "A5NzY", fen: "", moves: "", rating: 1306, theme: "Discovered Attack", solved: false },
+    { id: "4rWzn", fen: "", moves: "", rating: 1489, theme: "Fork", solved: false },
+    { id: "JousQ", fen: "", moves: "", rating: 1496, theme: "Kingside Attack", solved: false },
+    { id: "ixgdu", fen: "", moves: "", rating: 1472, theme: "Kingside Attack", solved: false },
+    { id: "NNBpN", fen: "", moves: "", rating: 1313, theme: "Deflection", solved: false },
+    { id: "VQdfp", fen: "", moves: "", rating: 1455, theme: "Deflection", solved: false },
+    { id: "aWomD", fen: "", moves: "", rating: 1441, theme: "Anastasia Mate", solved: false },
+    { id: "Tg7Ni", fen: "", moves: "", rating: 1454, theme: "Anastasia Mate", solved: false }
+  ];
+  log('✓ Added 11 intermediate puzzles (1300-1500 range)', true);
+
+  // Curriculum — tailored for ~1637 rapid player pushing toward 1800+
+  s.plan = {
+    title: "Bhavik's Road to 1800",
+    pace: "2 classes/week — Tuesdays & Thursdays",
+    months: [
+      {
+        name: "Tactical Sharpness & Calculation",
+        goal: "Deepen calculation from 2 moves to 4, eliminate tactical oversights.",
+        weeks: [
+          {
+            label: "Week 1 — Mar 31",
+            classes: [
+              { topic: "Advanced Fork & Pin Combinations — Multi-piece tactics", done: false, date: "2026-03-31" },
+              { topic: "Candidate Moves — Forcing yourself to find 3 options before playing", done: false, date: "2026-04-02" }
+            ],
+            homework: { text: "20 puzzles/day on Chess.com (1400+ rated) + annotate 1 tactical game", done: false }
+          },
+          {
+            label: "Week 2 — Apr 7",
+            classes: [
+              { topic: "Deflection & Decoy — Removing key defenders", done: false, date: "2026-04-07" },
+              { topic: "Zwischenzug — The intermediate move that changes everything", done: false, date: "2026-04-09" }
+            ],
+            homework: { text: "20 puzzles/day + play 3 rapid games (15+10)", done: false }
+          },
+          {
+            label: "Week 3 — Apr 14",
+            classes: [
+              { topic: "Sacrificial Patterns — Greek Gift (Bxh7+) & Clearance Sacrifices", done: false, date: "2026-04-14" },
+              { topic: "Checkmate in 3 — Forced calculation drills", done: false, date: "2026-04-16" }
+            ],
+            homework: { text: "Mate-in-3 puzzle sprint (50 puzzles) + 3 rapid games", done: false },
+            links: [
+              { text: "Mate in 3 Training", url: "https://www.chess.com/puzzles/custom?moveCount=3" }
+            ]
+          },
+          {
+            label: "Week 4 — Apr 21",
+            classes: [
+              { topic: "Windmill & X-Ray Attacks — Double attack patterns", done: false, date: "2026-04-21" },
+              { topic: "Month 1 Tactical Assessment — 30-puzzle timed sprint", done: false, date: "2026-04-23" }
+            ],
+            homework: { text: "20 puzzles/day + review all missed tactics from the month", done: false }
+          }
+        ]
+      },
+      {
+        name: "Opening Repertoire Building",
+        goal: "Build a solid, aggressive repertoire for both colors with understanding, not memorization.",
+        weeks: [
+          {
+            label: "Week 5 — Apr 28",
+            classes: [
+              { topic: "White Repertoire — 1.e4 Italian Game: Giuoco Piano & Evans Gambit ideas", done: false, date: "2026-04-28" },
+              { topic: "Italian Game Deep Dive — Key pawn breaks and piece placement", done: false, date: "2026-04-30" }
+            ],
+            homework: { text: "Play 5 games as White with Italian Game setup, annotate best one", done: false }
+          },
+          {
+            label: "Week 6 — May 5",
+            classes: [
+              { topic: "Black vs 1.e4 — Sicilian Defense (Najdorf basics or Dragon)", done: false, date: "2026-05-05" },
+              { topic: "Sicilian Pawn Structures — When to break with d5 or b5", done: false, date: "2026-05-07" }
+            ],
+            homework: { text: "Play 5 games as Black in the Sicilian, annotate best one", done: false }
+          },
+          {
+            label: "Week 7 — May 12",
+            classes: [
+              { topic: "Black vs 1.d4 — King's Indian Defense: Plans & Pawn Storms", done: false, date: "2026-05-12" },
+              { topic: "KID: Bayonet Attack & Classical Variation responses", done: false, date: "2026-05-14" }
+            ],
+            homework: { text: "Study 3 KID master games + play 3 games with KID", done: false }
+          },
+          {
+            label: "Week 8 — May 19",
+            classes: [
+              { topic: "Anti-Systems — How to handle London, Trompowsky & sidelines", done: false, date: "2026-05-19" },
+              { topic: "Opening Review Game — Full repertoire test under time pressure", done: false, date: "2026-05-21" }
+            ],
+            homework: { text: "Play 3 rapid games using full repertoire, submit all for review", done: false }
+          }
+        ]
+      },
+      {
+        name: "Positional Play & Pawn Structures",
+        goal: "Understand when NOT to attack — learn to accumulate small advantages.",
+        weeks: [
+          {
+            label: "Week 9 — May 26",
+            classes: [
+              { topic: "Good vs Bad Bishops — When to trade and when to keep", done: false, date: "2026-05-26" },
+              { topic: "Knight Outposts — Permanent vs temporary posts", done: false, date: "2026-05-28" }
+            ],
+            homework: { text: "Annotate 2 of your games focusing on piece quality", done: false }
+          },
+          {
+            label: "Week 10 — Jun 2",
+            classes: [
+              { topic: "Isolated Queen's Pawn — Playing with and against the IQP", done: false, date: "2026-06-02" },
+              { topic: "Hanging Pawns & Pawn Chains — Structure determines strategy", done: false, date: "2026-06-04" }
+            ],
+            homework: { text: "Study Karpov's pawn structure play — 2 annotated games", done: false }
+          },
+          {
+            label: "Week 11 — Jun 9",
+            classes: [
+              { topic: "Prophylaxis — Asking 'What does my opponent want?' every move", done: false, date: "2026-06-09" },
+              { topic: "Restricting the Opponent — Space advantage & piece domination", done: false, date: "2026-06-11" }
+            ],
+            homework: { text: "Play 3 rapid games focusing purely on opponent's threats before each move", done: false }
+          },
+          {
+            label: "Week 12 — Jun 16",
+            classes: [
+              { topic: "Weak Squares & Color Complexes — Exploiting light/dark square holes", done: false, date: "2026-06-16" },
+              { topic: "Month 3 Positional Assessment — Annotate a full game with positional focus", done: false, date: "2026-06-18" }
+            ],
+            homework: { text: "Self-annotate your best positional win from this month", done: false }
+          }
+        ]
+      },
+      {
+        name: "Endgame Mastery",
+        goal: "Convert advantages reliably — no more throwing won games in the endgame.",
+        weeks: [
+          {
+            label: "Week 13 — Jun 23",
+            classes: [
+              { topic: "Rook Endgames — Lucena & Philidor positions (must-know theory)", done: false, date: "2026-06-23" },
+              { topic: "Rook Endgame Drills — Active rook, cutting off the King", done: false, date: "2026-06-25" }
+            ],
+            homework: { text: "Win 5 rook endgame positions against Stockfish Level 5", done: false }
+          },
+          {
+            label: "Week 14 — Jun 30",
+            classes: [
+              { topic: "King & Pawn Endgames — Opposition, Triangulation, Zugzwang", done: false, date: "2026-06-30" },
+              { topic: "The Square Rule & Breakthrough — Pawn promotion races", done: false, date: "2026-07-02" }
+            ],
+            homework: { text: "Complete pawn endgame exercises on Chess.com", done: false }
+          },
+          {
+            label: "Week 15 — Jul 7",
+            classes: [
+              { topic: "Minor Piece Endgames — Bishop vs Knight, same-color Bishops", done: false, date: "2026-07-07" },
+              { topic: "Converting Extra Material — Technique when up a full piece", done: false, date: "2026-07-09" }
+            ],
+            homework: { text: "Play out 5 endgame positions from winning side against engine", done: false }
+          },
+          {
+            label: "Week 16 — Jul 14",
+            classes: [
+              { topic: "Practical Endgame Test — Play 3 endgame-only positions vs coach", done: false, date: "2026-07-14" },
+              { topic: "Endgame Review & Weak Spot Analysis", done: false, date: "2026-07-16" }
+            ],
+            homework: { text: "Review all endgame positions you lost this month", done: false }
+          }
+        ]
+      },
+      {
+        name: "Tournament Prep & Graduation",
+        goal: "Tie everything together — openings into middlegames into endgames. Target: 1800+",
+        weeks: [
+          {
+            label: "Week 17 — Jul 21",
+            classes: [
+              { topic: "Complete Game Planning — Opening prep flows into middlegame plan", done: false, date: "2026-07-21" },
+              { topic: "Clock Management & Practical Decision Making", done: false, date: "2026-07-23" }
+            ],
+            homework: { text: "Play 5 rapid games with strict time discipline — never less than 2 min at move 30", done: false }
+          },
+          {
+            label: "Week 18 — Jul 28",
+            classes: [
+              { topic: "Master Game Study — Kasparov's attacking brilliance", done: false, date: "2026-07-28" },
+              { topic: "Master Game Study — Carlsen's endgame precision", done: false, date: "2026-07-30" }
+            ],
+            homework: { text: "Annotate one Kasparov and one Carlsen game move-by-move", done: false }
+          },
+          {
+            label: "Week 19 — Aug 4",
+            classes: [
+              { topic: "Live Game Analysis — Review Bhavik's recent Chess.com games", done: false, date: "2026-08-04" },
+              { topic: "Weakness Identification & Training Plan for Next Phase", done: false, date: "2026-08-06" }
+            ],
+            homework: { text: "Self-annotate your 3 worst losses from the past month", done: false }
+          },
+          {
+            label: "Week 20 — Aug 11",
+            classes: [
+              { topic: "Final Assessment Game 1 — Classical time control vs coach", done: false, date: "2026-08-11" },
+              { topic: "Final Assessment Game 2 — Post-mortem & Graduation to Advanced", done: false, date: "2026-08-13" }
+            ],
+            homework: { text: "Prepare for graduation — review all key concepts from 5 months", done: false }
+          }
+        ]
+      }
+    ]
+  };
+  log('✓ Built 5-month curriculum: 20 weeks, 40 classes — Road to 1800', true);
+
+  // Save
+  log('\n💾 Saving to JSONBin...', true);
+  var saveRes = await fetch('https://api.jsonbin.io/v3/b/' + binId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+    body: JSON.stringify(db)
+  });
+
+  if (saveRes.ok) {
+    log('\n🎉 ALL DONE! Dashboard created for Bhavik.', true);
+    log('→ Visit: /dashboard/?t=bhavik-d4rm', true);
+  } else {
+    log('❌ Save failed: ' + saveRes.status + ' ' + (await saveRes.text()), false);
+  }
+}
+</script>
+</body></html>

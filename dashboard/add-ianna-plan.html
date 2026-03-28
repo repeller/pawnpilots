@@ -32,6 +32,10 @@ async function run() {
   if (idx < 0) { log('❌ Ianna not found in database', false); return; }
   log('✓ Found Ianna at index ' + idx, true);
 
+  db.students[idx].lichessUsername = 'Ianna-pw';
+  db.students[idx].chesscomUsername = '';
+  log('✓ Set Lichess username: Ianna-pw', true);
+
   // Themed puzzles from Lichess (matched to curriculum topics)
   db.students[idx].puzzles = [
     { id: "4rWzn", fen: "8/5p1k/6pp/8/1q6/1rnQN1P1/5P1P/2R3K1 w - - 2 37", moves: "b4c4 e3c4 c3e2 g1g2 e2c1", rating: 1489, theme: "Fork", solved: false },
