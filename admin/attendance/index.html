@@ -401,8 +401,27 @@
 
   <!-- PLAN EDITOR MODAL -->
   <div class="modal-overlay" id="planModal">
-    <div class="modal" style="max-width:680px; max-height:85vh; overflow-y:auto;">
-      <h2 id="planModalTitle" style="font-family:'Outfit';font-size:1.1rem;color:var(--muted);margin-bottom:16px;">Curriculum Plan</h2>
+    <div class="modal" style="max-width:720px; max-height:88vh; overflow-y:auto;">
+      <h2 id="planModalTitle" style="font-family:'Outfit';font-size:1.1rem;color:var(--muted);margin-bottom:12px;">Curriculum Plan</h2>
+      <div id="planProgressBar" style="display:none;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span id="planProgressLabel" style="font-size:0.78rem;font-weight:600;color:var(--walnut);">0/0 classes done</span>
+          <span id="planProgressPct" style="font-size:0.78rem;color:var(--muted);">0%</span>
+        </div>
+        <div style="height:6px;background:var(--warm);border-radius:3px;overflow:hidden;">
+          <div id="planProgressFill" style="height:100%;background:var(--felt);border-radius:3px;transition:width 0.3s;width:0%"></div>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>Plan Title</label>
+          <input id="planTitleInput" placeholder="e.g. 5-Month Accelerated Training Plan"/>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>Pace</label>
+          <input id="planPaceInput" placeholder="e.g. 2 classes/week — Tuesdays & Wednesdays"/>
+        </div>
+      </div>
       <div id="planEditorContent"></div>
       <div style="margin-top:12px;">
         <button class="btn btn-secondary btn-sm" onclick="addPlanMonth()">+ Add Month</button>
@@ -417,10 +436,21 @@
   <style>
     .plan-editor-month { border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:12px; background:#fafafa; }
     .plan-editor-month h4 { margin:0 0 8px; font-size:0.92rem; display:flex; justify-content:space-between; align-items:center; }
+    .plan-editor-month .plan-month-goal { font-size:0.8rem; color:var(--muted); font-style:italic; margin-bottom:8px; }
     .plan-editor-week { background:#fff; border:1px solid #eee; border-radius:6px; padding:12px; margin-bottom:8px; }
     .plan-editor-week label { font-size:0.78rem; font-weight:600; color:var(--muted); display:block; margin-bottom:2px; }
     .plan-editor-week input, .plan-editor-week textarea { width:100%; padding:6px 8px; border:1px solid #ddd; border-radius:4px; font-size:0.85rem; margin-bottom:6px; font-family:'Outfit',sans-serif; }
     .plan-editor-week textarea { resize:vertical; min-height:40px; }
+    .plan-class-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
+    .plan-class-row input[type="checkbox"] { width:auto; margin:0; flex-shrink:0; cursor:pointer; accent-color:var(--felt); }
+    .plan-class-row .plan-class-topic { flex:1; }
+    .plan-class-row .plan-class-date { width:130px; flex-shrink:0; }
+    .plan-class-row button { flex-shrink:0; background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:0.75rem; }
+    .plan-class-done .plan-class-topic { text-decoration:line-through; opacity:0.55; }
+    .plan-hw-row { display:flex; gap:6px; align-items:center; margin-bottom:6px; }
+    .plan-hw-row input[type="checkbox"] { width:auto; margin:0; flex-shrink:0; cursor:pointer; accent-color:var(--gold); }
+    .plan-hw-row input[type="text"], .plan-hw-row input:not([type]) { flex:1; }
+    .plan-hw-done input:not([type="checkbox"]) { text-decoration:line-through; opacity:0.55; }
     .plan-link-row { display:flex; gap:6px; margin-bottom:4px; }
     .plan-link-row input { flex:1; }
     .plan-link-row button { flex-shrink:0; background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:0.75rem; }
@@ -624,6 +654,20 @@
     }
 
     // =====================================================
+    // PLAN BADGE HELPER
+    // =====================================================
+    function getPlanBadge(stu) {
+      const p = stu.plan;
+      if (!p || !p.months || p.months.length === 0) return '';
+      let total = 0, done = 0;
+      p.months.forEach(m => (m.weeks || []).forEach(w => (w.classes || []).forEach(c => { total++; if (c.done) done++; })));
+      if (total === 0) return '';
+      const pct = Math.round(done / total * 100);
+      const color = pct === 100 ? '#2f7a54' : pct > 0 ? '#c4862e' : '#999';
+      return ' <span style="font-size:0.7rem;color:' + color + ';font-weight:700;">' + done + '/' + total + '</span>';
+    }
+
+    // =====================================================
     // RENDER DASHBOARD
     // =====================================================
     function renderDashboard() {
@@ -668,7 +712,7 @@
                 </div>
               </div>
               <div class="student-card-actions">
-                <button class="btn btn-secondary btn-sm" onclick="openPlanEditor(${idx})" title="Curriculum Plan">📋 Plan</button>
+                <button class="btn btn-secondary btn-sm" onclick="openPlanEditor(${idx})" title="Curriculum Plan">📋 Plan${getPlanBadge(stu)}</button>
                 <button class="btn btn-secondary btn-sm" onclick="editStudent(${idx})">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteStudent(${idx})">×</button>
               </div>
@@ -941,13 +985,36 @@
     // PLAN EDITOR
     // =====================================================
     let planEditIdx = -1;
-    let planEditData = [];
+    let planEditData = { title: '', pace: '', months: [] };
 
     function openPlanEditor(idx) {
       planEditIdx = idx;
       const stu = db.students[idx];
-      planEditData = JSON.parse(JSON.stringify(stu.plan || []));
+      const raw = stu.plan;
+
+      // Normalize: old format was flat array, new format is { title, pace, months }
+      if (Array.isArray(raw)) {
+        planEditData = {
+          title: '', pace: '',
+          months: raw.map(m => ({
+            name: m.title || '', goal: m.goal || '',
+            weeks: (m.weeks || []).map(w => ({
+              label: w.label || '',
+              classes: [{ topic: w.topic || '', done: false }],
+              homework: { text: w.detail || '', done: false },
+              links: w.links || []
+            }))
+          }))
+        };
+      } else if (raw && raw.months) {
+        planEditData = JSON.parse(JSON.stringify(raw));
+      } else {
+        planEditData = { title: '', pace: '', months: [] };
+      }
+
       document.getElementById('planModalTitle').textContent = 'Curriculum Plan — ' + stu.name;
+      document.getElementById('planTitleInput').value = planEditData.title || '';
+      document.getElementById('planPaceInput').value = planEditData.pace || '';
       document.getElementById('planModal').classList.add('show');
       renderPlanEditor();
     }
@@ -956,35 +1023,84 @@
       document.getElementById('planModal').classList.remove('show');
     }
 
+    function updatePlanProgress() {
+      let total = 0, done = 0;
+      planEditData.months.forEach(m => {
+        (m.weeks || []).forEach(w => {
+          (w.classes || []).forEach(c => { total++; if (c.done) done++; });
+        });
+      });
+      const bar = document.getElementById('planProgressBar');
+      if (total === 0) { bar.style.display = 'none'; return; }
+      bar.style.display = 'block';
+      const pct = Math.round(done / total * 100);
+      document.getElementById('planProgressLabel').textContent = done + '/' + total + ' classes done';
+      document.getElementById('planProgressPct').textContent = pct + '%';
+      document.getElementById('planProgressFill').style.width = pct + '%';
+    }
+
     function renderPlanEditor() {
       const container = document.getElementById('planEditorContent');
-      if (planEditData.length === 0) {
+      const months = planEditData.months;
+      updatePlanProgress();
+      if (months.length === 0) {
         container.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No plan yet. Click "+ Add Month" to start building one.</p>';
         return;
       }
       let html = '';
-      planEditData.forEach((month, mi) => {
+      months.forEach((month, mi) => {
+        // Count done/total for this month
+        let mTotal = 0, mDone = 0;
+        (month.weeks || []).forEach(w => (w.classes || []).forEach(c => { mTotal++; if (c.done) mDone++; }));
+
         html += `<div class="plan-editor-month">`;
-        html += `<h4><span>Month ${mi+1}</span><button class="btn btn-danger btn-xs" onclick="removePlanMonth(${mi})">Remove</button></h4>`;
-        html += `<div style="margin-bottom:8px;"><label style="font-size:0.78rem;font-weight:600;color:var(--muted);">Title</label><input value="${escHtml(month.title||'')}" onchange="planEditData[${mi}].title=this.value" placeholder="e.g. The King's Indian & Kingside Storm"/></div>`;
-        html += `<div style="margin-bottom:8px;"><label style="font-size:0.78rem;font-weight:600;color:var(--muted);">Goal</label><input value="${escHtml(month.goal||'')}" onchange="planEditData[${mi}].goal=this.value" placeholder="Month goal description"/></div>`;
+        html += `<h4><span>Month ${mi+1}${month.name ? ' — '+escHtml(month.name) : ''}</span>`;
+        html += `<span style="display:flex;align-items:center;gap:8px;">`;
+        if (mTotal > 0) html += `<span style="font-size:0.72rem;color:var(--felt);font-weight:600;">${mDone}/${mTotal}</span>`;
+        html += `<button class="btn btn-danger btn-xs" onclick="removePlanMonth(${mi})">Remove</button></span></h4>`;
+        html += `<div style="margin-bottom:8px;"><label style="font-size:0.78rem;font-weight:600;color:var(--muted);">Name</label><input value="${escHtml(month.name||'')}" onchange="planEditData.months[${mi}].name=this.value" placeholder="e.g. The King's Indian & Kingside Storm"/></div>`;
+        html += `<div style="margin-bottom:8px;"><label style="font-size:0.78rem;font-weight:600;color:var(--muted);">Goal</label><input value="${escHtml(month.goal||'')}" onchange="planEditData.months[${mi}].goal=this.value" placeholder="Month goal description"/></div>`;
+
         (month.weeks || []).forEach((week, wi) => {
           html += `<div class="plan-editor-week">`;
-          html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">`;
-          html += `<label style="margin:0;">Week ${wi+1}</label>`;
+          html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">`;
+          html += `<label style="margin:0;font-size:0.85rem;font-weight:700;">${escHtml(week.label || 'Week '+(wi+1))}</label>`;
           html += `<button class="btn btn-danger btn-xs" onclick="removePlanWeek(${mi},${wi})">×</button></div>`;
-          html += `<label>Label</label><input value="${escHtml(week.label||'')}" onchange="planEditData[${mi}].weeks[${wi}].label=this.value" placeholder="e.g. Week 1 (Classes 1-2)"/>`;
-          html += `<label>Topic</label><input value="${escHtml(week.topic||'')}" onchange="planEditData[${mi}].weeks[${wi}].topic=this.value" placeholder="Main topic"/>`;
-          html += `<label>Detail / Homework</label><textarea onchange="planEditData[${mi}].weeks[${wi}].detail=this.value" placeholder="Details, homework description...">${escHtml(week.detail||'')}</textarea>`;
+
+          html += `<label>Label</label><input value="${escHtml(week.label||'')}" onchange="planEditData.months[${mi}].weeks[${wi}].label=this.value" placeholder="e.g. Week 1 — Mar 4"/>`;
+
+          // Classes
+          html += `<label style="margin-top:4px;">Classes</label>`;
+          (week.classes || []).forEach((cls, ci) => {
+            const doneClass = cls.done ? ' plan-class-done' : '';
+            html += `<div class="plan-class-row${doneClass}">`;
+            html += `<input type="checkbox" ${cls.done?'checked':''} onchange="planEditData.months[${mi}].weeks[${wi}].classes[${ci}].done=this.checked; renderPlanEditor()"/>`;
+            html += `<input class="plan-class-topic" value="${escHtml(cls.topic||'')}" onchange="planEditData.months[${mi}].weeks[${wi}].classes[${ci}].topic=this.value" placeholder="Class topic"/>`;
+            html += `<input class="plan-class-date" type="date" value="${cls.date||''}" onchange="planEditData.months[${mi}].weeks[${wi}].classes[${ci}].date=this.value"/>`;
+            html += `<button onclick="removePlanClass(${mi},${wi},${ci})">×</button>`;
+            html += `</div>`;
+          });
+          html += `<button class="btn btn-secondary btn-xs" style="margin-top:2px;" onclick="addPlanClass(${mi},${wi})">+ Class</button>`;
+
+          // Homework
+          const hw = week.homework || { text: '', done: false };
+          const hwDoneClass = hw.done ? ' plan-hw-done' : '';
+          html += `<label style="margin-top:8px;">Homework</label>`;
+          html += `<div class="plan-hw-row${hwDoneClass}">`;
+          html += `<input type="checkbox" ${hw.done?'checked':''} onchange="ensureHw(${mi},${wi}); planEditData.months[${mi}].weeks[${wi}].homework.done=this.checked; renderPlanEditor()"/>`;
+          html += `<input value="${escHtml(hw.text||'')}" onchange="ensureHw(${mi},${wi}); planEditData.months[${mi}].weeks[${wi}].homework.text=this.value" placeholder="Homework description"/>`;
+          html += `</div>`;
+
           // Links
-          html += `<label>Study Links</label>`;
+          html += `<label style="margin-top:8px;">Study Links</label>`;
           (week.links || []).forEach((lnk, li) => {
             html += `<div class="plan-link-row">`;
-            html += `<input value="${escHtml(lnk.text||'')}" onchange="planEditData[${mi}].weeks[${wi}].links[${li}].text=this.value" placeholder="Link label"/>`;
-            html += `<input value="${escHtml(lnk.url||'')}" onchange="planEditData[${mi}].weeks[${wi}].links[${li}].url=this.value" placeholder="https://lichess.org/..."/>`;
+            html += `<input value="${escHtml(lnk.text||'')}" onchange="planEditData.months[${mi}].weeks[${wi}].links[${li}].text=this.value" placeholder="Link label"/>`;
+            html += `<input value="${escHtml(lnk.url||'')}" onchange="planEditData.months[${mi}].weeks[${wi}].links[${li}].url=this.value" placeholder="https://lichess.org/..."/>`;
             html += `<button onclick="removePlanLink(${mi},${wi},${li})">×</button></div>`;
           });
           html += `<button class="btn btn-secondary btn-xs" style="margin-top:4px;" onclick="addPlanLink(${mi},${wi})">+ Link</button>`;
+
           html += `</div>`;
         });
         html += `<button class="btn btn-secondary btn-xs" style="margin-top:6px;" onclick="addPlanWeek(${mi})">+ Add Week</button>`;
@@ -993,42 +1109,60 @@
       container.innerHTML = html;
     }
 
+    function ensureHw(mi, wi) {
+      if (!planEditData.months[mi].weeks[wi].homework) planEditData.months[mi].weeks[wi].homework = { text: '', done: false };
+    }
+
     function addPlanMonth() {
-      planEditData.push({ title: 'Month ' + (planEditData.length + 1), goal: '', weeks: [{ label: 'Week 1', topic: '', detail: '', links: [] }] });
+      planEditData.months.push({ name: '', goal: '', weeks: [{ label: 'Week 1', classes: [{ topic: '', done: false }], homework: { text: '', done: false }, links: [] }] });
       renderPlanEditor();
     }
 
     function removePlanMonth(mi) {
-      planEditData.splice(mi, 1);
+      planEditData.months.splice(mi, 1);
       renderPlanEditor();
     }
 
     function addPlanWeek(mi) {
-      if (!planEditData[mi].weeks) planEditData[mi].weeks = [];
-      planEditData[mi].weeks.push({ label: 'Week ' + (planEditData[mi].weeks.length + 1), topic: '', detail: '', links: [] });
+      if (!planEditData.months[mi].weeks) planEditData.months[mi].weeks = [];
+      const n = planEditData.months[mi].weeks.length + 1;
+      planEditData.months[mi].weeks.push({ label: 'Week ' + n, classes: [{ topic: '', done: false }], homework: { text: '', done: false }, links: [] });
       renderPlanEditor();
     }
 
     function removePlanWeek(mi, wi) {
-      planEditData[mi].weeks.splice(wi, 1);
+      planEditData.months[mi].weeks.splice(wi, 1);
+      renderPlanEditor();
+    }
+
+    function addPlanClass(mi, wi) {
+      if (!planEditData.months[mi].weeks[wi].classes) planEditData.months[mi].weeks[wi].classes = [];
+      planEditData.months[mi].weeks[wi].classes.push({ topic: '', done: false });
+      renderPlanEditor();
+    }
+
+    function removePlanClass(mi, wi, ci) {
+      planEditData.months[mi].weeks[wi].classes.splice(ci, 1);
       renderPlanEditor();
     }
 
     function addPlanLink(mi, wi) {
-      if (!planEditData[mi].weeks[wi].links) planEditData[mi].weeks[wi].links = [];
-      planEditData[mi].weeks[wi].links.push({ text: '', url: '' });
+      if (!planEditData.months[mi].weeks[wi].links) planEditData.months[mi].weeks[wi].links = [];
+      planEditData.months[mi].weeks[wi].links.push({ text: '', url: '' });
       renderPlanEditor();
     }
 
     function removePlanLink(mi, wi, li) {
-      planEditData[mi].weeks[wi].links.splice(li, 1);
+      planEditData.months[mi].weeks[wi].links.splice(li, 1);
       renderPlanEditor();
     }
 
     function savePlan() {
+      planEditData.title = document.getElementById('planTitleInput').value;
+      planEditData.pace = document.getElementById('planPaceInput').value;
       db.students[planEditIdx].plan = planEditData;
       closePlanModal();
-      showToast('Plan saved locally!');
+      showToast('Plan saved!');
       saveData();
     }
 
