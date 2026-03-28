@@ -448,6 +448,8 @@ fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest')
   PUZZLE_POOL.forEach(function(pp){
     if(!existingIds[pp.id]){student.puzzles.push({id:pp.id,rating:pp.rating,theme:pp.theme,solved:!!solvedIds[pp.id],fen:'',moves:''})}
   });
+  // Apply localStorage solved state to ALL puzzles (including JSONBin ones)
+  student.puzzles.forEach(function(p){if(solvedIds[p.id])p.solved=true});
   render();
 }).catch(function(e){
   if(e.ue)showError(e.t,e.m);else{console.error(e);showError('Connection error','Could not reach database.')}
