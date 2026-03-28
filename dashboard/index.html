@@ -597,30 +597,30 @@ var THEME_META={
   'Back Rank Mate':{icon:'🚪',desc:'Rook or Queen mates on the back rank',key:'backRankMate'},
   'Hook Mate':{icon:'🪝',desc:'Rook + Knight + Pawn create a deadly net',key:'hookMate'}
 };
-// Puzzle Pool — 10+ easy puzzles per theme (fetched from Lichess, rated ≤1400)
+// Puzzle Pool — 10+ puzzles per theme, all verified Lichess IDs
 var PUZZLE_POOL=[
-  // Fork
-  {id:'002GQ',rating:654,theme:'Fork'},{id:'Fz3Cm',rating:866,theme:'Fork'},{id:'qW6dW',rating:891,theme:'Fork'},{id:'dF2s4',rating:900,theme:'Fork'},{id:'0dQ9Y',rating:942,theme:'Fork'},{id:'Xr0N6',rating:972,theme:'Fork'},{id:'WyQhj',rating:993,theme:'Fork'},{id:'UNkj3',rating:1037,theme:'Fork'},{id:'WmYOi',rating:1049,theme:'Fork'},{id:'rC07N',rating:1090,theme:'Fork'},{id:'6P03N',rating:1099,theme:'Fork'},{id:'wWrco',rating:1107,theme:'Fork'},
-  // Pin
-  {id:'TKoLI',rating:1288,theme:'Pin'},{id:'I8hR9',rating:1304,theme:'Pin'},{id:'MGQTI',rating:1331,theme:'Pin'},{id:'syuWw',rating:1331,theme:'Pin'},{id:'TjXTT',rating:1351,theme:'Pin'},{id:'0516t',rating:1362,theme:'Pin'},{id:'QHfqe',rating:1397,theme:'Pin'},{id:'Ib1Q5',rating:1287,theme:'Pin'},{id:'ApOMA',rating:1423,theme:'Pin'},{id:'1s3Ah',rating:1410,theme:'Pin'},
-  // Skewer
-  {id:'FjCiI',rating:776,theme:'Skewer'},{id:'vqDo3',rating:919,theme:'Skewer'},{id:'Bh2Bm',rating:1028,theme:'Skewer'},{id:'LplWy',rating:1092,theme:'Skewer'},{id:'RI8Bn',rating:1134,theme:'Skewer'},{id:'VwNHC',rating:1156,theme:'Skewer'},{id:'JOpVB',rating:1294,theme:'Skewer'},{id:'lLujX',rating:1345,theme:'Skewer'},{id:'DLny3',rating:1352,theme:'Skewer'},{id:'2P083',rating:1358,theme:'Skewer'},{id:'IUogL',rating:1368,theme:'Skewer'},{id:'5JOmf',rating:1388,theme:'Skewer'},
-  // Discovered Attack
-  {id:'bFxgn',rating:874,theme:'Discovered Attack'},{id:'DP5WT',rating:1193,theme:'Discovered Attack'},{id:'SDZNx',rating:1267,theme:'Discovered Attack'},{id:'WVr7h',rating:1269,theme:'Discovered Attack'},{id:'e5Xc5',rating:1283,theme:'Discovered Attack'},{id:'wrUT7',rating:1288,theme:'Discovered Attack'},{id:'4Lpq4',rating:1305,theme:'Discovered Attack'},{id:'zyeYg',rating:1307,theme:'Discovered Attack'},{id:'U2zpr',rating:1308,theme:'Discovered Attack'},{id:'do1xi',rating:1498,theme:'Discovered Attack'},
-  // Anastasia Mate
-  {id:'28ahg',rating:1075,theme:'Anastasia Mate'},{id:'4ZOds',rating:1109,theme:'Anastasia Mate'},{id:'4rQPE',rating:1365,theme:'Anastasia Mate'},{id:'woEGv',rating:1413,theme:'Anastasia Mate'},{id:'Z6pek',rating:1410,theme:'Anastasia Mate'},{id:'aWomD',rating:1441,theme:'Anastasia Mate'},{id:'Tg7Ni',rating:1454,theme:'Anastasia Mate'},{id:'t7B40',rating:1490,theme:'Anastasia Mate'},{id:'ZSNz4',rating:1553,theme:'Anastasia Mate'},{id:'6yQLx',rating:1538,theme:'Anastasia Mate'},
-  // Arabian Mate
-  {id:'9VZD4',rating:1104,theme:'Arabian Mate'},{id:'7MHaR',rating:1125,theme:'Arabian Mate'},{id:'yq6WT',rating:1268,theme:'Arabian Mate'},{id:'Jyvg7',rating:1472,theme:'Arabian Mate'},{id:'BENlW',rating:1476,theme:'Arabian Mate'},{id:'l5U9H',rating:1470,theme:'Arabian Mate'},{id:'NhYr6',rating:1532,theme:'Arabian Mate'},{id:'DfTGc',rating:1559,theme:'Arabian Mate'},{id:'AvK7s',rating:1611,theme:'Arabian Mate'},{id:'F8UhT',rating:1472,theme:'Arabian Mate'},
-  // Deflection
-  {id:'0rH82',rating:1296,theme:'Deflection'},{id:'NNBpN',rating:1313,theme:'Deflection'},{id:'FlNIx',rating:1397,theme:'Deflection'},{id:'BBrCL',rating:1404,theme:'Deflection'},{id:'VQdfp',rating:1455,theme:'Deflection'},{id:'8aWP8',rating:1405,theme:'Deflection'},{id:'ZvasE',rating:1414,theme:'Deflection'},{id:'ezNp3',rating:1427,theme:'Deflection'},{id:'OQHsv',rating:1437,theme:'Deflection'},{id:'blewu',rating:1440,theme:'Deflection'},
-  // Kingside Attack
-  {id:'cRXQF',rating:1301,theme:'Kingside Attack'},{id:'jMwD7',rating:1328,theme:'Kingside Attack'},{id:'W6OGZ',rating:1349,theme:'Kingside Attack'},{id:'VLtD6',rating:1351,theme:'Kingside Attack'},{id:'csPIi',rating:1360,theme:'Kingside Attack'},{id:'IAyI7',rating:1362,theme:'Kingside Attack'},{id:'hKiJt',rating:1367,theme:'Kingside Attack'},{id:'tVEU0',rating:1366,theme:'Kingside Attack'},{id:'CBxMs',rating:1371,theme:'Kingside Attack'},{id:'N7B8f',rating:1377,theme:'Kingside Attack'},{id:'kbl9G',rating:1387,theme:'Kingside Attack'},
-  // Smothered Mate
-  {id:'O7axC',rating:1268,theme:'Smothered Mate'},{id:'qiqaJ',rating:1335,theme:'Smothered Mate'},{id:'fe3a3',rating:1354,theme:'Smothered Mate'},{id:'d2m8c',rating:1360,theme:'Smothered Mate'},{id:'qxYWM',rating:1366,theme:'Smothered Mate'},{id:'sFEBL',rating:1376,theme:'Smothered Mate'},{id:'Q12Tu',rating:1385,theme:'Smothered Mate'},{id:'eQPgB',rating:1388,theme:'Smothered Mate'},{id:'6z2RU',rating:1397,theme:'Smothered Mate'},{id:'Fa6mM',rating:1556,theme:'Smothered Mate'},
-  // Back Rank Mate
-  {id:'o1SXq',rating:815,theme:'Back Rank Mate'},{id:'rqz64',rating:936,theme:'Back Rank Mate'},{id:'BQKBR',rating:963,theme:'Back Rank Mate'},{id:'h9dOj',rating:1008,theme:'Back Rank Mate'},{id:'0Nh8C',rating:1075,theme:'Back Rank Mate'},{id:'IELww',rating:1248,theme:'Back Rank Mate'},{id:'gXr1N',rating:1278,theme:'Back Rank Mate'},{id:'CwSHZ',rating:1301,theme:'Back Rank Mate'},{id:'D3dCv',rating:1315,theme:'Back Rank Mate'},{id:'ltMa0',rating:1340,theme:'Back Rank Mate'},{id:'FLERo',rating:1352,theme:'Back Rank Mate'},{id:'fBGwu',rating:1373,theme:'Back Rank Mate'},
-  // Hook Mate
-  {id:'GBDMR',rating:1259,theme:'Hook Mate'},{id:'DWR38',rating:1267,theme:'Hook Mate'},{id:'xHNEW',rating:1268,theme:'Hook Mate'},{id:'shpWT',rating:1288,theme:'Hook Mate'},{id:'2lW4B',rating:1338,theme:'Hook Mate'},{id:'8h0F3',rating:1344,theme:'Hook Mate'},{id:'nQKnY',rating:1362,theme:'Hook Mate'},{id:'ZfVr4',rating:1364,theme:'Hook Mate'},{id:'Jtqby',rating:1372,theme:'Hook Mate'},{id:'nXz5o',rating:1376,theme:'Hook Mate'},{id:'7Lsqw',rating:1379,theme:'Hook Mate'},{id:'IyqHz',rating:1384,theme:'Hook Mate'}
+  // Fork (12 — from Lichess DB, 654-1107)
+  {id:'002GQ',rating:654,theme:'Fork'},{id:'rC07N',rating:773,theme:'Fork'},{id:'00EBZ',rating:818,theme:'Fork'},{id:'rByws',rating:838,theme:'Fork'},{id:'rC13H',rating:858,theme:'Fork'},{id:'00GBX',rating:866,theme:'Fork'},{id:'001wr',rating:973,theme:'Fork'},{id:'003Jb',rating:993,theme:'Fork'},{id:'003jv',rating:1007,theme:'Fork'},{id:'003jb',rating:1008,theme:'Fork'},{id:'003jH',rating:1065,theme:'Fork'},{id:'003r5',rating:1107,theme:'Fork'},
+  // Pin (10 — from Lichess training)
+  {id:'003nQ',rating:1287,theme:'Pin'},{id:'TKoLI',rating:1288,theme:'Pin'},{id:'I8hR9',rating:1304,theme:'Pin'},{id:'01OAI',rating:1308,theme:'Pin'},{id:'MGQTI',rating:1331,theme:'Pin'},{id:'syuWw',rating:1331,theme:'Pin'},{id:'TjXTT',rating:1351,theme:'Pin'},{id:'01PBg',rating:1359,theme:'Pin'},{id:'0516t',rating:1362,theme:'Pin'},{id:'QHfqe',rating:1397,theme:'Pin'},
+  // Skewer (12 — from Lichess DB + training)
+  {id:'01Nco',rating:776,theme:'Skewer'},{id:'006yP',rating:819,theme:'Skewer'},{id:'00F1l',rating:836,theme:'Skewer'},{id:'006OI',rating:843,theme:'Skewer'},{id:'001xl',rating:1084,theme:'Skewer'},{id:'003eP',rating:1156,theme:'Skewer'},{id:'JOpVB',rating:1294,theme:'Skewer'},{id:'lLujX',rating:1345,theme:'Skewer'},{id:'DLny3',rating:1352,theme:'Skewer'},{id:'2P083',rating:1358,theme:'Skewer'},{id:'IUogL',rating:1368,theme:'Skewer'},{id:'5JOmf',rating:1388,theme:'Skewer'},
+  // Discovered Attack (10 — from Lichess DB + training)
+  {id:'0GW13',rating:874,theme:'Discovered Attack'},{id:'rBz3S',rating:1087,theme:'Discovered Attack'},{id:'SDZNx',rating:1267,theme:'Discovered Attack'},{id:'WVr7h',rating:1269,theme:'Discovered Attack'},{id:'e5Xc5',rating:1283,theme:'Discovered Attack'},{id:'wrUT7',rating:1288,theme:'Discovered Attack'},{id:'00O37',rating:1300,theme:'Discovered Attack'},{id:'4Lpq4',rating:1305,theme:'Discovered Attack'},{id:'U2zpr',rating:1308,theme:'Discovered Attack'},{id:'do1xi',rating:1498,theme:'Discovered Attack'},
+  // Anastasia Mate (10)
+  {id:'gZF3K',rating:789,theme:'Anastasia Mate'},{id:'28ahg',rating:1075,theme:'Anastasia Mate'},{id:'AdLLB',rating:1087,theme:'Anastasia Mate'},{id:'4ZOds',rating:1109,theme:'Anastasia Mate'},{id:'4rQPE',rating:1365,theme:'Anastasia Mate'},{id:'Z6pek',rating:1410,theme:'Anastasia Mate'},{id:'woEGv',rating:1413,theme:'Anastasia Mate'},{id:'aWomD',rating:1441,theme:'Anastasia Mate'},{id:'t7B40',rating:1490,theme:'Anastasia Mate'},{id:'6yQLx',rating:1538,theme:'Anastasia Mate'},
+  // Arabian Mate (10)
+  {id:'VvIQl',rating:909,theme:'Arabian Mate'},{id:'lsBiW',rating:1004,theme:'Arabian Mate'},{id:'9VZD4',rating:1104,theme:'Arabian Mate'},{id:'7MHaR',rating:1125,theme:'Arabian Mate'},{id:'rC0Fw',rating:1271,theme:'Arabian Mate'},{id:'l5U9H',rating:1470,theme:'Arabian Mate'},{id:'Jyvg7',rating:1472,theme:'Arabian Mate'},{id:'BENlW',rating:1476,theme:'Arabian Mate'},{id:'NhYr6',rating:1532,theme:'Arabian Mate'},{id:'DfTGc',rating:1559,theme:'Arabian Mate'},
+  // Deflection (10)
+  {id:'002Mm',rating:948,theme:'Deflection'},{id:'003IM',rating:1096,theme:'Deflection'},{id:'004LZ',rating:1187,theme:'Deflection'},{id:'NNBpN',rating:1313,theme:'Deflection'},{id:'FlNIx',rating:1397,theme:'Deflection'},{id:'BBrCL',rating:1404,theme:'Deflection'},{id:'8aWP8',rating:1405,theme:'Deflection'},{id:'ZvasE',rating:1414,theme:'Deflection'},{id:'ezNp3',rating:1427,theme:'Deflection'},{id:'blewu',rating:1440,theme:'Deflection'},
+  // Kingside Attack (13)
+  {id:'0GVAb',rating:967,theme:'Kingside Attack'},{id:'003AX',rating:1015,theme:'Kingside Attack'},{id:'00SgB',rating:1233,theme:'Kingside Attack'},{id:'jMwD7',rating:1328,theme:'Kingside Attack'},{id:'W6OGZ',rating:1349,theme:'Kingside Attack'},{id:'VLtD6',rating:1351,theme:'Kingside Attack'},{id:'csPIi',rating:1360,theme:'Kingside Attack'},{id:'IAyI7',rating:1362,theme:'Kingside Attack'},{id:'tVEU0',rating:1366,theme:'Kingside Attack'},{id:'hKiJt',rating:1367,theme:'Kingside Attack'},{id:'CBxMs',rating:1371,theme:'Kingside Attack'},{id:'N7B8f',rating:1377,theme:'Kingside Attack'},{id:'kbl9G',rating:1387,theme:'Kingside Attack'},
+  // Smothered Mate (10)
+  {id:'0X0QD',rating:683,theme:'Smothered Mate'},{id:'001pC',rating:870,theme:'Smothered Mate'},{id:'00LWa',rating:934,theme:'Smothered Mate'},{id:'qiqaJ',rating:1335,theme:'Smothered Mate'},{id:'fe3a3',rating:1354,theme:'Smothered Mate'},{id:'d2m8c',rating:1360,theme:'Smothered Mate'},{id:'qxYWM',rating:1366,theme:'Smothered Mate'},{id:'sFEBL',rating:1376,theme:'Smothered Mate'},{id:'Q12Tu',rating:1385,theme:'Smothered Mate'},{id:'Fa6mM',rating:1556,theme:'Smothered Mate'},
+  // Back Rank Mate (12)
+  {id:'0030b',rating:538,theme:'Back Rank Mate'},{id:'0042j',rating:555,theme:'Back Rank Mate'},{id:'00465',rating:596,theme:'Back Rank Mate'},{id:'00HAM',rating:683,theme:'Back Rank Mate'},{id:'143SQ',rating:796,theme:'Back Rank Mate'},{id:'144YP',rating:1003,theme:'Back Rank Mate'},{id:'001Wz',rating:1118,theme:'Back Rank Mate'},{id:'gXr1N',rating:1278,theme:'Back Rank Mate'},{id:'D3dCv',rating:1315,theme:'Back Rank Mate'},{id:'ltMa0',rating:1340,theme:'Back Rank Mate'},{id:'FLERo',rating:1352,theme:'Back Rank Mate'},{id:'fBGwu',rating:1373,theme:'Back Rank Mate'},
+  // Hook Mate (12)
+  {id:'rC14e',rating:708,theme:'Hook Mate'},{id:'GBDMR',rating:1259,theme:'Hook Mate'},{id:'DWR38',rating:1267,theme:'Hook Mate'},{id:'shpWT',rating:1288,theme:'Hook Mate'},{id:'lsBjG',rating:1326,theme:'Hook Mate'},{id:'FxJLz',rating:1328,theme:'Hook Mate'},{id:'2lW4B',rating:1338,theme:'Hook Mate'},{id:'8h0F3',rating:1344,theme:'Hook Mate'},{id:'nQKnY',rating:1362,theme:'Hook Mate'},{id:'ZfVr4',rating:1364,theme:'Hook Mate'},{id:'nXz5o',rating:1376,theme:'Hook Mate'},{id:'IyqHz',rating:1384,theme:'Hook Mate'}
 ];
 
 // Preload pieces
@@ -797,9 +797,9 @@ function puzzleSolved(){
 function fetchPuzzleData(puzzleId){
   var cacheKey='pp_pz_'+puzzleId;
   var cached=localStorage.getItem(cacheKey);
-  if(cached){try{return Promise.resolve(JSON.parse(cached))}catch(e){}}
+  if(cached){try{var cp=JSON.parse(cached);if(cp&&cp.fen&&cp.solution)return Promise.resolve(cp)}catch(e){}localStorage.removeItem(cacheKey)}
   return fetch('https://lichess.org/api/puzzle/'+puzzleId,{headers:{'Accept':'application/json'}})
-  .then(function(r){return r.ok?r.json():null})
+  .then(function(r){if(!r.ok){localStorage.removeItem(cacheKey);return null}return r.json()})
   .then(function(data){
     if(!data||!data.game||!data.puzzle)return null;
     var game=new Chess();
@@ -835,9 +835,15 @@ function loadPuzzleAtIndex(idx){
     if(apiData){
       fen=apiData.fen;solution=apiData.solution;triggerMove=apiData.triggerMove;
       if(apiData.rating)p.rating=apiData.rating;
-    }else{
+    }else if(p.fen&&p.moves){
       // Fallback to stored data
       fen=p.fen;solution=(p.moves||'').split(' ');
+    }else{
+      // Invalid puzzle — skip to next
+      var puzzles=getActivePuzzles();
+      if(pz.puzzleIdx<puzzles.length-1){loadPuzzleAtIndex(pz.puzzleIdx+1)}
+      else{updateStatus('Could not load puzzle — try another theme','error');document.getElementById('boardLoading').style.display='none'}
+      return;
     }
     setupBoard(fen,solution,triggerMove,p);
   });
