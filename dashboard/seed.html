@@ -36,99 +36,12 @@ async function seed() {
   db.students[idx].lichessUsername = 'aarvi_chess';
   db.students[idx].chesscomUsername = '';
 
-  // Recaps
-  db.students[idx].recaps = [
-    {
-      date: '2026-03-25',
-      title: "King's Indian Defense — Setup & Central Breaks",
-      bullets: [
-        "Learned the KID pawn structure: d6, Nf6, g6, Bg7 — practiced setting it up against 1.d4",
-        "Explored the central break with ...e5 and when to push ...f5 for kingside attack",
-        "Homework: Play 3 rapid games on Lichess using the KID"
-      ],
-      mood: 'great'
-    },
-    {
-      date: '2026-03-22',
-      title: "Mating Nets — Anastasia & Arabian Mates",
-      bullets: [
-        "Studied the Anastasia mate pattern (Rook + Knight on the h-file)",
-        "Practiced Arabian mate — solved 5/6 puzzles correctly",
-        "Needs more practice recognizing the setup 2-3 moves before the mate"
-      ],
-      mood: 'good'
-    },
-    {
-      date: '2026-03-18',
-      title: "Complex Tactics — Zwischenzug & Deflection",
-      bullets: [
-        "Introduced Zwischenzug (in-between moves) — a powerful surprise tactic",
-        "Worked through 4 deflection puzzles, scored 3/4",
-        "Great improvement in calculation depth — thinking 2-3 moves ahead"
-      ],
-      mood: 'challenging'
-    }
-  ];
-  log('✓ Added 3 session recaps', true);
-
-  // Puzzles
-  db.students[idx].puzzles = [
-    {
-      id: 'p001',
-      fen: 'r2qkb1r/ppp2ppp/2n1bn2/3pp3/4P3/1B3N2/PPPP1PPP/RNBQK2R w KQkq - 4 5',
-      moves: 'f3g5 e6g4',
-      rating: 1050,
-      theme: 'Discovered Attack',
-      solved: false,
-      assignedDate: '2026-03-25'
-    },
-    {
-      id: 'p002',
-      fen: '4r1k1/5ppp/p7/1p6/8/1P3N2/P4PPP/4R1K1 w - - 0 1',
-      moves: 'e1e8',
-      rating: 900,
-      theme: 'Back Rank',
-      solved: false,
-      assignedDate: '2026-03-22'
-    },
-    {
-      id: 'p003',
-      fen: 'rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 1 2',
-      moves: 'e4e5 f6d5',
-      rating: 800,
-      theme: 'Opening',
-      solved: true,
-      assignedDate: '2026-03-18'
-    }
-  ];
-  log('✓ Added 3 puzzles (1 pre-solved)', true);
-
-  // Stats
-  db.students[idx].stats = {
-    lichess: { rapid: 1050, blitz: 980, puzzle: 1200, fetchedAt: new Date().toISOString() },
-    chesscom: {},
-    history: [
-      { date: '2026-02-01', lichessRapid: 850, lichessBlitz: 800 },
-      { date: '2026-02-08', lichessRapid: 880, lichessBlitz: 830 },
-      { date: '2026-02-15', lichessRapid: 920, lichessBlitz: 870 },
-      { date: '2026-02-22', lichessRapid: 950, lichessBlitz: 900 },
-      { date: '2026-03-01', lichessRapid: 970, lichessBlitz: 920 },
-      { date: '2026-03-08', lichessRapid: 1000, lichessBlitz: 950 },
-      { date: '2026-03-15', lichessRapid: 1020, lichessBlitz: 960 },
-      { date: '2026-03-22', lichessRapid: 1050, lichessBlitz: 980 }
-    ]
-  };
-  log('✓ Added rating stats + 8-point history', true);
-
-  // Badges
-  db.students[idx].badges = [
-    { id: 'first_login', name: 'First Steps', icon: '👣', desc: 'Visited your dashboard for the first time', earnedAt: '2026-03-01' },
-    { id: 'rating_800', name: 'Pawn Power', icon: '♟', desc: 'Reached 800 rating', earnedAt: '2026-02-08' },
-    { id: 'rating_1000', name: 'Bronze Knight', icon: '🐴', desc: 'Reached 1000 rating', earnedAt: '2026-03-08' },
-    { id: 'sessions_10', name: 'Dedicated', icon: '📚', desc: 'Completed 10 sessions', earnedAt: '2026-03-15' },
-    { id: 'streak_5', name: 'On Fire', icon: '🔥', desc: '5 classes attended in a row', earnedAt: '2026-03-10' }
-  ];
-  log('✓ Added 5 earned badges', true);
+  // Clear demo data — sessions haven't started yet
+  db.students[idx].recaps = [];
+  db.students[idx].puzzles = [];
+  db.students[idx].stats = { lichess: {}, chesscom: {}, history: [] };
+  db.students[idx].badges = [];
+  log('✓ Cleared demo data (no sessions yet)', true);
 
   // Plan / Curriculum
   db.students[idx].plan = {
@@ -327,7 +240,7 @@ async function seed() {
       }
     ]
   };
-  log('✓ Added 5-month curriculum plan (0 done, 40 pending — starts Mar 31)', true);
+  log('✓ Set 5-month curriculum plan (0 done, 40 pending — starts Mar 31)', true);
 
   // Save
   log('\n💾 Saving to JSONBin...', true);
