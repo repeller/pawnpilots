@@ -1,0 +1,338 @@
+<!doctype html>
+<html><head>
+<meta charset="UTF-8"><title>Seed Puzzles for All Students</title>
+<style>body{font-family:monospace;background:#1a1209;color:#f5ead8;padding:40px;max-width:700px;margin:0 auto}
+button{padding:12px 24px;background:#c4862e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;margin-top:12px;margin-right:8px}
+button:hover{background:#e8a840}
+button.danger{background:#c44a2e}button.danger:hover{background:#e05a3e}
+#log{margin-top:20px;padding:16px;background:#0f0a06;border-radius:8px;white-space:pre-wrap;font-size:0.85rem;line-height:1.6;max-height:70vh;overflow-y:auto}
+.ok{color:#4aad7a}.err{color:#c44a2e}.info{color:#c4862e}
+h3{color:#c4862e;margin-top:24px}
+.summary{background:#2e1b12;padding:12px 16px;border-radius:8px;margin:8px 0;border-left:3px solid #c4862e}
+</style>
+</head><body>
+<h2>Seed Curriculum Puzzles</h2>
+<p>Adds themed puzzles from the Lichess puzzle database to each student's dashboard.<br>
+All puzzles are real positions sourced from <a href="https://database.lichess.org/" style="color:#c4862e">database.lichess.org</a>.<br>
+You must have previously logged into the <a href="../admin/attendance/" style="color:#c4862e">Admin Dashboard</a> so the API key is stored.</p>
+
+<div class="summary">
+  <strong>Ianna</strong> (beginner, ~600-1100): 9 puzzles — Fork (3), Pin (2), Skewer (2), Discovered Attack (2)<br>
+  <strong>Aarvi</strong> (intermediate, ~800-1100): 8 puzzles — Anastasia Mate (2), Arabian Mate (2), Deflection (2), Kingside Attack (2)<br>
+  <strong>Abhi</strong> (strong, ~870-1580): 10 puzzles — Smothered Mate (2), Back Rank Mate (2), Hook Mate (2), Fork (2), Discovered Attack (2)
+</div>
+
+<button onclick="seed('all')">Seed All Students</button>
+<button onclick="seed('ianna')">Ianna Only</button>
+<button onclick="seed('aarvi')">Aarvi Only</button>
+<button onclick="seed('abhi')">Abhi Only</button>
+<div id="log"></div>
+
+<script>
+var LOG = document.getElementById('log');
+function log(msg, cls) { LOG.innerHTML += '<span class="'+(cls||'info')+'">' + msg + '</span>\n'; LOG.scrollTop = LOG.scrollHeight; }
+
+// ═══════════════════════════════════════════════════════════════════
+// PUZZLE DATA — Real Lichess puzzles with setup move already applied
+// FEN = position AFTER the setup move (puzzle starting position)
+// Moves = solution only (player_move opponent_response player_move...)
+// ═══════════════════════════════════════════════════════════════════
+
+var PUZZLES = {
+
+  // ═══ IANNA — Beginner (puzzle rating ~600-1100) ═══
+  ianna: [
+    // --- Fork (3) ---
+    {
+      fen: "5rk1/5ppp/4p3/4N3/8/1Pn5/5PPP/2R3K1 b - - 1 28",
+      moves: "c3e2 g1f1 e2c1",
+      rating: 654,
+      theme: "Fork",
+      solved: false
+    },
+    {
+      fen: "4r1k1/pp5b/7P/2p2pp1/5qN1/2pP1P2/P1P3Q1/R4K2 w - - 0 36",
+      moves: "g4f6 g8h8 f6e8",
+      rating: 773,
+      theme: "Fork",
+      solved: false
+    },
+    {
+      fen: "3rr1k1/p4pp1/1pp4p/3pPQ2/1P3P2/2P2RqP/P2R2P1/6K1 b - - 2 24",
+      moves: "g3e1 g1h2 e1d2",
+      rating: 818,
+      theme: "Fork",
+      solved: false
+    },
+    // --- Pin (2) ---
+    {
+      fen: "6rk/pp6/2n5/3ppn1p/3p4/2P2P1q/PP3QNB/R5RK b - - 3 29",
+      moves: "f5g3 f2g3 g8g3",
+      rating: 1287,
+      theme: "Pin",
+      solved: false
+    },
+    {
+      fen: "2r2rk1/pp3pq1/2b1p1p1/6Q1/3p4/1P3R1P/P4PPB/R5K1 w - - 4 28",
+      moves: "h2e5 g7e5 g5e5",
+      rating: 1308,
+      theme: "Pin",
+      solved: false
+    },
+    // --- Skewer (2) ---
+    {
+      fen: "8/3R2p1/2p2pkp/1bB5/pP1K2PP/P4P2/4r3/8 b - - 0 39",
+      moves: "e2d2 d4c3 d2d7",
+      rating: 776,
+      theme: "Skewer",
+      solved: false
+    },
+    {
+      fen: "8/2k1b3/5p2/RBpK1Pp1/P2p2P1/1p1P4/2r5/8 w - - 0 46",
+      moves: "a5a7 c7b8 a7e7",
+      rating: 836,
+      theme: "Skewer",
+      solved: false
+    },
+    // --- Discovered Attack (2) ---
+    {
+      fen: "r3r3/p4ppk/2pq4/3pp3/6b1/2P1PN2/PP3P2/R2Q1RK1 w - - 0 20",
+      moves: "f3g5 h7g8 d1g4",
+      rating: 874,
+      theme: "Discovered Attack",
+      solved: false
+    },
+    {
+      fen: "3r4/p6p/1p1p1p1k/5B2/2P3PP/2P4r/PK6/3R4 w - - 5 29",
+      moves: "g4g5 h6h5 f5h3",
+      rating: 1087,
+      theme: "Discovered Attack",
+      solved: false
+    }
+  ],
+
+  // ═══ AARVI — Intermediate (puzzle rating ~800-1100) ═══
+  aarvi: [
+    // --- Anastasia Mate (2) ---
+    {
+      fen: "5rk1/R2Q3p/4p1p1/3p4/5r2/1P1P4/1PP1nPPK/5R2 b - - 0 29",
+      moves: "f4h4",
+      rating: 789,
+      theme: "Anastasia Mate",
+      solved: false
+    },
+    {
+      fen: "r1b2rk1/pp3pp1/3p4/2pNn3/2B1PR2/8/PPP3PP/R5K1 w - - 1 17",
+      moves: "d5e7 g8h7 f4h4",
+      rating: 1087,
+      theme: "Anastasia Mate",
+      solved: false
+    },
+    // --- Arabian Mate (2) ---
+    {
+      fen: "2R1r2k/5pr1/p3pNpp/1p1q4/8/3P4/PP3PPP/6K1 w - - 4 29",
+      moves: "c8e8 g7g8 e8g8",
+      rating: 909,
+      theme: "Arabian Mate",
+      solved: false
+    },
+    {
+      fen: "r4bk1/1R1N3p/2p1p1p1/r2p4/3P1P2/4P3/5P1P/6K1 w - - 0 41",
+      moves: "d7f6 g8h8 b7h7",
+      rating: 1004,
+      theme: "Arabian Mate",
+      solved: false
+    },
+    // --- Deflection (2) ---
+    {
+      fen: "rn1qrk2/ppp3pQ/3p1pP1/3Pp3/2P1P3/8/PP3PP1/R1B1K3 w Q - 3 17",
+      moves: "h7h8 f8e7 h8g7",
+      rating: 948,
+      theme: "Deflection",
+      solved: false
+    },
+    {
+      fen: "8/5kp1/p3pb2/8/6Pp/1P4qP/P2R2Q1/7K b - - 3 34",
+      moves: "g3e1 g2g1 e1d2",
+      rating: 1096,
+      theme: "Deflection",
+      solved: false
+    },
+    // --- Kingside Attack (2) ---
+    {
+      fen: "rnb2r1k/ppq2p1p/2p2p1N/2bpp3/2B1P3/2NP1Q2/PPP2PPP/R3K2R w KQ - 0 12",
+      moves: "f3f6",
+      rating: 967,
+      theme: "Kingside Attack",
+      solved: false
+    },
+    {
+      fen: "2k2r2/1bNp4/pB1P4/8/P7/5n2/1P2KR1p/5R2 b - - 1 43",
+      moves: "f3g1 e2d2 f8f2 b6f2 h2h1q",
+      rating: 1015,
+      theme: "Kingside Attack",
+      solved: false
+    }
+  ],
+
+  // ═══ ABHI — Strong Tactics (puzzle rating ~870-1580) ═══
+  abhi: [
+    // --- Smothered Mate (2) ---
+    {
+      fen: "r4rk1/pp3ppp/3b4/2p1pPB1/7N/2PP3n/PP4PP/R2Q2RK b - - 0 18",
+      moves: "h3f2",
+      rating: 870,
+      theme: "Smothered Mate",
+      solved: false
+    },
+    {
+      fen: "2r3k1/5ppp/2P5/8/5P2/P5Pn/6BP/R5RK b - - 0 32",
+      moves: "h3f2",
+      rating: 934,
+      theme: "Smothered Mate",
+      solved: false
+    },
+    // --- Back Rank Mate (2) ---
+    {
+      fen: "4r1k1/Q5pp/4P3/3q1P2/1r4P1/1bpp4/3R3P/4R1K1 w - - 0 31",
+      moves: "a7f7 g8h8 f7e8",
+      rating: 1003,
+      theme: "Back Rank Mate",
+      solved: false
+    },
+    {
+      fen: "6k1/5ppp/r1p5/p1n1rP2/8/2P2N1P/2P3P1/3R2K1 w - - 0 22",
+      moves: "d1d8 e5e8 d8e8",
+      rating: 1118,
+      theme: "Back Rank Mate",
+      solved: false
+    },
+    // --- Hook Mate (2) ---
+    {
+      fen: "6k1/pp3pp1/2p4p/P2p4/1PnP2P1/2PK1PP1/r3N3/2R5 b - - 4 44",
+      moves: "a2d2",
+      rating: 1326,
+      theme: "Hook Mate",
+      solved: false
+    },
+    {
+      fen: "6k1/4B2p/2p3pQ/1p1p1pP1/1P1Pn3/2P2K1P/r7/8 b - - 2 37",
+      moves: "a2f2 f3e3 f5f4 e3d3 f2d2",
+      rating: 1328,
+      theme: "Hook Mate",
+      solved: false
+    },
+    // --- Fork (2) ---
+    {
+      fen: "7R/1p2k2p/p2n2p1/4K3/8/6P1/P6P/8 b - - 11 37",
+      moves: "d6f7 e5e4 f7h8",
+      rating: 1007,
+      theme: "Fork",
+      solved: false
+    },
+    {
+      fen: "r3kb1r/p4ppp/b3p3/2pq4/3Q4/4BN2/PPP2PPP/R3K2R w KQkq - 0 12",
+      moves: "d4a4 a6b5 a4b5",
+      rating: 1008,
+      theme: "Fork",
+      solved: false
+    },
+    // --- Discovered Attack (2) ---
+    {
+      fen: "r1q1r1k1/1p3pp1/n1p4p/p2pp2P/P3P3/2P2P2/1P1QBb2/R1BK3R w - - 0 24",
+      moves: "e2a6 b7a6 d2f2",
+      rating: 1300,
+      theme: "Discovered Attack",
+      solved: false
+    },
+    {
+      fen: "r1bq1r2/p4ppk/1p6/n2P2b1/7P/P7/1B3PP1/R2QK2R w KQ - 0 17",
+      moves: "h4g5 h7g8 d1h5",
+      rating: 1579,
+      theme: "Discovered Attack",
+      solved: false
+    }
+  ]
+};
+
+// ═══ TOKEN MAP ═══
+var TOKENS = {
+  ianna: 'ianna-73mh',
+  aarvi: 'aarvi-mn9s',
+  abhi: null  // will be found by name match
+};
+
+async function seed(who) {
+  LOG.innerHTML = '';
+  var binId = localStorage.getItem('att_binId') || '69b859a2aa77b81da9ee0ccc';
+  var apiKey = localStorage.getItem('att_apiKey');
+  if (!apiKey) { log('No API key found. Please log into the Admin Dashboard first.', 'err'); return; }
+
+  log('Fetching current data from JSONBin...', 'ok');
+  var res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', { headers: { 'X-Master-Key': apiKey } });
+  if (!res.ok) { log('Fetch failed: ' + res.status, 'err'); return; }
+  var json = await res.json();
+  var db = json.record;
+  log('Database loaded. ' + db.students.length + ' students found.\n', 'ok');
+
+  var targets = who === 'all' ? ['ianna', 'aarvi', 'abhi'] : [who];
+  var changed = false;
+
+  for (var t = 0; t < targets.length; t++) {
+    var name = targets[t];
+    var puzzles = PUZZLES[name];
+    if (!puzzles) { log('No puzzle data for: ' + name, 'err'); continue; }
+
+    // Find student
+    var idx = -1;
+    if (TOKENS[name]) {
+      idx = db.students.findIndex(function(s) { return s.token === TOKENS[name]; });
+    } else {
+      idx = db.students.findIndex(function(s) { return s.name.toLowerCase().indexOf(name) === 0; });
+    }
+    if (idx < 0) { log('Student "' + name + '" not found in database.', 'err'); continue; }
+
+    var student = db.students[idx];
+    log('--- ' + student.name + ' (token: ' + student.token + ') ---', 'info');
+    log('Setting ' + puzzles.length + ' puzzles:', 'ok');
+
+    var themes = {};
+    puzzles.forEach(function(p) {
+      if (!themes[p.theme]) themes[p.theme] = 0;
+      themes[p.theme]++;
+    });
+    for (var th in themes) { log('  ' + th + ': ' + themes[th] + ' puzzle(s)', 'ok'); }
+
+    var ratings = puzzles.map(function(p) { return p.rating; });
+    log('  Rating range: ' + Math.min.apply(null, ratings) + ' - ' + Math.max.apply(null, ratings), 'ok');
+
+    db.students[idx].puzzles = puzzles;
+    changed = true;
+    log('', 'ok');
+  }
+
+  if (!changed) { log('Nothing to save.', 'err'); return; }
+
+  log('Saving to JSONBin...', 'ok');
+  var saveRes = await fetch('https://api.jsonbin.io/v3/b/' + binId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+    body: JSON.stringify(db)
+  });
+
+  if (saveRes.ok) {
+    log('\nDone! Puzzles seeded successfully.', 'ok');
+    targets.forEach(function(name) {
+      var token = TOKENS[name];
+      if (!token) {
+        var idx = db.students.findIndex(function(s) { return s.name.toLowerCase().indexOf(name) === 0; });
+        if (idx >= 0) token = db.students[idx].token;
+      }
+      if (token) log('  ' + name + ': /dashboard/?t=' + token, 'info');
+    });
+  } else {
+    log('Save failed: ' + saveRes.status + ' ' + (await saveRes.text()), 'err');
+  }
+}
+</script>
+</body></html>
