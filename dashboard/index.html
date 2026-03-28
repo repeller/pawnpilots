@@ -1196,10 +1196,11 @@ function renderStatsPanel(){
     var wPct=total?Math.round(d.wins/total*100):0,dPct=total?Math.round(d.draws/total*100):0,lPct=total?Math.round(d.losses/total*100):0;
     var hh='<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm">';
     hh+='<h3 class="plusJakartaSans text-lg font-extrabold text-primary flex items-center gap-2 mb-5"><span class="material-symbols-outlined text-secondary" style="font-variation-settings:\'FILL\' 1">swords</span> Head to Head</h3>';
+    var oppWinPct=total?Math.round(d.losses/total*100):0,stuWinPct=total?Math.round(d.wins/total*100):0;
     hh+='<div class="flex items-center justify-center gap-6 sm:gap-10 mb-5">';
-    hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">'+(d.opponentLabel||d.opponent)+'</p><p class="plusJakartaSans text-3xl sm:text-4xl font-black text-primary">'+d.opponentScore+'</p></div>';
+    hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">'+(d.opponentLabel||d.opponent)+'</p><p class="plusJakartaSans text-3xl sm:text-4xl font-black text-primary">'+d.opponentScore+'</p><p class="inter text-xs text-on-surface-variant/60 mt-1">'+oppWinPct+'% wins</p></div>';
     hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">vs</p><p class="inter text-xs text-on-surface-variant mt-1">'+total+' games</p></div>';
-    hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">'+student.name+'</p><p class="plusJakartaSans text-3xl sm:text-4xl font-black text-secondary">'+d.studentScore+'</p></div>';
+    hh+='<div class="text-center"><p class="inter text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">'+student.name+'</p><p class="plusJakartaSans text-3xl sm:text-4xl font-black text-secondary">'+d.studentScore+'</p><p class="inter text-xs text-on-surface-variant/60 mt-1">'+stuWinPct+'% wins</p></div>';
     hh+='</div>';
     // Win/Draw/Loss bar
     hh+='<div class="flex rounded-full overflow-hidden h-3 mb-2">';
