@@ -26,6 +26,21 @@
   .theme-card{transition:all .2s ease}
   .theme-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,.1)}
   .progress-ring{transform:rotate(-90deg)}
+  /* Chess Board */
+  .board-sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+  .sq-light{background:#f0d9b5}.sq-dark{background:#b58863}
+  .sq-selected.sq-light{background:#829769!important}.sq-selected.sq-dark{background:#646d40!important}
+  .sq-legal::after{content:'';position:absolute;width:28%;height:28%;background:rgba(0,0,0,.14);border-radius:50%;z-index:2;pointer-events:none}
+  .sq-capture{background:radial-gradient(transparent 55%,rgba(0,0,0,.12) 55%)!important}
+  .sq-lastmove.sq-light{background:#cdd16a!important}.sq-lastmove.sq-dark{background:#aaa23a!important}
+  .sq-hint.sq-light{background:#e8c467!important;box-shadow:inset 0 0 0 3px rgba(196,134,46,.7)}.sq-hint.sq-dark{background:#c4962e!important;box-shadow:inset 0 0 0 3px rgba(196,134,46,.7)}
+  .sq-check{background:radial-gradient(ellipse at center,rgba(255,0,0,.6) 0%,rgba(231,0,0,0) 70%)!important}
+  .board-piece{width:87%;height:87%;object-fit:contain;pointer-events:none;z-index:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+  @keyframes piece-pop{0%{transform:scale(.6);opacity:.5}100%{transform:scale(1);opacity:1}}
+  .piece-anim{animation:piece-pop .2s ease}
+  .sq-rank{position:absolute;top:2px;left:3px;font-size:10px;font-weight:800;pointer-events:none;z-index:3;line-height:1}
+  .sq-file{position:absolute;bottom:1px;right:3px;font-size:10px;font-weight:800;pointer-events:none;z-index:3;line-height:1}
+  .sq-light .sq-rank,.sq-light .sq-file{color:#b58863}.sq-dark .sq-rank,.sq-dark .sq-file{color:#f0d9b5}
 </style>
 <script>
 tailwind.config={
@@ -223,85 +238,87 @@ tailwind.config={
 
   <!-- PUZZLES / SORTIES -->
   <div id="panel-puzzles" class="dash-panel" style="display:none">
-    <!-- Theme Picker -->
+    <!-- View 1: Theme Picker -->
     <div id="puzzleThemePicker">
       <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-secondary mb-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <span class="inter text-[10px] font-bold uppercase tracking-widest text-secondary">Puzzle Training</span>
             <h2 class="plusJakartaSans text-xl font-extrabold text-primary">Choose Your Mission</h2>
-            <p class="inter text-xs text-on-surface-variant mt-1">Practice tactics on Lichess — log your results to earn XP</p>
+            <p class="inter text-xs text-on-surface-variant mt-1">Pick a tactical theme and solve puzzles to earn XP</p>
           </div>
           <div class="text-right">
             <p class="plusJakartaSans text-3xl font-black text-primary" id="totalPuzzlesSolved">0</p>
             <p class="inter text-[10px] text-on-surface-variant uppercase tracking-widest">Total Solved</p>
           </div>
         </div>
-        <div class="h-3 w-full bg-surface-container rounded-full overflow-hidden mt-3">
-          <div class="h-full bg-secondary shadow-[0_0_12px_rgba(47,122,84,0.5)] transition-all duration-1000 rounded-full" id="puzzleProgressBar" style="width:0%"></div>
-        </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="themeGrid"></div>
     </div>
 
-    <!-- Theme Detail (shown when a theme is selected) -->
-    <div id="puzzleThemeDetail" style="display:none">
+    <!-- View 2: Puzzle Solver -->
+    <div id="puzzleSolver" style="display:none">
       <button onclick="backToThemes()" class="flex items-center gap-2 text-sm font-bold text-secondary hover:text-secondary/80 mb-4 plusJakartaSans">
         <span class="material-symbols-outlined text-sm">arrow_back</span> Back to Themes
       </button>
-      <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-gold mb-6">
-        <div class="flex justify-between items-start">
-          <div>
-            <span class="text-3xl mb-2 block" id="detailIcon"></span>
-            <h2 class="plusJakartaSans text-xl font-extrabold text-primary" id="detailTitle"></h2>
-            <p class="inter text-xs text-on-surface-variant mt-1" id="detailDesc"></p>
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+        <!-- Board column -->
+        <div class="lg:col-span-3">
+          <div class="max-w-[520px] mx-auto">
+            <!-- Board loading -->
+            <div id="boardLoading" class="aspect-square bg-surface-container rounded-xl flex items-center justify-center">
+              <div class="text-center"><span class="material-symbols-outlined text-secondary text-4xl spin-slow block mb-2">progress_activity</span><p class="plusJakartaSans text-sm font-bold text-primary">Loading puzzle...</p></div>
+            </div>
+            <!-- Board -->
+            <div id="puzzleBoard" class="grid grid-cols-8 rounded-xl overflow-hidden shadow-lg border-2 border-primary/10" style="aspect-ratio:1;display:none"></div>
           </div>
-          <div class="text-right">
-            <p class="plusJakartaSans text-2xl font-black text-felt" id="detailSolved">0</p>
-            <p class="inter text-[10px] text-on-surface-variant uppercase tracking-widest">Solved</p>
+          <!-- Controls -->
+          <div class="flex gap-2 justify-center mt-4 flex-wrap">
+            <button onclick="prevPuzzleInTheme()" id="pzPrev" class="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-high transition-colors plusJakartaSans disabled:opacity-30" disabled>← Prev</button>
+            <button onclick="requestHint()" id="pzHint" class="px-4 py-2.5 bg-gold/10 text-gold border border-gold/20 rounded-xl font-bold text-xs hover:bg-gold/20 transition-colors plusJakartaSans">Hint</button>
+            <button onclick="showSolution()" id="pzSolution" class="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-high transition-colors plusJakartaSans">Solution</button>
+            <button onclick="resetPuzzle()" class="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-high transition-colors plusJakartaSans">Reset</button>
+            <button onclick="nextPuzzleInTheme()" id="pzNext" class="px-4 py-2.5 bg-secondary text-white rounded-xl font-bold text-xs hover:bg-felt-glow transition-colors plusJakartaSans">Next →</button>
+          </div>
+          <!-- Dots -->
+          <div class="flex gap-1.5 justify-center mt-3" id="puzzleDots"></div>
+        </div>
+        <!-- Info column -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Current Mission -->
+          <div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border-l-4 border-secondary">
+            <p class="inter text-[10px] font-bold uppercase tracking-widest text-secondary mb-1">Current Mission</p>
+            <h3 class="plusJakartaSans text-lg font-extrabold text-primary" id="missionTitle">Loading...</h3>
+            <div class="flex items-center gap-3 mt-3">
+              <div class="flex items-center gap-1.5 bg-secondary/10 px-3 py-1.5 rounded-lg">
+                <span class="material-symbols-outlined text-gold text-sm">timer</span>
+                <span id="puzzleTimer" class="font-mono font-bold text-sm text-primary plusJakartaSans">00:00</span>
+              </div>
+              <div id="missionMeta" class="flex gap-2"></div>
+            </div>
+          </div>
+          <!-- Altimeter -->
+          <div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm">
+            <p class="inter text-[10px] font-bold uppercase tracking-widest text-primary mb-3">Altimeter</p>
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2"><div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div id="altBar" class="h-full bg-gold rounded-full transition-all" style="width:0%"></div></div></div>
+              <div class="flex justify-between text-[9px] font-bold inter text-on-surface-variant/50 uppercase">
+                <span>Ground</span><span>Pawn</span><span>Knight</span><span>Pilot</span>
+              </div>
+            </div>
+            <p class="text-center mt-2 plusJakartaSans font-black text-primary" id="altRating">—</p>
+          </div>
+          <!-- Flight Log -->
+          <div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm">
+            <p class="inter text-[10px] font-bold uppercase tracking-widest text-primary mb-3">Flight Log</p>
+            <div id="flightLog" class="space-y-2 max-h-[200px] overflow-y-auto"></div>
+          </div>
+          <!-- Status -->
+          <div id="puzzleStatusCard" class="p-4 rounded-xl text-center font-bold plusJakartaSans transition-all bg-secondary/10 text-secondary text-sm">
+            Select a piece to begin
           </div>
         </div>
       </div>
-
-      <!-- Assigned puzzles for this theme -->
-      <div id="detailPuzzleList" class="space-y-3 mb-6"></div>
-
-      <!-- Practice on Lichess -->
-      <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm mb-6">
-        <h3 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary mb-3">
-          <span class="material-symbols-outlined text-secondary text-sm align-middle mr-1">open_in_new</span> Practice Unlimited
-        </h3>
-        <p class="inter text-xs text-on-surface-variant mb-4">Open Lichess to practice unlimited puzzles of this type. Come back and log your results!</p>
-        <a id="detailLichessLink" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 horizon-gradient text-white rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform plusJakartaSans">
-          <span class="material-symbols-outlined text-sm">rocket_launch</span> Train on Lichess
-        </a>
-      </div>
-
-      <!-- Log Practice -->
-      <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-felt">
-        <h3 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary mb-3">
-          <span class="material-symbols-outlined text-felt text-sm align-middle mr-1">edit_note</span> Log Practice Session
-        </h3>
-        <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2">
-            <label class="inter text-xs text-on-surface-variant">I solved</label>
-            <input type="number" id="logSolvedCount" min="0" max="100" value="5" class="w-16 px-3 py-2 border border-outline-variant/30 rounded-lg text-center font-bold plusJakartaSans text-primary bg-surface-container-low focus:ring-2 focus:ring-felt focus:border-felt"/>
-            <label class="inter text-xs text-on-surface-variant">puzzles</label>
-          </div>
-          <button onclick="logPuzzleSession()" class="px-5 py-2.5 bg-felt text-white rounded-xl font-bold text-sm hover:bg-felt-glow transition-colors plusJakartaSans">
-            Log +XP
-          </button>
-        </div>
-        <div id="logConfirm" class="mt-3 text-sm font-bold text-felt pop-in" style="display:none"></div>
-      </div>
-    </div>
-
-    <!-- Practice History -->
-    <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm mt-6" id="puzzleHistoryCard" style="display:none">
-      <h3 class="plusJakartaSans text-sm font-bold uppercase tracking-widest text-primary mb-3">
-        <span class="material-symbols-outlined text-secondary text-sm align-middle mr-1">history</span> Recent Practice
-      </h3>
-      <div id="puzzleHistoryList" class="space-y-2"></div>
     </div>
   </div>
 
@@ -395,6 +412,7 @@ tailwind.config={
 </div>
 
 <!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
 <script>
@@ -474,8 +492,8 @@ function render(){
 
   // XP calc — includes puzzle log XP
   var puzzleLogXP=0;
-  var localLog=JSON.parse(localStorage.getItem('pp_puzzleLog_'+token)||'[]');
-  localLog.forEach(function(l){puzzleLogXP+=l.solved*10});
+  var localLog=JSON.parse(localStorage.getItem('pp_puzzleSolves_'+token)||'[]');
+  localLog.forEach(function(l){puzzleLogXP+=(l.xp||10)});
   var totalXP=(student.recaps.length*50)+(student.puzzles.filter(function(p){return p.solved}).length*30)+(student.badges.length*20)+puzzleLogXP;
   var lvl=Math.floor(totalXP/200)+1;
   var xpIn=totalXP%200;
@@ -567,7 +585,9 @@ function renderRecaps(){
   ql.innerHTML=qh;
 }
 
-// ═══ PUZZLES — Theme-based Lichess Integration ═══
+// ═══ PUZZLES — Interactive Board with Lichess API ═══
+var PIECE_URL='https://www.chessboardjs.com/img/chesspieces/wikipedia/';
+var PIECE_MAP={'K':'wK','Q':'wQ','R':'wR','B':'wB','N':'wN','P':'wP','k':'bK','q':'bQ','r':'bR','b':'bB','n':'bN','p':'bP'};
 var THEME_META={
   'Fork':{icon:'⚔️',desc:'A piece attacks two targets at once',key:'fork'},
   'Pin':{icon:'📌',desc:'A piece is stuck defending a more valuable one',key:'pin'},
@@ -581,160 +601,354 @@ var THEME_META={
   'Back Rank Mate':{icon:'🚪',desc:'Rook or Queen mates on the back rank',key:'backRankMate'},
   'Hook Mate':{icon:'🪝',desc:'Rook + Knight + Pawn create a deadly net',key:'hookMate'}
 };
+// Preload pieces
+['wK','wQ','wR','wB','wN','wP','bK','bQ','bR','bB','bN','bP'].forEach(function(p){new Image().src=PIECE_URL+p+'.png'});
+
+// Puzzle state
+var pz={themeKey:null,puzzleIdx:0,game:null,solution:[],solIdx:0,orientation:'white',selectedSq:null,moveLog:[],solved:false,hintShown:false,hintTimer:null,clockTimer:null,clockSecs:0,attempts:0,lastMove:null,solutionShown:false};
 
 function getThemes(){
   var themes={};
   student.puzzles.forEach(function(p){
     var t=p.theme||'Tactics';
     if(!themes[t])themes[t]={name:t,puzzles:[],solved:0,total:0};
-    themes[t].puzzles.push(p);
-    themes[t].total++;
-    if(p.solved)themes[t].solved++;
-  });
-  return themes;
-}
-
-function getPuzzleLog(){
-  return JSON.parse(localStorage.getItem('pp_puzzleLog_'+token)||'[]');
+    themes[t].puzzles.push(p);themes[t].total++;if(p.solved)themes[t].solved++;
+  });return themes;
 }
 
 function renderPuzzlesPanel(){
   if(student.puzzles.length===0){
-    document.getElementById('puzzleThemePicker').innerHTML='<div class="bg-surface-container-lowest p-12 rounded-2xl text-center"><span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4 block">rocket_launch</span><p class="plusJakartaSans font-bold text-primary">No Puzzles Assigned</p><p class="text-sm text-on-surface-variant">Your coach will assign puzzle missions here.</p></div>';
-    return;
+    document.getElementById('puzzleThemePicker').innerHTML='<div class="bg-surface-container-lowest p-12 rounded-2xl text-center"><span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4 block">rocket_launch</span><p class="plusJakartaSans font-bold text-primary">No Puzzles Assigned</p><p class="text-sm text-on-surface-variant">Your coach will assign puzzle missions here.</p></div>';return;
   }
-  var themes=getThemes();
-  var totalSolved=0,totalAll=0;
+  if(document.getElementById('puzzleSolver').style.display!=='none')return; // don't re-render if solving
+  var themes=getThemes(),totalSolved=0,totalAll=0;
   Object.keys(themes).forEach(function(k){totalSolved+=themes[k].solved;totalAll+=themes[k].total});
-  // Add logged practice to total
-  var log=getPuzzleLog();
-  var logTotal=0;
-  log.forEach(function(l){logTotal+=l.solved});
-  document.getElementById('totalPuzzlesSolved').textContent=totalSolved+logTotal;
-  var pct=totalAll>0?Math.round(((totalSolved)/totalAll)*100):0;
-  document.getElementById('puzzleProgressBar').style.width=pct+'%';
-
-  // Theme cards
-  var grid=document.getElementById('themeGrid');
-  var h='';
+  document.getElementById('totalPuzzlesSolved').textContent=totalSolved;
+  var grid=document.getElementById('themeGrid'),h='';
   Object.keys(themes).forEach(function(k){
-    var t=themes[k];
-    var meta=THEME_META[k]||{icon:'🧩',desc:'Tactical pattern',key:'mixed'};
+    var t=themes[k],meta=THEME_META[k]||{icon:'🧩',desc:'Tactical pattern',key:'mixed'};
     var pctTheme=t.total>0?Math.round((t.solved/t.total)*100):0;
-    h+='<div class="theme-card bg-surface-container-lowest p-6 rounded-2xl shadow-sm cursor-pointer border-2 '+(t.solved===t.total&&t.total>0?'border-felt/30':'border-transparent hover:border-gold/30')+'" onclick="showThemeDetail(\''+esc(k)+'\')">';
-    h+='<div class="flex items-start justify-between mb-4">';
-    h+='<span class="text-3xl">'+meta.icon+'</span>';
-    // Mini progress ring
-    h+='<div class="relative w-12 h-12">';
-    h+='<svg class="w-12 h-12 progress-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#ece8dd" stroke-width="4"/>';
-    h+='<circle cx="22" cy="22" r="18" fill="none" stroke="'+(t.solved===t.total&&t.total>0?'#2f7a54':'#c4862e')+'" stroke-width="4" stroke-dasharray="'+Math.round(113*pctTheme/100)+' 113" stroke-linecap="round"/></svg>';
-    h+='<span class="absolute inset-0 flex items-center justify-center text-[10px] font-black plusJakartaSans">'+pctTheme+'%</span>';
-    h+='</div></div>';
+    h+='<div class="theme-card bg-surface-container-lowest p-6 rounded-2xl shadow-sm cursor-pointer border-2 '+(t.solved===t.total&&t.total>0?'border-felt/30':'border-transparent hover:border-gold/30')+'" onclick="startTheme(\''+esc(k)+'\')">';
+    h+='<div class="flex items-start justify-between mb-4"><span class="text-3xl">'+meta.icon+'</span>';
+    h+='<div class="relative w-12 h-12"><svg class="w-12 h-12 progress-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#ece8dd" stroke-width="4"/><circle cx="22" cy="22" r="18" fill="none" stroke="'+(pctTheme===100?'#2f7a54':'#c4862e')+'" stroke-width="4" stroke-dasharray="'+Math.round(113*pctTheme/100)+' 113" stroke-linecap="round"/></svg>';
+    h+='<span class="absolute inset-0 flex items-center justify-center text-[10px] font-black plusJakartaSans">'+pctTheme+'%</span></div></div>';
     h+='<h3 class="plusJakartaSans text-base font-extrabold text-primary">'+esc(k)+'</h3>';
     h+='<p class="inter text-[11px] text-on-surface-variant mt-1">'+esc(meta.desc)+'</p>';
-    h+='<div class="flex items-center justify-between mt-4">';
-    h+='<span class="inter text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">'+t.solved+'/'+t.total+' solved</span>';
-    h+='<span class="material-symbols-outlined text-secondary text-sm">arrow_forward</span>';
-    h+='</div></div>';
+    h+='<div class="flex items-center justify-between mt-4"><span class="inter text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">'+t.solved+'/'+t.total+'</span>';
+    h+='<span class="material-symbols-outlined text-secondary text-sm">play_arrow</span></div></div>';
   });
   grid.innerHTML=h;
-
-  // History
-  renderPuzzleHistory();
 }
 
-window.showThemeDetail=function(themeName){
-  currentTheme=themeName;
-  var themes=getThemes();
-  var t=themes[themeName];if(!t)return;
-  var meta=THEME_META[themeName]||{icon:'🧩',desc:'Tactical pattern',key:'mixed'};
+// ── Board Rendering ──
+function getBoardPiece(rows,row,col){
+  var r=rows[row],c=0;
+  for(var i=0;i<r.length;i++){var ch=r[i];if(ch>='1'&&ch<='8')c+=parseInt(ch);else{if(c===col)return ch;c++}}return null;
+}
 
-  document.getElementById('puzzleThemePicker').style.display='none';
-  document.getElementById('puzzleThemeDetail').style.display='block';
-  document.getElementById('puzzleHistoryCard').style.display='none';
-  document.getElementById('detailIcon').textContent=meta.icon;
-  document.getElementById('detailTitle').textContent=themeName;
-  document.getElementById('detailDesc').textContent=meta.desc;
-  document.getElementById('detailSolved').textContent=t.solved;
-  document.getElementById('detailLichessLink').href='https://lichess.org/training/'+meta.key;
-
-  // Puzzle list
-  var list=document.getElementById('detailPuzzleList');
+function renderBoard(){
+  var board=document.getElementById('puzzleBoard');
+  if(!board||!pz.game)return;
+  var fenParts=pz.game.fen().split(' '),rows=fenParts[0].split('/');
+  var ranks=pz.orientation==='black'?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0];
+  var files=pz.orientation==='black'?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7];
+  var legalSqs={};
+  if(pz.selectedSq&&!pz.solved){
+    pz.game.moves({square:pz.selectedSq,verbose:true}).forEach(function(m){legalSqs[m.to]=m.captured?'capture':'move'});
+  }
+  var kingInCheck=null;
+  if(pz.game.in_check()){
+    // find king square
+    var bd=pz.game.board();
+    for(var rr=0;rr<8;rr++)for(var cc=0;cc<8;cc++){var pc=bd[rr][cc];if(pc&&pc.type==='k'&&pc.color===pz.game.turn())kingInCheck='abcdefgh'[cc]+(8-rr)}
+  }
   var h='';
-  t.puzzles.forEach(function(p,i){
-    h+='<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm flex items-center gap-4 '+(p.solved?'border-l-4 border-felt':'border-l-4 border-gold')+'">';
-    h+='<div class="w-10 h-10 rounded-full flex items-center justify-center text-lg '+(p.solved?'bg-felt/10':'bg-gold/10')+'">'+(p.solved?'✓':meta.icon)+'</div>';
-    h+='<div class="flex-grow">';
-    h+='<p class="plusJakartaSans text-sm font-bold text-primary">Puzzle '+(i+1)+'</p>';
-    h+='<p class="inter text-[10px] text-on-surface-variant">Rating: '+p.rating+' · ID: '+p.id+'</p>';
-    h+='</div>';
-    h+='<div class="flex gap-2">';
-    h+='<a href="https://lichess.org/training/'+esc(p.id)+'" target="_blank" rel="noopener" class="px-4 py-2 bg-secondary/10 text-secondary rounded-lg text-xs font-bold hover:bg-secondary/20 transition-colors plusJakartaSans flex items-center gap-1">';
-    h+='<span class="material-symbols-outlined text-xs">open_in_new</span> '+(p.solved?'Review':'Solve');
-    h+='</a>';
-    if(!p.solved){
-      h+='<button onclick="markPuzzleSolved(\''+esc(p.id)+'\')" class="px-4 py-2 bg-felt text-white rounded-lg text-xs font-bold hover:bg-felt-glow transition-colors plusJakartaSans">Mark Done</button>';
+  for(var ri=0;ri<8;ri++){
+    var rank=ranks[ri];
+    for(var fi=0;fi<8;fi++){
+      var file=files[fi];
+      var sq='abcdefgh'[file]+(rank+1);
+      var isLight=(rank+file)%2!==0;
+      var piece=getBoardPiece(rows,7-rank,file);
+      var cls='board-sq '+(isLight?'sq-light':'sq-dark');
+      if(pz.selectedSq===sq)cls+=' sq-selected';
+      if(pz.lastMove&&(pz.lastMove.from===sq||pz.lastMove.to===sq))cls+=' sq-lastmove';
+      if(kingInCheck===sq)cls+=' sq-check';
+      if(legalSqs[sq]==='capture')cls+=' sq-capture';
+      else if(legalSqs[sq]==='move')cls+=' sq-legal';
+      h+='<div class="'+cls+'" data-sq="'+sq+'" onclick="sqClick(\''+sq+'\')">';
+      if(piece){var pk=PIECE_MAP[piece];h+='<img src="'+PIECE_URL+pk+'.png" class="board-piece'+(pz.lastMove&&pz.lastMove.to===sq?' piece-anim':'')+'" draggable="false" alt="'+pk+'"/>';}
+      if(fi===0)h+='<span class="sq-rank">'+(rank+1)+'</span>';
+      if(ri===7)h+='<span class="sq-file">'+'abcdefgh'[file]+'</span>';
+      h+='</div>';
     }
-    h+='</div></div>';
-  });
-  list.innerHTML=h;
-};
+  }
+  board.innerHTML=h;
+}
 
-window.backToThemes=function(){
-  currentTheme=null;
-  document.getElementById('puzzleThemePicker').style.display='block';
-  document.getElementById('puzzleThemeDetail').style.display='none';
-  renderPuzzlesPanel();
-};
-
-window.markPuzzleSolved=function(puzzleId){
-  var p=student.puzzles.find(function(x){return x.id===puzzleId});
-  if(p){
-    p.solved=true;
-    if(typeof confetti!=='undefined')confetti({particleCount:60,spread:60,origin:{y:.7}});
-    if(currentTheme)showThemeDetail(currentTheme);
-    render();
+// ── Click-to-Move ──
+window.sqClick=function(sq){
+  if(pz.solved||!pz.game)return;
+  // Only allow moves on player's turn
+  var playerColor=pz.orientation==='white'?'w':'b';
+  if(pz.game.turn()!==playerColor)return;
+  var piece=pz.game.get(sq);
+  var isOwn=piece&&piece.color===pz.game.turn();
+  if(pz.selectedSq){
+    if(sq===pz.selectedSq){pz.selectedSq=null;renderBoard();return}
+    var legal=pz.game.moves({square:pz.selectedSq,verbose:true});
+    var move=legal.find(function(m){return m.to===sq});
+    if(move){tryPlayerMove(pz.selectedSq,sq);return}
+    if(isOwn){pz.selectedSq=sq;renderBoard();return}
+    pz.selectedSq=null;renderBoard();
+  }else{
+    if(isOwn){pz.selectedSq=sq;renderBoard()}
   }
 };
 
-window.logPuzzleSession=function(){
-  var count=parseInt(document.getElementById('logSolvedCount').value)||0;
-  if(count<=0)return;
-  var log=getPuzzleLog();
-  log.push({theme:currentTheme||'Mixed',solved:count,date:new Date().toISOString().split('T')[0],xp:count*10});
-  localStorage.setItem('pp_puzzleLog_'+token,JSON.stringify(log));
-  // Show confirmation
-  var el=document.getElementById('logConfirm');
-  el.style.display='block';
-  el.textContent='+'+count*10+' XP earned! ('+count+' puzzles logged)';
-  if(typeof confetti!=='undefined')confetti({particleCount:40,spread:50,origin:{y:.8}});
-  setTimeout(function(){el.style.display='none'},3000);
-  render();
-};
-
-function renderPuzzleHistory(){
-  var log=getPuzzleLog();
-  var card=document.getElementById('puzzleHistoryCard');
-  if(!card)return;
-  if(log.length===0){card.style.display='none';return}
-  card.style.display='block';
-  var el=document.getElementById('puzzleHistoryList');
-  var h='';
-  log.slice().reverse().slice(0,10).forEach(function(l){
-    h+='<div class="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">';
-    h+='<div class="flex items-center gap-3">';
-    h+='<span class="material-symbols-outlined text-felt text-sm" style="font-variation-settings:\'FILL\' 1">check_circle</span>';
-    h+='<div>';
-    h+='<p class="inter text-xs font-bold text-primary">'+esc(l.theme)+' Practice</p>';
-    h+='<p class="inter text-[10px] text-on-surface-variant">'+fmtDate(l.date)+'</p>';
-    h+='</div></div>';
-    h+='<div class="text-right">';
-    h+='<p class="plusJakartaSans text-sm font-black text-felt">'+l.solved+' solved</p>';
-    h+='<p class="inter text-[10px] text-gold font-bold">+'+l.xp+' XP</p>';
-    h+='</div></div>';
-  });
-  el.innerHTML=h;
+function tryPlayerMove(from,to){
+  var expected=pz.solution[pz.solIdx];if(!expected)return;
+  // Determine promotion from solution
+  var promo=expected.length>4?expected[4]:undefined;
+  var piece=pz.game.get(from);
+  if(piece&&piece.type==='p'){
+    var tr=to[1];if((piece.color==='w'&&tr==='8')||(piece.color==='b'&&tr==='1'))promo=promo||'q';
+  }
+  var result=pz.game.move({from:from,to:to,promotion:promo});
+  if(!result){pz.selectedSq=null;renderBoard();return}
+  var played=from+to+(result.promotion||'');
+  var expNorm=expected.length>4?expected:expected;
+  if(played===expNorm||played===expNorm+'q'||(played.length===5&&played.substring(0,4)===expNorm)){
+    // Correct move
+    pz.moveLog.push({san:result.san,correct:true,time:pz.clockSecs});
+    pz.selectedSq=null;pz.lastMove={from:from,to:to};pz.solIdx++;pz.hintShown=false;
+    clearTimeout(pz.hintTimer);
+    renderBoard();renderFlightLog();
+    if(pz.solIdx>=pz.solution.length){puzzleSolved()}
+    else{updateStatus('Good move! Keep going...','good');startHintCountdown();setTimeout(function(){autoPlayOpponent()},500)}
+  }else{
+    // Wrong move
+    pz.game.undo();pz.attempts++;
+    pz.moveLog.push({san:result.san,correct:false,time:pz.clockSecs});
+    pz.selectedSq=null;renderBoard();renderFlightLog();
+    updateStatus('Not quite — try again!','error');
+    if(pz.attempts>=2&&!pz.hintShown)setTimeout(function(){requestHint()},1500);
+  }
 }
+
+function autoPlayOpponent(){
+  if(pz.solIdx>=pz.solution.length)return;
+  var uci=pz.solution[pz.solIdx];
+  var result=pz.game.move({from:uci.substring(0,2),to:uci.substring(2,4),promotion:uci.length>4?uci[4]:undefined});
+  if(!result)return;
+  pz.lastMove={from:uci.substring(0,2),to:uci.substring(2,4)};pz.solIdx++;
+  renderBoard();
+  if(pz.solIdx>=pz.solution.length)puzzleSolved();
+  else{updateStatus((pz.game.turn()==='w'?'White':'Black')+' to move — find the best continuation!','active');startHintCountdown()}
+}
+
+function puzzleSolved(){
+  pz.solved=true;stopClock();clearTimeout(pz.hintTimer);
+  var p=getActivePuzzles()[pz.puzzleIdx];if(p)p.solved=true;
+  var xp=pz.attempts===0?30:pz.attempts<=2?20:10;
+  updateStatus('Puzzle Complete! +'+xp+' XP','success');
+  renderBoard();renderPuzzleDots();
+  if(typeof confetti!=='undefined')confetti({particleCount:80,spread:60,origin:{y:.7}});
+  // Save solve
+  var key='pp_puzzleSolves_'+token;
+  var solves=JSON.parse(localStorage.getItem(key)||'[]');
+  solves.push({id:p?p.id:'',theme:pz.themeKey,xp:xp,attempts:pz.attempts,time:pz.clockSecs,date:new Date().toISOString().split('T')[0]});
+  localStorage.setItem(key,JSON.stringify(solves));
+}
+
+// ── Puzzle Setup (fetch from Lichess API) ──
+function fetchPuzzleData(puzzleId){
+  var cacheKey='pp_pz_'+puzzleId;
+  var cached=localStorage.getItem(cacheKey);
+  if(cached){try{return Promise.resolve(JSON.parse(cached))}catch(e){}}
+  return fetch('https://lichess.org/api/puzzle/'+puzzleId,{headers:{'Accept':'application/json'}})
+  .then(function(r){return r.ok?r.json():null})
+  .then(function(data){
+    if(!data||!data.game||!data.puzzle)return null;
+    var game=new Chess();
+    var pgn=data.game.pgn;
+    var moves=pgn.split(/\s+/).filter(function(m){return!m.match(/^\d+\./)&&m.length>0});
+    var ply=data.puzzle.initialPly;
+    for(var i=0;i<ply&&i<moves.length;i++){
+      if(!game.move(moves[i])){var cl=moves[i].replace(/[+#!?]+$/,'');if(!game.move(cl))break}
+    }
+    // Get the trigger move (the move at initialPly that creates the puzzle)
+    var triggerMove=null;
+    if(ply<moves.length){
+      var tr=game.move(moves[ply])||game.move(moves[ply].replace(/[+#!?]+$/,''));
+      if(tr)triggerMove={from:tr.from,to:tr.to,san:tr.san};
+    }
+    var result={fen:game.fen(),solution:data.puzzle.solution,rating:data.puzzle.rating,triggerMove:triggerMove};
+    localStorage.setItem(cacheKey,JSON.stringify(result));
+    return result;
+  }).catch(function(){return null});
+}
+
+function loadPuzzleAtIndex(idx){
+  var puzzles=getActivePuzzles();var p=puzzles[idx];if(!p)return;
+  pz.puzzleIdx=idx;pz.solved=false;pz.selectedSq=null;pz.moveLog=[];pz.attempts=0;pz.lastMove=null;pz.hintShown=false;pz.solutionShown=false;
+  clearTimeout(pz.hintTimer);stopClock();
+  // Show loading
+  document.getElementById('boardLoading').style.display='flex';
+  document.getElementById('puzzleBoard').style.display='none';
+  updateMissionInfo(p);renderPuzzleDots();
+  // Fetch correct data from Lichess
+  fetchPuzzleData(p.id).then(function(apiData){
+    var fen,solution,triggerMove=null;
+    if(apiData){
+      fen=apiData.fen;solution=apiData.solution;triggerMove=apiData.triggerMove;
+      if(apiData.rating)p.rating=apiData.rating;
+    }else{
+      // Fallback to stored data
+      fen=p.fen;solution=(p.moves||'').split(' ');
+    }
+    setupBoard(fen,solution,triggerMove,p);
+  });
+}
+
+function setupBoard(fen,solution,triggerMove,puzzleData){
+  pz.game=new Chess(fen);pz.solution=solution;pz.solIdx=0;
+  // The FEN is AFTER the trigger move (since we played it in fetchPuzzleData)
+  // Solution[0] is the player's first move
+  // Determine player color: it's whoever's turn it is now
+  var playerColor=pz.game.turn();
+  pz.orientation=playerColor==='w'?'white':'black';
+  // If there was a trigger move, show it as last move highlight
+  if(triggerMove)pz.lastMove={from:triggerMove.from,to:triggerMove.to};
+  else pz.lastMove=null;
+  // Show board
+  document.getElementById('boardLoading').style.display='none';
+  document.getElementById('puzzleBoard').style.display='grid';
+  renderBoard();
+  updateMissionInfo(puzzleData);
+  updateAltimeter(puzzleData.rating);
+  updateStatus((playerColor==='w'?'White':'Black')+' to move — find the best continuation!','active');
+  renderFlightLog();renderPuzzleDots();
+  startClock();startHintCountdown();
+  // Update nav buttons
+  var puzzles=getActivePuzzles();
+  document.getElementById('pzPrev').disabled=pz.puzzleIdx<=0;
+  document.getElementById('pzNext').disabled=pz.puzzleIdx>=puzzles.length-1;
+}
+
+function getActivePuzzles(){
+  if(!pz.themeKey)return student.puzzles;
+  var themes=getThemes();var t=themes[pz.themeKey];return t?t.puzzles:[];
+}
+
+// ── UI Updates ──
+function updateStatus(msg,type){
+  var el=document.getElementById('puzzleStatusCard');if(!el)return;
+  var cls='p-4 rounded-xl text-center font-bold plusJakartaSans transition-all text-sm ';
+  if(type==='success')cls+='bg-felt/10 text-felt pop-in';
+  else if(type==='error')cls+='bg-error/10 text-error shake-anim';
+  else if(type==='good')cls+='bg-felt-glow/10 text-felt';
+  else if(type==='hint')cls+='bg-gold/10 text-gold';
+  else cls+='bg-secondary/10 text-secondary glow-pulse';
+  el.className=cls;el.textContent=msg;
+}
+
+function updateMissionInfo(p){
+  var meta=THEME_META[pz.themeKey]||{icon:'🧩',key:'mixed'};
+  document.getElementById('missionTitle').textContent=(meta.icon||'')+' '+(pz.themeKey||'Puzzle')+' — #'+(pz.puzzleIdx+1);
+  var mh='';
+  if(p.rating)mh+='<span class="bg-gold/15 text-gold px-2.5 py-1 rounded-lg text-[10px] font-black">'+p.rating+'</span>';
+  document.getElementById('missionMeta').innerHTML=mh;
+}
+
+function updateAltimeter(rating){
+  var r=rating||1000;
+  var pct=Math.min(100,Math.max(5,Math.round(((r-400)/2000)*100)));
+  document.getElementById('altBar').style.width=pct+'%';
+  document.getElementById('altRating').textContent='ALT '+r;
+}
+
+function renderFlightLog(){
+  var el=document.getElementById('flightLog');if(!el)return;
+  var h='';
+  pz.moveLog.forEach(function(m,i){
+    h+='<div class="flex items-center justify-between p-2.5 rounded-lg '+(m.correct?'bg-felt/5':'bg-error/5')+'">';
+    h+='<span class="plusJakartaSans text-sm font-bold text-primary">'+(i+1)+'. '+esc(m.san)+'</span>';
+    h+='<span class="inter text-[10px] font-bold '+(m.correct?'text-felt':'text-error')+'">'+(m.correct?'Optimal':'Inaccurate')+'</span>';
+    h+='</div>';
+  });
+  if(!pz.solved&&pz.moveLog.length<pz.solution.length){
+    h+='<div class="p-2.5 rounded-lg bg-surface-container-low text-center"><span class="inter text-xs text-on-surface-variant italic">Waiting for move...</span></div>';
+  }
+  el.innerHTML=h;el.scrollTop=el.scrollHeight;
+}
+
+function renderPuzzleDots(){
+  var puzzles=getActivePuzzles();var d=document.getElementById('puzzleDots');if(!d)return;
+  var h='';puzzles.forEach(function(p,i){
+    var active=i===pz.puzzleIdx;
+    h+='<div class="w-2.5 h-2.5 rounded-full transition-all cursor-pointer '+(active?'bg-secondary ring-2 ring-secondary/30 scale-125':p.solved?'bg-felt':'bg-surface-container-high')+'" onclick="loadPuzzleAtIndex('+i+')"></div>';
+  });d.innerHTML=h;
+}
+
+// ── Clock ──
+function startClock(){pz.clockSecs=0;stopClock();pz.clockTimer=setInterval(function(){pz.clockSecs++;var m=Math.floor(pz.clockSecs/60),s=pz.clockSecs%60;document.getElementById('puzzleTimer').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s},1000)}
+function stopClock(){if(pz.clockTimer){clearInterval(pz.clockTimer);pz.clockTimer=null}}
+
+// ── Hints & Solution ──
+function startHintCountdown(){clearTimeout(pz.hintTimer);pz.hintTimer=setTimeout(function(){if(!pz.solved&&!pz.hintShown)requestHint()},25000)}
+window.requestHint=function(){
+  if(pz.solved||pz.solIdx>=pz.solution.length)return;
+  pz.hintShown=true;
+  var uci=pz.solution[pz.solIdx];var sq=uci.substring(0,2);
+  // Highlight hint square
+  var els=document.querySelectorAll('[data-sq="'+sq+'"]');
+  els.forEach(function(el){el.classList.add('sq-hint')});
+  updateStatus('Look at the highlighted square!','hint');
+};
+window.showSolution=function(){
+  if(pz.solIdx>=pz.solution.length)return;
+  pz.solutionShown=true;
+  // Show remaining moves
+  var g=new Chess(pz.game.fen());var sans=[];
+  for(var i=pz.solIdx;i<pz.solution.length;i++){
+    var u=pz.solution[i];
+    var r=g.move({from:u.substring(0,2),to:u.substring(2,4),promotion:u.length>4?u[4]:undefined});
+    if(r)sans.push(r.san);
+  }
+  updateStatus('Solution: '+sans.join(' → '),'hint');
+  // Auto-play the solution
+  pz.solved=true;stopClock();
+  function playNext(){
+    if(pz.solIdx>=pz.solution.length){renderPuzzleDots();return}
+    var u=pz.solution[pz.solIdx];
+    var r=pz.game.move({from:u.substring(0,2),to:u.substring(2,4),promotion:u.length>4?u[4]:undefined});
+    if(r){pz.lastMove={from:u.substring(0,2),to:u.substring(2,4)};pz.solIdx++;renderBoard();setTimeout(playNext,600)}
+  }
+  playNext();
+};
+window.loadPuzzleAtIndex=loadPuzzleAtIndex;
+window.resetPuzzle=function(){loadPuzzleAtIndex(pz.puzzleIdx)};
+window.prevPuzzleInTheme=function(){if(pz.puzzleIdx>0)loadPuzzleAtIndex(pz.puzzleIdx-1)};
+window.nextPuzzleInTheme=function(){var puzzles=getActivePuzzles();if(pz.puzzleIdx<puzzles.length-1)loadPuzzleAtIndex(pz.puzzleIdx+1)};
+
+// ── Theme Flow ──
+window.startTheme=function(themeName){
+  pz.themeKey=themeName;
+  document.getElementById('puzzleThemePicker').style.display='none';
+  document.getElementById('puzzleSolver').style.display='block';
+  // Find first unsolved, or start at 0
+  var puzzles=getActivePuzzles();
+  var startIdx=0;
+  for(var i=0;i<puzzles.length;i++){if(!puzzles[i].solved){startIdx=i;break}}
+  loadPuzzleAtIndex(startIdx);
+};
+window.backToThemes=function(){
+  pz.themeKey=null;stopClock();clearTimeout(pz.hintTimer);
+  document.getElementById('puzzleSolver').style.display='none';
+  document.getElementById('puzzleThemePicker').style.display='block';
+  renderPuzzlesPanel();
+};
 
 // ═══ FLIGHT PLAN ═══
 function getPlanStats(){
