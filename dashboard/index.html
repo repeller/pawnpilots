@@ -409,9 +409,13 @@ tailwind.config={
 (function(){
 'use strict';
 var BIN='69b859a2aa77b81da9ee0ccc';
+var SYNC_KEY=localStorage.getItem('att_apiKey')||'';
 var qs=new URLSearchParams(location.search);
 var token=qs.get('t');
 if(!token){showError('No link','This page needs a valid student link.');return}
+// Accept k= param to store API key (override)
+var kParam=qs.get('k');
+if(kParam){SYNC_KEY=kParam;localStorage.setItem('att_apiKey',kParam);qs.delete('k');history.replaceState(null,'',location.pathname+'?'+qs.toString())}
 
 var student=null, statsLoaded=false, currentTheme=null;
 
@@ -441,15 +445,24 @@ fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest')
   var s=db.students.find(function(x){return x.token.toLowerCase()===token.toLowerCase()});
   if(!s){showError('Not found',"This link doesn't match any student.");return}
   student={name:s.name,token:s.token,recaps:s.recaps||[],puzzles:s.puzzles||[],puzzleLog:s.puzzleLog||[],stats:s.stats||{},badges:s.badges||[],plan:s.plan||null,lichessUsername:s.lichessUsername||'',chesscomUsername:s.chesscomUsername||'',attendance:db.attendance?(db.attendance[s.token]||{}):{}};
+  // Merge solves: cloud (JSONBin) + local (localStorage), deduplicated by puzzle ID
+  var cloudSolves=s.puzzleSolves||[];
+  var localSolves=JSON.parse(localStorage.getItem('pp_puzzleSolves_'+token)||'[]');
+  var solveMap={};
+  cloudSolves.forEach(function(sv){if(sv.id)solveMap[sv.id]=sv});
+  localSolves.forEach(function(sv){if(sv.id)solveMap[sv.id]=sv});
+  var mergedSolves=Object.keys(solveMap).map(function(k){return solveMap[k]});
+  localStorage.setItem('pp_puzzleSolves_'+token,JSON.stringify(mergedSolves));
+  var solvedIds={};mergedSolves.forEach(function(sv){solvedIds[sv.id]=1});
   // Merge puzzle pool — add pool puzzles not already in student.puzzles
   var existingIds={};student.puzzles.forEach(function(p){existingIds[p.id]=1});
-  var solves=JSON.parse(localStorage.getItem('pp_puzzleSolves_'+token)||'[]');
-  var solvedIds={};solves.forEach(function(sv){solvedIds[sv.id]=1});
   PUZZLE_POOL.forEach(function(pp){
     if(!existingIds[pp.id]){student.puzzles.push({id:pp.id,rating:pp.rating,theme:pp.theme,solved:!!solvedIds[pp.id],fen:'',moves:''})}
   });
-  // Apply localStorage solved state to ALL puzzles (including JSONBin ones)
+  // Apply merged solved state to ALL puzzles
   student.puzzles.forEach(function(p){if(solvedIds[p.id])p.solved=true});
+  // If we have new local solves that cloud doesn't have, sync them up
+  if(SYNC_KEY&&localSolves.length>cloudSolves.length){syncAllToCloud(mergedSolves)}
   render();
 }).catch(function(e){
   if(e.ue)showError(e.t,e.m);else{console.error(e);showError('Connection error','Could not reach database.')}
@@ -778,11 +791,13 @@ function puzzleSolved(){
   var xp=pz.attempts===0?30:pz.attempts<=2?20:10;
   renderBoard();renderPuzzleDots();
   if(typeof confetti!=='undefined')confetti({particleCount:80,spread:60,origin:{y:.7}});
-  // Save solve
+  // Save solve locally + sync to cloud
+  var solveEntry={id:p?p.id:'',theme:pz.themeKey,xp:xp,attempts:pz.attempts,time:pz.clockSecs,date:new Date().toISOString().split('T')[0]};
   var key='pp_puzzleSolves_'+token;
   var solves=JSON.parse(localStorage.getItem(key)||'[]');
-  solves.push({id:p?p.id:'',theme:pz.themeKey,xp:xp,attempts:pz.attempts,time:pz.clockSecs,date:new Date().toISOString().split('T')[0]});
+  solves.push(solveEntry);
   localStorage.setItem(key,JSON.stringify(solves));
+  syncSolveToCloud(solveEntry);
   // Check if all puzzles in theme are done
   var puzzles=getActivePuzzles();var allDone=puzzles.every(function(pp){return pp.solved});
   if(allDone){
@@ -794,6 +809,37 @@ function puzzleSolved(){
   } else {
     updateStatus('Puzzle Complete! +'+xp+' XP','success');
   }
+}
+
+// ── Cloud Sync — write puzzle solves to JSONBin for cross-device persistence ──
+function syncSolveToCloud(solveEntry){
+  if(!SYNC_KEY)return;
+  fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest',{headers:{'X-Master-Key':SYNC_KEY}})
+  .then(function(r){if(!r.ok)throw r;return r.json()})
+  .then(function(j){
+    var db=j.record||j;
+    var idx=db.students.findIndex(function(x){return x.token.toLowerCase()===token.toLowerCase()});
+    if(idx<0)return;
+    if(!db.students[idx].puzzleSolves)db.students[idx].puzzleSolves=[];
+    var exists=db.students[idx].puzzleSolves.some(function(sv){return sv.id===solveEntry.id});
+    if(!exists)db.students[idx].puzzleSolves.push(solveEntry);
+    if(db.students[idx].puzzles){db.students[idx].puzzles.forEach(function(p){if(p.id===solveEntry.id)p.solved=true})}
+    return fetch('https://api.jsonbin.io/v3/b/'+BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':SYNC_KEY},body:JSON.stringify(db)});
+  }).catch(function(e){console.warn('Cloud sync failed:',e)});
+}
+function syncAllToCloud(mergedSolves){
+  if(!SYNC_KEY)return;
+  fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest',{headers:{'X-Master-Key':SYNC_KEY}})
+  .then(function(r){if(!r.ok)throw r;return r.json()})
+  .then(function(j){
+    var db=j.record||j;
+    var idx=db.students.findIndex(function(x){return x.token.toLowerCase()===token.toLowerCase()});
+    if(idx<0)return;
+    db.students[idx].puzzleSolves=mergedSolves;
+    var solvedIds={};mergedSolves.forEach(function(sv){solvedIds[sv.id]=1});
+    if(db.students[idx].puzzles){db.students[idx].puzzles.forEach(function(p){if(solvedIds[p.id])p.solved=true})}
+    return fetch('https://api.jsonbin.io/v3/b/'+BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':SYNC_KEY},body:JSON.stringify(db)});
+  }).catch(function(e){console.warn('Cloud sync-all failed:',e)});
 }
 
 // ── Puzzle Setup (fetch from Lichess API) ──
@@ -1142,7 +1188,15 @@ function renderStatsPanel(){
   if(student.lichessUsername){h+=sc('bolt',li.rapid||'—','Rapid','Lichess');h+=sc('target',li.blitz||'—','Blitz','Lichess');h+=sc('extension',li.puzzle||'—','Puzzles','Lichess')}
   if(student.chesscomUsername){h+=sc('bolt',cc.rapid||'—','Rapid','Chess.com');h+=sc('target',cc.blitz||'—','Blitz','Chess.com')}
   g.innerHTML=h;
-  if(student.stats.history&&student.stats.history.length>0)drawChart(student.stats.history);
+  var canvas=document.getElementById('ratingChart');
+  if(student.stats.history&&student.stats.history.length>=2){
+    if(canvas)canvas.style.display='';
+    var ph=document.getElementById('chartPlaceholder');if(ph)ph.remove();
+    drawChart(student.stats.history);
+  } else {
+    if(canvas)canvas.style.display='none';
+    renderChartPlaceholder();
+  }
 }
 function fetchStats(){
   statsLoaded=true;var pp=[];
@@ -1150,7 +1204,17 @@ function fetchStats(){
   var gridEl=document.getElementById('statsGrid');
   if(loadEl){loadEl.style.display='block'}
   if(gridEl)gridEl.style.opacity='0.3';
-  if(student.lichessUsername)pp.push(fetch('https://lichess.org/api/user/'+encodeURIComponent(student.lichessUsername)).then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.perfs)student.stats.lichess={rapid:d.perfs.rapid?d.perfs.rapid.rating:null,blitz:d.perfs.blitz?d.perfs.blitz.rating:null,puzzle:d.perfs.puzzle?d.perfs.puzzle.rating:null,fetchedAt:new Date().toISOString()}}).catch(function(){}));
+  if(student.lichessUsername){
+    pp.push(fetch('https://lichess.org/api/user/'+encodeURIComponent(student.lichessUsername)).then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.perfs)student.stats.lichess={rapid:d.perfs.rapid?d.perfs.rapid.rating:null,blitz:d.perfs.blitz?d.perfs.blitz.rating:null,puzzle:d.perfs.puzzle?d.perfs.puzzle.rating:null,fetchedAt:new Date().toISOString()}}).catch(function(){}));
+    pp.push(fetch('https://lichess.org/api/user/'+encodeURIComponent(student.lichessUsername)+'/rating-history').then(function(r){return r.ok?r.json():null}).then(function(data){
+      if(!data||!Array.isArray(data))return;
+      var rapidPts=null,blitzPts=null;
+      data.forEach(function(cat){if(cat.name==='Rapid'&&cat.points&&cat.points.length>0)rapidPts=cat;if(cat.name==='Blitz'&&cat.points&&cat.points.length>0)blitzPts=cat});
+      var src=rapidPts||blitzPts;if(!src||src.points.length<2)return;
+      var pts=src.points.slice(-30);
+      student.stats.history=pts.map(function(p){var m=p[1]+1;var entry={date:p[0]+'-'+(m<10?'0':'')+m+'-'+(p[2]<10?'0':'')+p[2]};if(src.name==='Rapid')entry.lichessRapid=p[3];else entry.lichessBlitz=p[3];return entry});
+    }).catch(function(e){console.warn('Rating history fetch failed:',e)}));
+  }
   if(student.chesscomUsername)pp.push(fetch('https://api.chess.com/pub/player/'+encodeURIComponent(student.chesscomUsername)+'/stats').then(function(r){return r.ok?r.json():null}).then(function(d){if(d)student.stats.chesscom={rapid:d.chess_rapid?d.chess_rapid.last.rating:null,blitz:d.chess_blitz?d.chess_blitz.last.rating:null,fetchedAt:new Date().toISOString()}}).catch(function(){}));
   Promise.all(pp).then(function(){
     if(loadEl)loadEl.style.display='none';
@@ -1160,6 +1224,26 @@ function fetchStats(){
   });
 }
 window.refreshStats=function(){statsLoaded=false;fetchStats()};
+function renderChartPlaceholder(){
+  var existing=document.getElementById('chartPlaceholder');if(existing)existing.remove();
+  var canvas=document.getElementById('ratingChart');if(!canvas)return;
+  var container=canvas.parentElement;
+  var ph=document.createElement('div');ph.id='chartPlaceholder';ph.className='text-center py-8';
+  var h='<span class="material-symbols-outlined text-4xl text-on-surface-variant/20 mb-3 block">show_chart</span>';
+  h+='<p class="plusJakartaSans font-bold text-primary mb-1">No rating history yet</p>';
+  h+='<p class="inter text-xs text-on-surface-variant mb-5">Play some rated games to start tracking your altitude!</p>';
+  h+='<div class="flex flex-wrap gap-2 justify-center">';
+  if(student.lichessUsername){
+    h+='<a href="https://lichess.org/" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-secondary/10 text-secondary rounded-xl text-xs font-bold hover:bg-secondary/20 transition-colors plusJakartaSans"><span class="material-symbols-outlined text-sm">bolt</span> Play Rapid</a>';
+    h+='<a href="https://lichess.org/" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gold/10 text-gold rounded-xl text-xs font-bold hover:bg-gold/20 transition-colors plusJakartaSans"><span class="material-symbols-outlined text-sm">target</span> Play Blitz</a>';
+    h+='<a href="https://lichess.org/training" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-tertiary-fixed-dim/10 text-tertiary-fixed-dim rounded-xl text-xs font-bold hover:bg-tertiary-fixed-dim/20 transition-colors plusJakartaSans"><span class="material-symbols-outlined text-sm">extension</span> Solve Puzzles</a>';
+  }
+  if(student.chesscomUsername){
+    h+='<a href="https://www.chess.com/play/online" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-felt/10 text-felt rounded-xl text-xs font-bold hover:bg-felt/20 transition-colors plusJakartaSans"><span class="material-symbols-outlined text-sm">sports_esports</span> Play on Chess.com</a>';
+    h+='<a href="https://www.chess.com/puzzles" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-felt/10 text-felt rounded-xl text-xs font-bold hover:bg-felt/20 transition-colors plusJakartaSans"><span class="material-symbols-outlined text-sm">extension</span> Puzzles on Chess.com</a>';
+  }
+  h+='</div>';ph.innerHTML=h;container.appendChild(ph);
+}
 function drawChart(history){
   var c=document.getElementById('ratingChart');if(!c)return;var ctx=c.getContext('2d');
   var W=c.parentElement.clientWidth-48,H=200;c.width=W*2;c.height=H*2;c.style.width=W+'px';c.style.height=H+'px';ctx.scale(2,2);
