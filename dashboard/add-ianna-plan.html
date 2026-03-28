@@ -32,6 +32,18 @@ async function run() {
   if (idx < 0) { log('❌ Ianna not found in database', false); return; }
   log('✓ Found Ianna at index ' + idx, true);
 
+  // Themed puzzles from Lichess (matched to curriculum topics)
+  db.students[idx].puzzles = [
+    { id: "4rWzn", fen: "8/5p1k/6pp/8/1q6/1rnQN1P1/5P1P/2R3K1 w - - 2 37", moves: "b4c4 e3c4 c3e2 g1g2 e2c1", rating: 1489, theme: "Fork", solved: false },
+    { id: "BQUUA", fen: "3rkbnr/pp3ppp/8/4pN2/1n6/8/1P1BPPPP/1K1R1BNR w k - 2 13", moves: "d8d1 b1c2 d1f1", rating: 1301, theme: "Fork", solved: false },
+    { id: "c5hai", fen: "8/4k3/1R1b2p1/3p4/2pB1PP1/r1P5/4K3/8 b - - 6 47", moves: "d4c5 e7d7 c5a3", rating: 1470, theme: "Fork", solved: false },
+    { id: "ItVBM", fen: "1r1q1rk1/1bp1bppp/p1p5/4p3/4Q3/1P1P1N1P/PBP2PP1/R4RK1 w - - 1 14", moves: "e7f6 e5f5 f6b2", rating: 1362, theme: "Skewer", solved: false },
+    { id: "v8mvy", fen: "r3k2r/6p1/1pppp3/p3p2p/4P1Pq/P1NP4/1PP1QPP1/R4RK1 w kq - 1 16", moves: "h5g4 g2g3 h4h1 g1f2 h8h2 f2e3 h2e2", rating: 1367, theme: "Skewer", solved: false },
+    { id: "mXbXs", fen: "1k3br1/pP3p1p/4b3/4q3/K1P1N3/5P2/P3B3/R1BR4 b - - 0 25", moves: "c1f4 b8b7 d1a1", rating: 1399, theme: "Discovered Attack", solved: false },
+    { id: "A5NzY", fen: "r4qk1/pbp3p1/1p2pb2/8/5Q2/3B4/PPP2PPP/R3K2R w KQ - 0 16", moves: "f6b2 c1b2 f8f4", rating: 1306, theme: "Discovered Attack", solved: false }
+  ];
+  log('✓ Added 7 themed puzzles (Fork, Skewer, Discovered Attack)', true);
+
   db.students[idx].plan = {
     title: "Ianna's Development Curriculum",
     pace: "2 classes/week",

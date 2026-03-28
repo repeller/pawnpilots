@@ -35,6 +35,20 @@ async function run() {
   db.students[idx].lichessUsername = 'Abhi-CT';
   db.students[idx].chesscomUsername = '';
 
+  // Themed puzzles from Lichess (matched to curriculum topics)
+  db.students[idx].puzzles = [
+    { id: "HR9I1", fen: "5rk1/6pn/2pr3N/p7/3q4/1Q4P1/P4P1P/5RK1 b - - 3 36", moves: "b3g8 f8g8 h6f7", rating: 1337, theme: "Smothered Mate", solved: false },
+    { id: "c5uYa", fen: "5r1k/ppp2Npp/4Q3/2bp1n2/3q1P2/3P4/P5PP/5R1K b - - 6 22", moves: "f7h6 g8h8 e6g8 f8g8 h6f7", rating: 1340, theme: "Smothered Mate", solved: false },
+    { id: "Wqwv1", fen: "1r4k1/p4ppp/2p3b1/4p3/7Q/2P5/P1RN1PPP/6K1 w - - 4 20", moves: "b8b1 c2c1 b1c1", rating: 1293, theme: "Back Rank Mate", solved: false },
+    { id: "UxBiA", fen: "3r2k1/R3Rp1p/2p3pb/4N3/2n5/2N5/Prb2PPP/6K1 w - - 0 21", moves: "b2b1 c3b1 d8d1 e7e1 d1e1", rating: 1325, theme: "Back Rank Mate", solved: false },
+    { id: "4zL0n", fen: "1r4k1/p4rp1/b1n1qB2/2npP2Q/2p2P2/2P1P3/P2N3P/2KR2R1 w - - 2 26", moves: "c5d3 c1c2 b8b2", rating: 1391, theme: "Hook Mate", solved: false },
+    { id: "BeKyY", fen: "8/8/2p5/8/R4p1k/4n2P/P1P2PP1/4r1K1 w - - 7 44", moves: "e3f1 h2g1 f1g3 g1h2 e1h1", rating: 1388, theme: "Hook Mate", solved: false },
+    { id: "n6wWy", fen: "8/5p2/4k1np/4pQ2/3b2K1/2p5/8/8 b - - 5 56", moves: "f5f7 d5c5 f7g6", rating: 1288, theme: "Fork", solved: false },
+    { id: "9AFsL", fen: "r4rk1/pp2bppp/4p3/q2pP1PP/2p2B2/2n1PN2/PP2QP2/R3K2R w KQ - 0 18", moves: "a5c3 e1f1 c3a1 f1g2 a1c3", rating: 1268, theme: "Fork", solved: false },
+    { id: "Ydpf7", fen: "r1b2rk1/pp3ppp/3p4/2p3q1/2B1Pn2/2N2P2/PPPQ2PP/R4RK1 w - - 6 14", moves: "f4h3 g1h1 g5d2", rating: 1364, theme: "Discovered Attack", solved: false }
+  ];
+  log('✓ Added 9 themed puzzles (Smothered Mate, Back Rank Mate, Hook Mate, Fork, Discovered Attack)', true);
+
   db.students[idx].plan = {
     title: "Abhi's Development Curriculum",
     pace: "2 classes/week — Mondays & Thursdays",
