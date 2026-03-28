@@ -373,6 +373,22 @@
       function redirectUser(uid) {
         return ppAuth.getUserDoc(uid).then(function (userDoc) {
           if (!userDoc) {
+            // Auto-create coach doc on first login
+            var email = ppAuth.auth.currentUser.email;
+            if (email === 'coach@pawnpilots.com') {
+              return ppDB.collection('users').doc(uid).set({
+                email: email,
+                role: 'coach',
+                displayName: 'Coach Himanshu',
+                studentTokens: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              }).then(function() {
+                window.location.href = '../admin/attendance/';
+              }).catch(function(err) {
+                console.error('Failed to create coach doc:', err);
+                showError('Failed to set up account. Check Firestore rules.');
+              });
+            }
             showError('Account not configured. Contact your coach.');
             return;
           }
