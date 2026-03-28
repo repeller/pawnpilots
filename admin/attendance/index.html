@@ -740,9 +740,10 @@
                   ${dayLabels} · ${stuTime} ${tzShort}
                   <span class="tz-convert">→ ${adminTime} IST</span>
                 </div>
-                <div class="student-link">
-                  <a href="https://pawnpilots.com/attendance/?t=${stu.token}" target="_blank">pawnpilots.com/attendance/?t=${stu.token}</a>
-                  <button class="copy-btn" onclick="copyLink('${stu.token}', this)">Copy</button>
+                <div class="student-link" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <a href="https://pawnpilots.com/attendance/?t=${stu.token}" target="_blank" class="btn btn-sm" style="background:var(--felt);color:#fff;text-decoration:none;font-size:0.75rem;padding:5px 12px;border-radius:6px;font-weight:600;">📊 Attendance Dashboard</a>
+                  <a href="https://pawnpilots.com/dashboard/?t=${stu.token}" target="_blank" class="btn btn-sm" style="background:var(--gold);color:#fff;text-decoration:none;font-size:0.75rem;padding:5px 12px;border-radius:6px;font-weight:600;">🎓 Student Dashboard</a>
+                  <button class="copy-btn" onclick="copyLink('${stu.token}', this)" style="font-size:0.72rem;">Copy Link</button>
                 </div>
               </div>
               <div class="student-card-actions">
