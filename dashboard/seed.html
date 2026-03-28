@@ -1,0 +1,348 @@
+<!doctype html>
+<html><head>
+<meta charset="UTF-8"><title>Seed Dashboard Data</title>
+<style>body{font-family:monospace;background:#1a1209;color:#f5ead8;padding:40px;max-width:600px;margin:0 auto}
+button{padding:12px 24px;background:#c4862e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;margin-top:20px}
+button:hover{background:#e8a840}
+#log{margin-top:20px;padding:16px;background:#0f0a06;border-radius:8px;white-space:pre-wrap;font-size:0.85rem;line-height:1.6}
+.ok{color:#4aad7a}.err{color:#c44a2e}</style>
+</head><body>
+<h2>🌱 Seed Dashboard Data for Aarvi</h2>
+<p>This will add sample recaps, puzzles, stats, and badges to Aarvi's profile.<br>
+You must have previously logged into the <a href="../admin/attendance/" style="color:#c4862e">Admin Dashboard</a> so the API key is stored.</p>
+<button onclick="seed()">Seed Data Now</button>
+<div id="log"></div>
+<script>
+var LOG = document.getElementById('log');
+function log(msg, ok) { LOG.innerHTML += '<span class="'+(ok?'ok':'err')+'">' + msg + '</span>\n'; }
+
+async function seed() {
+  LOG.innerHTML = '';
+  var binId = localStorage.getItem('att_binId') || '69b859a2aa77b81da9ee0ccc';
+  var apiKey = localStorage.getItem('att_apiKey');
+  if (!apiKey) { log('❌ No API key found. Please log into the Admin Dashboard first.', false); return; }
+
+  log('📡 Fetching current data...', true);
+  var res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', { headers: { 'X-Master-Key': apiKey } });
+  if (!res.ok) { log('❌ Fetch failed: ' + res.status, false); return; }
+  var json = await res.json();
+  var db = json.record;
+
+  var idx = db.students.findIndex(function(s) { return s.token === 'aarvi-mn9s'; });
+  if (idx < 0) { log('❌ Aarvi not found in database', false); return; }
+  log('✓ Found Aarvi at index ' + idx, true);
+
+  // Lichess username
+  db.students[idx].lichessUsername = 'aarvi_chess';
+  db.students[idx].chesscomUsername = '';
+
+  // Recaps
+  db.students[idx].recaps = [
+    {
+      date: '2026-03-25',
+      title: "King's Indian Defense — Setup & Central Breaks",
+      bullets: [
+        "Learned the KID pawn structure: d6, Nf6, g6, Bg7 — practiced setting it up against 1.d4",
+        "Explored the central break with ...e5 and when to push ...f5 for kingside attack",
+        "Homework: Play 3 rapid games on Lichess using the KID"
+      ],
+      mood: 'great'
+    },
+    {
+      date: '2026-03-22',
+      title: "Mating Nets — Anastasia & Arabian Mates",
+      bullets: [
+        "Studied the Anastasia mate pattern (Rook + Knight on the h-file)",
+        "Practiced Arabian mate — solved 5/6 puzzles correctly",
+        "Needs more practice recognizing the setup 2-3 moves before the mate"
+      ],
+      mood: 'good'
+    },
+    {
+      date: '2026-03-18',
+      title: "Complex Tactics — Zwischenzug & Deflection",
+      bullets: [
+        "Introduced Zwischenzug (in-between moves) — a powerful surprise tactic",
+        "Worked through 4 deflection puzzles, scored 3/4",
+        "Great improvement in calculation depth — thinking 2-3 moves ahead"
+      ],
+      mood: 'challenging'
+    }
+  ];
+  log('✓ Added 3 session recaps', true);
+
+  // Puzzles
+  db.students[idx].puzzles = [
+    {
+      id: 'p001',
+      fen: 'r2qkb1r/ppp2ppp/2n1bn2/3pp3/4P3/1B3N2/PPPP1PPP/RNBQK2R w KQkq - 4 5',
+      moves: 'f3g5 e6g4',
+      rating: 1050,
+      theme: 'Discovered Attack',
+      solved: false,
+      assignedDate: '2026-03-25'
+    },
+    {
+      id: 'p002',
+      fen: '4r1k1/5ppp/p7/1p6/8/1P3N2/P4PPP/4R1K1 w - - 0 1',
+      moves: 'e1e8',
+      rating: 900,
+      theme: 'Back Rank',
+      solved: false,
+      assignedDate: '2026-03-22'
+    },
+    {
+      id: 'p003',
+      fen: 'rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 1 2',
+      moves: 'e4e5 f6d5',
+      rating: 800,
+      theme: 'Opening',
+      solved: true,
+      assignedDate: '2026-03-18'
+    }
+  ];
+  log('✓ Added 3 puzzles (1 pre-solved)', true);
+
+  // Stats
+  db.students[idx].stats = {
+    lichess: { rapid: 1050, blitz: 980, puzzle: 1200, fetchedAt: new Date().toISOString() },
+    chesscom: {},
+    history: [
+      { date: '2026-02-01', lichessRapid: 850, lichessBlitz: 800 },
+      { date: '2026-02-08', lichessRapid: 880, lichessBlitz: 830 },
+      { date: '2026-02-15', lichessRapid: 920, lichessBlitz: 870 },
+      { date: '2026-02-22', lichessRapid: 950, lichessBlitz: 900 },
+      { date: '2026-03-01', lichessRapid: 970, lichessBlitz: 920 },
+      { date: '2026-03-08', lichessRapid: 1000, lichessBlitz: 950 },
+      { date: '2026-03-15', lichessRapid: 1020, lichessBlitz: 960 },
+      { date: '2026-03-22', lichessRapid: 1050, lichessBlitz: 980 }
+    ]
+  };
+  log('✓ Added rating stats + 8-point history', true);
+
+  // Badges
+  db.students[idx].badges = [
+    { id: 'first_login', name: 'First Steps', icon: '👣', desc: 'Visited your dashboard for the first time', earnedAt: '2026-03-01' },
+    { id: 'rating_800', name: 'Pawn Power', icon: '♟', desc: 'Reached 800 rating', earnedAt: '2026-02-08' },
+    { id: 'rating_1000', name: 'Bronze Knight', icon: '🐴', desc: 'Reached 1000 rating', earnedAt: '2026-03-08' },
+    { id: 'sessions_10', name: 'Dedicated', icon: '📚', desc: 'Completed 10 sessions', earnedAt: '2026-03-15' },
+    { id: 'streak_5', name: 'On Fire', icon: '🔥', desc: '5 classes attended in a row', earnedAt: '2026-03-10' }
+  ];
+  log('✓ Added 5 earned badges', true);
+
+  // Plan / Curriculum
+  db.students[idx].plan = {
+    title: "5-Month Accelerated Training Plan",
+    pace: "2 classes/week — Tuesdays & Wednesdays",
+    months: [
+      {
+        name: "The King's Indian & Kingside Storm",
+        goal: "Establishing a powerful, aggressive opening repertoire followed by ruthless attacking patterns.",
+        weeks: [
+          {
+            label: "Week 1 — Mar 31",
+            classes: [
+              { topic: "The King's Indian Defense (KID) — Setup, Central Breaks (e5), and Infiltration", done: false, date: "2026-03-31" },
+              { topic: "KID Practice — Drill Games & Master Examples", done: false, date: "2026-04-01" }
+            ],
+            homework: { text: "Lichess KID Setup drill + explaining 2 KID master games", done: false }
+          },
+          {
+            label: "Week 2 — Apr 7",
+            classes: [
+              { topic: "Core Mating Nets (Anastasia, Arabian & Hook Mates)", done: false, date: "2026-04-07" },
+              { topic: "Mating Pattern Exercises & Drills", done: false, date: "2026-04-08" }
+            ],
+            homework: { text: "Lichess Mating Pattern exercises", done: false }
+          },
+          {
+            label: "Week 3 — Apr 14",
+            classes: [
+              { topic: "Complex Tactics & Windmills (Zwischenzug, Deflection, Decoy)", done: false, date: "2026-04-14" },
+              { topic: "Finding Hidden Tactical Wins in Aggressive Positions", done: false, date: "2026-04-15" }
+            ],
+            homework: { text: "Solve 10 advanced tactical puzzles on Lichess", done: false }
+          },
+          {
+            label: "Week 4 — Apr 21",
+            classes: [
+              { topic: "Kingside Attacking Theory — Destroying the Castled King", done: false, date: "2026-04-21" },
+              { topic: "King Chase — Practice Games Forcing Attacking Setups", done: false, date: "2026-04-22" }
+            ],
+            homework: { text: "Play 3 games focusing on kingside attacks, annotate best one", done: false }
+          }
+        ]
+      },
+      {
+        name: "Endgames Foundation & Sacrifices",
+        goal: "Learn how to win a won game, and how to risk material for a forced mate.",
+        weeks: [
+          {
+            label: "Week 5 — Apr 28",
+            classes: [
+              { topic: "Single Rook Checkmate & Basic King/Pawn Principles", done: false, date: "2026-04-28" },
+              { topic: "Win the Rook Mate Drill vs Stockfish Level 4", done: false, date: "2026-04-29" }
+            ],
+            homework: { text: "Win the Rook Mate drill against Stockfish Level 4", done: false }
+          },
+          {
+            label: "Week 6 — May 5",
+            classes: [
+              { topic: "Creating a Passed Pawn & Promotion Tactics (Underpromotion)", done: false, date: "2026-05-05" },
+              { topic: "Endgames Starting with Only Pawns on the Board", done: false, date: "2026-05-06" }
+            ],
+            homework: { text: "Complete 5 pawn endgame exercises on Lichess", done: false }
+          },
+          {
+            label: "Week 7 — May 12",
+            classes: [
+              { topic: "The Art of Sacrifice (Queen & Rook Sacrifices to Mate)", done: false, date: "2026-05-12" },
+              { topic: "Lichess Sacrifice Studies & Practice", done: false, date: "2026-05-13" }
+            ],
+            homework: { text: "Lichess Sacrifice Studies — complete the full chapter", done: false }
+          },
+          {
+            label: "Week 8 — May 19",
+            classes: [
+              { topic: "Minor Piece Sacrifices — The Classic Greek Gift (Bxh7+)", done: false, date: "2026-05-19" },
+              { topic: "Greek Gift Interactive Study & Drill Games", done: false, date: "2026-05-20" }
+            ],
+            homework: { text: "Greek Gift Lichess interactive study", done: false }
+          }
+        ]
+      },
+      {
+        name: "Power Calculation & Middlegame Strategy",
+        goal: "Deepen calculation from 1 move to 3 moves, and understand where pieces belong.",
+        weeks: [
+          {
+            label: "Week 9 — May 26",
+            classes: [
+              { topic: "Forced Calculation: Checkmate in 2 & 3", done: false, date: "2026-05-26" },
+              { topic: "50 Checkmate-in-2 Puzzle Sprint", done: false, date: "2026-05-27" }
+            ],
+            homework: { text: "50 Checkmate in 2 puzzles", done: false }
+          },
+          {
+            label: "Week 10 — Jun 2",
+            classes: [
+              { topic: "Centralization of Pieces & Breaking in the Centre", done: false, date: "2026-06-02" },
+              { topic: "Evaluating Good vs Bad Pieces in the Middlegame", done: false, date: "2026-06-03" }
+            ],
+            homework: { text: "Annotate 2 games focusing on piece centralization", done: false }
+          },
+          {
+            label: "Week 11 — Jun 9",
+            classes: [
+              { topic: "Positional Imbalances: Good Bishop vs Bad Bishop", done: false, date: "2026-06-09" },
+              { topic: "Restricted Minor Piece Endings — Practice Positions", done: false, date: "2026-06-10" }
+            ],
+            homework: { text: "Play out 3 Bishop endgame positions against engine", done: false }
+          },
+          {
+            label: "Week 12 — Jun 16",
+            classes: [
+              { topic: "Pawn Structures: Isolated & Doubled Pawns", done: false, date: "2026-06-16" },
+              { topic: "Structuring Pawn Breaks Correctly — Drill Positions", done: false, date: "2026-06-17" }
+            ],
+            homework: { text: "Study 2 master games focused on pawn structure", done: false }
+          }
+        ]
+      },
+      {
+        name: "Positional Mastery & Advanced Endgames",
+        goal: "Mastering the quiet moves and converting material advantages.",
+        weeks: [
+          {
+            label: "Week 13 — Jun 23",
+            classes: [
+              { topic: "Converting Material Advantage — Technique Drills", done: false, date: "2026-06-23" },
+              { topic: "Winning When Up a Full Piece with No Tactics Left", done: false, date: "2026-06-24" }
+            ],
+            homework: { text: "Win 3 positions from +3 advantage against Stockfish", done: false }
+          },
+          {
+            label: "Week 14 — Jun 30",
+            classes: [
+              { topic: "King and Pawn Endgames — Opposition & The Square Rule", done: false, date: "2026-06-30" },
+              { topic: "Pawn Endgame Exercises on Lichess", done: false, date: "2026-07-01" }
+            ],
+            homework: { text: "Pawn endgame exercises on Lichess — complete study", done: false }
+          },
+          {
+            label: "Week 15 — Jul 7",
+            classes: [
+              { topic: "The Power of Pawns: Deflection & Decoy with Pawns", done: false, date: "2026-07-07" },
+              { topic: "Mixed Tactical Review — Lichess Puzzles", done: false, date: "2026-07-08" }
+            ],
+            homework: { text: "Lichess mixed tactical review — 30 puzzles", done: false }
+          },
+          {
+            label: "Week 16 — Jul 14",
+            classes: [
+              { topic: "Basic Prophylaxis — What Is My Opponent Threatening?", done: false, date: "2026-07-14" },
+              { topic: "Game Analysis: Only Looking at Opponent's Ideas", done: false, date: "2026-07-15" }
+            ],
+            homework: { text: "Analyze 1 master game focusing only on defensive moves", done: false }
+          }
+        ]
+      },
+      {
+        name: "Tournament Polish & Graduation",
+        goal: "Tie all knowledge together, fix specific weaknesses, and prepare for graduation to Intermediate.",
+        weeks: [
+          {
+            label: "Week 17 — Jul 21",
+            classes: [
+              { topic: "Time Management & Competitive Psychology", done: false, date: "2026-07-21" },
+              { topic: "Speed Drills and Handling Time Trouble", done: false, date: "2026-07-22" }
+            ],
+            homework: { text: "Play 5 rapid games focusing on clock management", done: false }
+          },
+          {
+            label: "Week 18 — Jul 28",
+            classes: [
+              { topic: "Master Game Analysis — Instructive Miniatures", done: false, date: "2026-07-28" },
+              { topic: "Replay Morphy's Opera House Game — Explain Every Move", done: false, date: "2026-07-29" }
+            ],
+            homework: { text: "Annotate the Opera House game move-by-move", done: false }
+          },
+          {
+            label: "Week 19 — Aug 4",
+            classes: [
+              { topic: "Live Game Annotations — Analyzing Aarvi's Lichess Games", done: false, date: "2026-08-04" },
+              { topic: "Student Annotates One Recent Loss", done: false, date: "2026-08-05" }
+            ],
+            homework: { text: "Annotate your worst recent loss with full analysis", done: false }
+          },
+          {
+            label: "Week 20 — Aug 11",
+            classes: [
+              { topic: "Final Assessment Match 1 — Classical Time Control", done: false, date: "2026-08-11" },
+              { topic: "Final Assessment Match 2 — Deep Post-Mortem Review & Graduation", done: false, date: "2026-08-12" }
+            ],
+            homework: { text: "Prepare for graduation — review all key concepts", done: false }
+          }
+        ]
+      }
+    ]
+  };
+  log('✓ Added 5-month curriculum plan (0 done, 40 pending — starts Mar 31)', true);
+
+  // Save
+  log('\n💾 Saving to JSONBin...', true);
+  var saveRes = await fetch('https://api.jsonbin.io/v3/b/' + binId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+    body: JSON.stringify(db)
+  });
+
+  if (saveRes.ok) {
+    log('\n🎉 ALL DONE! Dashboard data seeded for Aarvi.', true);
+    log('→ Visit: /dashboard/?t=aarvi-mn9s', true);
+  } else {
+    log('❌ Save failed: ' + saveRes.status + ' ' + (await saveRes.text()), false);
+  }
+}
+</script>
+</body></html>

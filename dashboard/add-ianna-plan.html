@@ -1,0 +1,272 @@
+<!doctype html>
+<html><head>
+<meta charset="UTF-8"><title>Add Ianna's Curriculum Plan</title>
+<style>body{font-family:monospace;background:#1a1209;color:#f5ead8;padding:40px;max-width:600px;margin:0 auto}
+button{padding:12px 24px;background:#c4862e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;margin-top:20px}
+button:hover{background:#e8a840}
+#log{margin-top:20px;padding:16px;background:#0f0a06;border-radius:8px;white-space:pre-wrap;font-size:0.85rem;line-height:1.6}
+.ok{color:#4aad7a}.err{color:#c44a2e}</style>
+</head><body>
+<h2>Add Ianna's 4-Month Curriculum</h2>
+<p>This will add Ianna's full development plan to her profile in JSONBin.<br>
+You must have previously logged into the <a href="../admin/attendance/" style="color:#c4862e">Admin Dashboard</a> so the API key is stored.</p>
+<button onclick="run()">Add Plan Now</button>
+<div id="log"></div>
+<script>
+var LOG = document.getElementById('log');
+function log(msg, ok) { LOG.innerHTML += '<span class="'+(ok?'ok':'err')+'">' + msg + '</span>\n'; }
+
+async function run() {
+  LOG.innerHTML = '';
+  var binId = localStorage.getItem('att_binId') || '69b859a2aa77b81da9ee0ccc';
+  var apiKey = localStorage.getItem('att_apiKey');
+  if (!apiKey) { log('❌ No API key found. Please log into the Admin Dashboard first.', false); return; }
+
+  log('📡 Fetching current data...', true);
+  var res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', { headers: { 'X-Master-Key': apiKey } });
+  if (!res.ok) { log('❌ Fetch failed: ' + res.status, false); return; }
+  var json = await res.json();
+  var db = json.record;
+
+  var idx = db.students.findIndex(function(s) { return s.token === 'ianna-73mh'; });
+  if (idx < 0) { log('❌ Ianna not found in database', false); return; }
+  log('✓ Found Ianna at index ' + idx, true);
+
+  db.students[idx].plan = {
+    title: "Ianna's Development Curriculum",
+    pace: "2 classes/week",
+    months: [
+      {
+        name: "The Absolute Basics",
+        goal: "Learning how to end a game and how to win unprotected pieces.",
+        weeks: [
+          {
+            label: "Week 1 — Mar 20",
+            classes: [
+              { topic: "Two Rook Mate (Ladder Mate) & Queen Mate", done: true, date: "2026-03-20" }
+            ],
+            homework: { text: "Mate in 1 assignment", done: true },
+            links: [
+              { text: "Piece Checkmates Practice", url: "https://lichess.org/practice/checkmates/piece-checkmates-i/BJy6fEDf/8K8FdT6P" },
+              { text: "Mate in 1 Study", url: "https://lichess.org/study/d7oOlE9f" }
+            ]
+          },
+          {
+            label: "Week 2 — Mar 25 & 27",
+            classes: [
+              { topic: "Back Rank Mates & Forks — Double attacks", done: true, date: "2026-03-25" },
+              { topic: "Pins — Absolute vs relative pin concept", done: true, date: "2026-03-27" }
+            ],
+            homework: { text: "Fork puzzles on Lichess", done: true },
+            links: [
+              { text: "Back Rank Mate", url: "https://lichess.org/training/backRankMate" },
+              { text: "Fork Training", url: "https://lichess.org/training/fork" },
+              { text: "Pin Training", url: "https://lichess.org/training/pin" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "Completing Foundational Tactics & Openings",
+        goal: "Finish the Big 6 tactics and learn how to start a game safely.",
+        weeks: [
+          {
+            label: "Week 3 — Apr 1",
+            classes: [
+              { topic: "Skewers — The reverse pin", done: false, date: "2026-04-01" },
+              { topic: "Discovered Attacks — Surprise checks", done: false, date: "2026-04-03" }
+            ],
+            homework: { text: "10 puzzles/day on Lichess + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Skewer Training", url: "https://lichess.org/training/skewer" },
+              { text: "Discovered Attack", url: "https://lichess.org/training/discoveredAttack" }
+            ]
+          },
+          {
+            label: "Week 4 — Apr 8",
+            classes: [
+              { topic: "Double Check — The most dangerous check in chess", done: false, date: "2026-04-08" },
+              { topic: "Deflection — Chasing the defender away", done: false, date: "2026-04-10" }
+            ],
+            homework: { text: "10 puzzles/day on Lichess + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Deflection Study", url: "https://lichess.org/study/82VqAaRr" }
+            ]
+          },
+          {
+            label: "Week 5 — Apr 15",
+            classes: [
+              { topic: "Decoy — Luring the King or Queen into a trap", done: false, date: "2026-04-15" },
+              { topic: "Month 1 Tactical Review Game — coach awards points for finding tactics", done: false, date: "2026-04-17" }
+            ],
+            homework: { text: "10 puzzles/day on Lichess + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Decoy Study", url: "https://lichess.org/study/WhRZMRFB" }
+            ]
+          },
+          {
+            label: "Week 6 — Apr 22",
+            classes: [
+              { topic: "The 3 Golden Opening Principles — Center control, develop pieces, castle early", done: false, date: "2026-04-22" },
+              { topic: "Introduction to the Italian Game (Giuoco Piano)", done: false, date: "2026-04-24" }
+            ],
+            homework: { text: "10 puzzles/day on Lichess + play 3 games using Italian Game setup", done: false },
+            links: [
+              { text: "Italian Game Study", url: "https://lichess.org/study/euFJZrrt" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "Mating Nets & The King's Vulnerability",
+        goal: "Introduce named mating patterns so she can finish the game.",
+        weeks: [
+          {
+            label: "Week 7 — Apr 29",
+            classes: [
+              { topic: "Single Rook Checkmate — The Box Method", done: false, date: "2026-04-29" },
+              { topic: "Single Rook Checkmate Practice — drill vs Stockfish Level 3", done: false, date: "2026-05-01" }
+            ],
+            homework: { text: "Practice Rook mate until under 2 minutes + 10 puzzles/day", done: false }
+          },
+          {
+            label: "Week 8 — May 6",
+            classes: [
+              { topic: "Arabian Mate — Rook + Knight cooperation", done: false, date: "2026-05-06" },
+              { topic: "Anastasia's Mate", done: false, date: "2026-05-08" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Arabian Mate", url: "https://lichess.org/training/arabianMate" },
+              { text: "Anastasia's Mate", url: "https://lichess.org/training/anastasiaMate" }
+            ]
+          },
+          {
+            label: "Week 9 — May 13",
+            classes: [
+              { topic: "Smothered Mate — The Knight's revenge", done: false, date: "2026-05-13" },
+              { topic: "Hook Mate", done: false, date: "2026-05-15" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Smothered Mate", url: "https://lichess.org/training/smotheredMate" },
+              { text: "Hook Mate", url: "https://lichess.org/training/hookMate" }
+            ]
+          },
+          {
+            label: "Week 10 — May 20",
+            classes: [
+              { topic: "The Square Rule for Pawns — Can the King catch the runaway pawn?", done: false, date: "2026-05-20" },
+              { topic: "Month 2 Assessment Game — 15+10, focus on achieving a named checkmate", done: false, date: "2026-05-22" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false }
+          }
+        ]
+      },
+      {
+        name: "Calculating One Step Further",
+        goal: "Moving from 1-move threats to 2-move forced sequences.",
+        weeks: [
+          {
+            label: "Week 11 — May 27",
+            classes: [
+              { topic: "Basic Prophylaxis — Ask 'What does my opponent want?' before every move", done: false, date: "2026-05-27" },
+              { topic: "Removing the Defender — Destroy the piece guarding the checkmate square", done: false, date: "2026-05-29" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false }
+          },
+          {
+            label: "Week 12 — Jun 3",
+            classes: [
+              { topic: "Checkmate in 2 (Part 1) — Finding forced mates", done: false, date: "2026-06-03" },
+              { topic: "Checkmate in 2 (Part 2) — Sequence order: check, forced reply, mate", done: false, date: "2026-06-05" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Mate in 2 Training", url: "https://lichess.org/training/mateIn2" }
+            ]
+          },
+          {
+            label: "Week 13 — Jun 10",
+            classes: [
+              { topic: "In-Between Moves (Zwischenzug) — The sneaky surprise", done: false, date: "2026-06-10" },
+              { topic: "X-Ray Attacks — Attacking through a piece", done: false, date: "2026-06-12" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Zwischenzug Study", url: "https://lichess.org/study/EVIKaunq" },
+              { text: "X-Ray Study", url: "https://lichess.org/study/QHSTmDdk" }
+            ]
+          },
+          {
+            label: "Week 14 — Jun 17",
+            classes: [
+              { topic: "Good Knights vs Bad Knights — Center vs rim", done: false, date: "2026-06-17" },
+              { topic: "Month 3 Assessment — 15-puzzle tactical sprint (forks, pins, mate-in-2)", done: false, date: "2026-06-19" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false }
+          }
+        ]
+      },
+      {
+        name: "Attacking the King",
+        goal: "Taking everything learned and pointing it at the enemy King.",
+        weeks: [
+          {
+            label: "Week 15 — Jun 24",
+            classes: [
+              { topic: "Setting up the Fried Liver Attack (White) — Kids love this trap", done: false, date: "2026-06-24" },
+              { topic: "Defending against the Fried Liver (Black) — Why we play h6", done: false, date: "2026-06-26" }
+            ],
+            homework: { text: "10 puzzles/day + play 3 games trying the Fried Liver", done: false }
+          },
+          {
+            label: "Week 16 — Jul 1",
+            classes: [
+              { topic: "Rooks on Open Files — Why pawns are in the way of rooks", done: false, date: "2026-07-01" },
+              { topic: "The 7th Rank Invasion — Pigs on the 7th rank", done: false, date: "2026-07-03" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false }
+          },
+          {
+            label: "Week 17 — Jul 8",
+            classes: [
+              { topic: "Destroying the Castled King — Sacrificing to open the pawn shield", done: false, date: "2026-07-08" },
+              { topic: "The King Chase — Forcing the King into the center", done: false, date: "2026-07-10" }
+            ],
+            homework: { text: "10 puzzles/day + 2 rapid games (10+5)", done: false },
+            links: [
+              { text: "Castle Destruction", url: "https://lichess.org/study/tRFm52XF" },
+              { text: "King Chase", url: "https://lichess.org/study/NtQah1Am" }
+            ]
+          },
+          {
+            label: "Week 18 — Jul 15",
+            classes: [
+              { topic: "Grandmaster Game Review — Paul Morphy's Opera House Game", done: false, date: "2026-07-15" },
+              { topic: "B1 Final Graduation Game — 15+10 vs coach, demonstrate opening + tactic + forced mate", done: false, date: "2026-07-17" }
+            ],
+            homework: { text: "Prepare for graduation — review all key concepts from 4 months", done: false }
+          }
+        ]
+      }
+    ]
+  };
+  log('✓ Built full curriculum: 5 months, 18 weeks, 35 classes (3 completed) — all dates filled (Wed & Fri)', true);
+
+  log('\n💾 Saving to JSONBin...', true);
+  var saveRes = await fetch('https://api.jsonbin.io/v3/b/' + binId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+    body: JSON.stringify(db)
+  });
+
+  if (saveRes.ok) {
+    log('\n🎉 ALL DONE! Curriculum added for Ianna.', true);
+    log('→ Parent dashboard: /attendance/?t=ianna-73mh', true);
+  } else {
+    log('❌ Save failed: ' + saveRes.status + ' ' + (await saveRes.text()), false);
+  }
+}
+</script>
+</body></html>
