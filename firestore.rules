@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Users collection ──
+    // Each user can read their own doc; only coach can write
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if isCoach();
+    }
+
+    // ── Students collection ──
+    match /students/{token} {
+      // Coach: full read/write
+      allow read, write: if isCoach();
+
+      // Parent: read-only for linked students
+      allow read: if isLinkedParent(token);
+
+      // Parent: can update ONLY puzzleSolves field (for puzzle sync)
+      allow update: if isLinkedParent(token) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['puzzleSolves']);
+    }
+
+    // ── Attendance subcollection ──
+    match /students/{token}/attendance/{date} {
+      allow read, write: if isCoach();
+      allow read: if isLinkedParent(token);
+    }
+
+    // ── Helper functions ──
+    function isCoach() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "coach";
+    }
+
+    function isLinkedParent(token) {
+      return request.auth != null &&
+        token in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentTokens;
+    }
+  }
+}

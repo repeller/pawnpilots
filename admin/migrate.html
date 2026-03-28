@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Migration — PawnPilots</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+  <style>
+    :root {
+      --bg: #fffbf5; --paper: #fff8ef; --ink: #1a1209; --muted: #7a6a5a;
+      --warm: #f5ead8; --walnut: #5a3925; --walnut-deep: #2e1b12;
+      --felt: #2f7a54; --gold: #c4862e; --red: #c44a2e;
+      --line: rgba(90,57,37,0.1); --radius: 12px; --shadow: 0 4px 15px rgba(50,28,14,0.06);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+    .header {
+      background: var(--walnut-deep); padding: 0 24px; display: flex; align-items: center;
+      justify-content: space-between; height: 60px; color: #fff; border-bottom: 2px solid var(--gold);
+    }
+    .brand { font-family: 'Baloo 2'; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .brand img { width: 24px; border-radius: 6px; }
+    .container { max-width: 800px; margin: 32px auto; padding: 0 24px; }
+    .card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 24px; box-shadow: var(--shadow); margin-bottom: 24px;
+    }
+    .card h2 { font-family: 'Baloo 2'; font-size: 1.4rem; color: var(--walnut-deep); margin-bottom: 8px; }
+    .card p { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--walnut); margin-bottom: 6px; }
+    .form-group input {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+      font-family: 'Outfit'; font-size: 0.95rem; background: #fff; outline: none;
+    }
+    .btn {
+      display: inline-block; padding: 12px 24px; border-radius: 8px; font-family: 'Outfit';
+      font-weight: 600; font-size: 0.95rem; cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--gold); color: #fff; }
+    .btn-primary:hover { background: #b37320; }
+    .btn-success { background: var(--felt); color: #fff; }
+    .btn-success:hover { background: #256b46; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .log {
+      background: #1a1209; color: #e0d8c8; font-family: 'Courier New', monospace; font-size: 0.82rem;
+      padding: 16px; border-radius: 8px; max-height: 400px; overflow-y: auto; white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    .log .success { color: #4aad7a; }
+    .log .error { color: #e74c3c; }
+    .log .info { color: #c4862e; }
+    .log .dim { opacity: 0.5; }
+    .warning {
+      background: rgba(196,134,46,0.1); border: 1px solid rgba(196,134,46,0.2);
+      padding: 12px 16px; border-radius: 8px; color: var(--gold); font-size: 0.88rem;
+      font-weight: 600; margin-bottom: 16px;
+    }
+    .status-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem;
+      font-weight: 700; margin-left: 8px;
+    }
+    .status-badge.ready { background: rgba(47,122,84,0.1); color: var(--felt); }
+    .status-badge.pending { background: rgba(196,134,46,0.1); color: var(--gold); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <img src="../favicon-192.png" alt="PawnPilots" />
+      <span>Data Migration Tool</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Auth Check -->
+    <div id="authCheck" class="card">
+      <h2>🔒 Authentication Required</h2>
+      <p>You must be logged in as the coach to run the migration. <a href="../login/" style="color:var(--gold);">Go to login</a></p>
+    </div>
+
+    <!-- Migration Panel -->
+    <div id="migratePanel" style="display:none;">
+
+      <div class="card">
+        <h2>JSONBin → Firestore Migration</h2>
+        <p>This tool reads all data from your JSONBin database and writes it to Firestore. It's safe to run multiple times — existing data will be overwritten.</p>
+
+        <div class="warning">
+          ⚠️ This is a one-time operation. Make sure your Firebase project is set up and the config in <code>firebase-config.js</code> has your real project values before running.
+        </div>
+
+        <div class="form-group">
+          <label>JSONBin ID</label>
+          <input type="text" id="binId" value="69b859a2aa77b81da9ee0ccc" />
+        </div>
+        <div class="form-group">
+          <label>JSONBin Master API Key</label>
+          <input type="password" id="apiKey" placeholder="Enter your JSONBin API Key" />
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="fetchBtn" onclick="fetchJSONBin()">1. Fetch JSONBin Data</button>
+          <button class="btn btn-success" id="migrateBtn" onclick="runMigration()" disabled>2. Migrate to Firestore</button>
+          <button class="btn btn-primary" id="verifyBtn" onclick="verifyMigration()" disabled>3. Verify Migration</button>
+        </div>
+      </div>
+
+      <!-- Data Preview -->
+      <div class="card" id="previewCard" style="display:none;">
+        <h2>Data Preview</h2>
+        <div id="previewContent"></div>
+      </div>
+
+      <!-- Log -->
+      <div class="card">
+        <h2>Migration Log</h2>
+        <div class="log" id="migrationLog">Waiting to start...</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      var jsonData = null;
+      var coachUid = null;
+      var logEl = document.getElementById('migrationLog');
+
+      // Student → parent username mapping (hardcoded)
+      var PARENT_ACCOUNTS = {
+        'aarvi-mn9s': { username: 'aarvi', displayName: "Aarvi's Parent" },
+        'ianna-73mh': { username: 'ianna', displayName: "Ianna's Parent" },
+        'abhi-zlgw': { username: 'abhi', displayName: "Abhi's Parent" },
+        'bhavik-d4rm': { username: 'bhavik', displayName: "Bhavik's Parent" }
+      };
+
+      // Default password for all parent accounts (coach should change these)
+      var DEFAULT_PASSWORD = 'PawnPilots2026!';
+
+      // Auth check
+      ppAuth.requireAuth({ roles: ['coach'] }).then(function(result) {
+        coachUid = result.user.uid;
+        document.getElementById('authCheck').style.display = 'none';
+        document.getElementById('migratePanel').style.display = 'block';
+
+        // Try to load API key from localStorage
+        var savedKey = localStorage.getItem('att_apiKey');
+        if (savedKey) document.getElementById('apiKey').value = savedKey;
+
+        log('Coach authenticated: ' + result.user.email, 'success');
+        log('Ready to migrate.', 'dim');
+      }).catch(function() {
+        // Auth guard handles redirect
+      });
+
+      function log(msg, cls) {
+        var line = document.createElement('div');
+        if (cls) line.className = cls;
+        line.textContent = msg;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      // ── Step 1: Fetch JSONBin ──
+      window.fetchJSONBin = function() {
+        var binId = document.getElementById('binId').value.trim();
+        var apiKey = document.getElementById('apiKey').value.trim();
+        if (!binId || !apiKey) { alert('Enter both Bin ID and API Key'); return; }
+
+        var btn = document.getElementById('fetchBtn');
+        btn.disabled = true; btn.textContent = 'Fetching...';
+        log('');
+        log('── Fetching JSONBin data...', 'info');
+
+        fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
+          headers: { 'X-Master-Key': apiKey }
+        })
+        .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function(j) {
+          jsonData = j.record || j;
+          log('✓ JSONBin data loaded successfully', 'success');
+
+          // Show preview
+          var students = jsonData.students || [];
+          var attKeys = Object.keys(jsonData.attendance || {});
+          log('  Students found: ' + students.length, 'dim');
+          students.forEach(function(s) {
+            var attCount = jsonData.attendance && jsonData.attendance[s.token] ? Object.keys(jsonData.attendance[s.token]).length : 0;
+            var recapCount = (s.recaps || []).length;
+            var puzzleCount = (s.puzzles || []).length;
+            var solveCount = (s.puzzleSolves || []).length;
+            log('  • ' + s.name + ' (' + s.token + ') — ' + attCount + ' att, ' + recapCount + ' recaps, ' + puzzleCount + ' puzzles, ' + solveCount + ' solves');
+          });
+
+          // Preview card
+          var preview = document.getElementById('previewContent');
+          var h = '<table style="width:100%;font-size:0.85rem;border-collapse:collapse;">';
+          h += '<tr style="border-bottom:1px solid var(--line);"><th style="text-align:left;padding:8px;">Student</th><th>Token</th><th>Attendance</th><th>Recaps</th><th>Puzzles</th></tr>';
+          students.forEach(function(s) {
+            var ac = jsonData.attendance && jsonData.attendance[s.token] ? Object.keys(jsonData.attendance[s.token]).length : 0;
+            h += '<tr style="border-bottom:1px solid var(--line);">';
+            h += '<td style="padding:8px;font-weight:600;">' + s.name + '</td>';
+            h += '<td style="padding:8px;font-family:monospace;font-size:0.8rem;">' + s.token + '</td>';
+            h += '<td style="padding:8px;text-align:center;">' + ac + '</td>';
+            h += '<td style="padding:8px;text-align:center;">' + (s.recaps || []).length + '</td>';
+            h += '<td style="padding:8px;text-align:center;">' + (s.puzzles || []).length + '</td>';
+            h += '</tr>';
+          });
+          h += '</table>';
+          preview.innerHTML = h;
+          document.getElementById('previewCard').style.display = 'block';
+
+          document.getElementById('migrateBtn').disabled = false;
+          btn.textContent = '✓ Data Loaded';
+        })
+        .catch(function(err) {
+          log('✗ Failed to fetch: ' + err.message, 'error');
+          btn.disabled = false; btn.textContent = '1. Fetch JSONBin Data';
+        });
+      };
+
+      // ── Step 2: Run Migration ──
+      window.runMigration = async function() {
+        if (!jsonData) { alert('Fetch JSONBin data first'); return; }
+        if (!confirm('This will write all data to Firestore. Continue?')) return;
+
+        var btn = document.getElementById('migrateBtn');
+        btn.disabled = true; btn.textContent = 'Migrating...';
+        log('');
+        log('══ Starting Migration ══', 'info');
+
+        var students = jsonData.students || [];
+        var attendance = jsonData.attendance || {};
+        var successCount = 0, errorCount = 0;
+
+        // ── Migrate Students ──
+        for (var i = 0; i < students.length; i++) {
+          var s = students[i];
+          try {
+            var studentDoc = {
+              name: s.name || '',
+              token: s.token || '',
+              days: s.days || [],
+              time: s.time || '',
+              timezone: s.timezone || '',
+              lichessUsername: s.lichessUsername || '',
+              chesscomUsername: s.chesscomUsername || '',
+              stats: s.stats || {},
+              recaps: s.recaps || [],
+              puzzles: s.puzzles || [],
+              puzzleSolves: s.puzzleSolves || [],
+              puzzleLog: s.puzzleLog || [],
+              badges: s.badges || [],
+              plan: s.plan || null,
+              h2h: s.h2h || null
+            };
+
+            await ppDB.collection('students').doc(s.token).set(studentDoc);
+            log('✓ Student: ' + s.name + ' (' + s.token + ')', 'success');
+            successCount++;
+
+            // ── Migrate Attendance subcollection ──
+            var stuAtt = attendance[s.token] || {};
+            var attDates = Object.keys(stuAtt);
+            if (attDates.length > 0) {
+              // Use batched writes (max 500 per batch)
+              var batch = ppDB.batch();
+              var batchCount = 0;
+              for (var j = 0; j < attDates.length; j++) {
+                var dateStr = attDates[j];
+                var attData = stuAtt[dateStr];
+                if (typeof attData === 'string') attData = { status: attData };
+                var ref = ppDB.collection('students').doc(s.token).collection('attendance').doc(dateStr);
+                batch.set(ref, attData);
+                batchCount++;
+
+                if (batchCount >= 450) {
+                  await batch.commit();
+                  batch = ppDB.batch();
+                  batchCount = 0;
+                }
+              }
+              if (batchCount > 0) await batch.commit();
+              log('  ↳ ' + attDates.length + ' attendance records', 'dim');
+            }
+
+          } catch (err) {
+            log('✗ Failed: ' + s.name + ' — ' + err.message, 'error');
+            errorCount++;
+          }
+        }
+
+        // ── Create Coach User Doc ──
+        try {
+          var allTokens = students.map(function(s) { return s.token; });
+          await ppDB.collection('users').doc(coachUid).set({
+            email: 'coach@pawnpilots.com',
+            role: 'coach',
+            displayName: 'Coach Himanshu',
+            studentTokens: allTokens,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          log('✓ Coach user doc created', 'success');
+          successCount++;
+        } catch (err) {
+          log('✗ Failed to create coach user doc: ' + err.message, 'error');
+          errorCount++;
+        }
+
+        // ── Create Parent Accounts (NOTE: requires Firebase Admin SDK or manual setup) ──
+        log('');
+        log('── Parent Account Setup ──', 'info');
+        log('Parent accounts cannot be auto-created from the browser.', 'info');
+        log('You need to create these accounts in Firebase Console → Authentication → Add User:', 'info');
+        log('');
+
+        Object.keys(PARENT_ACCOUNTS).forEach(function(token) {
+          var pa = PARENT_ACCOUNTS[token];
+          var email = pa.username + ppAuth.EMAIL_DOMAIN;
+          log('  Email: ' + email, 'info');
+          log('  Password: ' + DEFAULT_PASSWORD);
+          log('  Linked to: ' + token);
+          log('');
+        });
+
+        // Create parent user docs in Firestore (these can be created from browser)
+        for (var token in PARENT_ACCOUNTS) {
+          if (!PARENT_ACCOUNTS.hasOwnProperty(token)) continue;
+          var pa = PARENT_ACCOUNTS[token];
+          var email = pa.username + ppAuth.EMAIL_DOMAIN;
+
+          try {
+            // We can't create Firebase Auth accounts from the browser without Admin SDK
+            // But we CAN create the /users/ doc. The Auth account must be created manually.
+            // We'll use a placeholder UID — it will be updated when the actual Auth user is created.
+            // For now, create the doc keyed by username so we can update later.
+            var placeholderUid = 'pending_' + pa.username;
+            await ppDB.collection('users').doc(placeholderUid).set({
+              email: email,
+              role: 'parent',
+              displayName: pa.displayName,
+              studentTokens: [token],
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              _pendingAuth: true  // Flag to indicate Auth account needs to be created
+            });
+            log('✓ Parent user doc created: ' + pa.username + ' (pending Auth account)', 'success');
+            successCount++;
+          } catch (err) {
+            log('✗ Failed parent doc: ' + pa.username + ' — ' + err.message, 'error');
+            errorCount++;
+          }
+        }
+
+        log('');
+        log('══ Migration Complete ══', 'info');
+        log('Success: ' + successCount + ' | Errors: ' + errorCount, successCount > 0 ? 'success' : 'error');
+        log('');
+        log('NEXT STEPS:', 'info');
+        log('1. Go to Firebase Console → Authentication → Add User', 'info');
+        log('2. Create each parent account with the emails/passwords shown above', 'info');
+        log('3. Copy each user\'s UID and update the /users/ doc to use the real UID', 'info');
+        log('   (delete the pending_ doc and create a new one with the real UID)', 'info');
+        log('4. Click "3. Verify Migration" below to confirm data is correct', 'info');
+
+        btn.textContent = '✓ Migration Done';
+        document.getElementById('verifyBtn').disabled = false;
+      };
+
+      // ── Step 3: Verify ──
+      window.verifyMigration = async function() {
+        var btn = document.getElementById('verifyBtn');
+        btn.disabled = true; btn.textContent = 'Verifying...';
+        log('');
+        log('══ Verification ══', 'info');
+
+        try {
+          var snap = await ppDB.collection('students').get();
+          log('Students in Firestore: ' + snap.size, 'success');
+
+          var promises = [];
+          snap.forEach(function(doc) {
+            var d = doc.data();
+            log('  • ' + d.name + ' (' + doc.id + ')', 'success');
+            log('    Recaps: ' + (d.recaps || []).length + ' | Puzzles: ' + (d.puzzles || []).length + ' | Solves: ' + (d.puzzleSolves || []).length, 'dim');
+
+            var p = ppDB.collection('students').doc(doc.id).collection('attendance').get().then(function(attSnap) {
+              log('    Attendance records: ' + attSnap.size, 'dim');
+            });
+            promises.push(p);
+          });
+
+          await Promise.all(promises);
+
+          // Check users collection
+          var usersSnap = await ppDB.collection('users').get();
+          log('');
+          log('Users in Firestore: ' + usersSnap.size, 'success');
+          usersSnap.forEach(function(doc) {
+            var d = doc.data();
+            log('  • ' + doc.id + ' — ' + d.role + ' (' + d.email + ')', d._pendingAuth ? 'info' : 'success');
+            if (d._pendingAuth) log('    ⚠ Auth account needs to be created in Firebase Console', 'info');
+          });
+
+          log('');
+          log('✓ Verification complete', 'success');
+        } catch (err) {
+          log('✗ Verification failed: ' + err.message, 'error');
+        }
+
+        btn.disabled = false; btn.textContent = '3. Verify Migration';
+      };
+
+    })();
+  </script>
+
+</body>
+</html>

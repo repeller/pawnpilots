@@ -9,6 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="../firebase-config.js"></script>
   <style>
     :root {
       --bg: #fffbf5;
@@ -700,19 +704,17 @@
   <script>
   (function() {
     // ── Config ──
-    // Replace this with your actual JSONBin ID from the Admin Setup
-    var JSONBIN_ID = "69b859a2aa77b81da9ee0ccc"; 
-    var API_URL = "https://api.jsonbin.io/v3/b/" + JSONBIN_ID + "/latest";
+    /* JSONBIN_DEPRECATED: var JSONBIN_ID = "69b859a2aa77b81da9ee0ccc"; */
+    /* JSONBIN_DEPRECATED: var API_URL = "https://api.jsonbin.io/v3/b/" + JSONBIN_ID + "/latest"; */
 
     // Handle normal ?t=token or encoded ?t%3Dtoken
     var qs = window.location.search;
     var token = null;
     
-    // First try standard URLSearchParams
     var params = new URLSearchParams(qs);
     token = params.get("t");
     
-    // Fallback for aggressively encoded URLs (like ?t%3Dleo-x7k2)
+    // Fallback for aggressively encoded URLs
     if (!token && qs) {
       var decoded = decodeURIComponent(qs);
       var match = decoded.match(/[?&]t=([^&]+)/i);
@@ -728,48 +730,40 @@
       return;
     }
 
-    if (JSONBIN_ID === "YOUR_BIN_ID_HERE") {
-      showError("Not linked", "The attendance tracker is active but hasn't been linked to the database yet. The admin needs to set up the JSONBin ID in the code.");
-      return;
-    }
+    // Firebase Auth Guard + Firestore Data Load
+    ppAuth.requireAuth({ token: token }).then(function() {
+      // Load student doc from Firestore
+      return ppDB.collection('students').doc(token).get();
+    }).then(function(doc) {
+      if (!doc || !doc.exists) {
+        showError("Student not found", "This attendance link doesn't match any student.");
+        return;
+      }
+      var student = doc.data();
 
-    // Fetch JSON directly from JSONBin.io
-    fetch(API_URL)
-      .then(function(res) {
-        if (!res.ok) throw { userError: true, title: "Data unavailable", msg: "Could not load the attendance data. Please try again later." };
-        return res.json();
-      })
-      .then(function(json) {
-        var data = processJSON(json, token);
+      // Load attendance subcollection
+      return ppDB.collection('students').doc(token).collection('attendance').get().then(function(attSnap) {
+        var studentData = {};
+        attSnap.forEach(function(adoc) { studentData[adoc.id] = adoc.data(); });
+        
+        var data = processStudentData(student, studentData, token);
         if (!data) {
-          showError("Student not found", "This attendance link doesn't match any student or they have no sessions recorded.");
+          showError("No data", "No attendance records found for this student.");
           return;
         }
         renderDashboard(data);
-      })
-      .catch(function(err) {
-        if (err.userError) {
-          showError(err.title, err.msg);
-        } else {
-          console.error(err);
-          showError("Connection error", "Could not reach the database. Please check your internet connection and try again.");
-        }
       });
+    }).catch(function(err) {
+      if (err === 'not_authenticated' || err === 'no_user_doc' || err === 'no_token_access') return;
+      console.error(err);
+      showError("Connection error", "Could not reach the database. Please check your internet connection and try again.");
+    });
 
-    // ── JSON parsing (runs in browser) ──
-
-    function processJSON(response, targetToken) {
-      var db = response.record || response; 
-      if (!db || !db.students) return null;
-      
-      var targetTokenLower = targetToken.toLowerCase();
-      var student = db.students.find(function(s) { return s.token.toLowerCase() === targetTokenLower; });
-      if (!student) return null;
-
-      var studentData = db.attendance[student.token] || {};
+    // ── Process student data (replaces old processJSON) ──
+    function processStudentData(student, studentData, targetToken) {
       var records = [];
 
-      // === Schedule-based: generate session dates from student's days array ===
+      // Schedule-based: generate session dates from student's days array
       if (student.days && student.days.length > 0) {
         var today = new Date();
         var startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
@@ -798,23 +792,7 @@
           }
         }
       }
-      // === Fallback: old sessions-based format ===
-      else if (db.sessions && db.sessions.length > 0) {
-        (db.sessions || []).forEach(function(sess) {
-          var valObj = studentData[sess.id] || studentData[sess.date];
-          if (!valObj) return;
-          var status = typeof valObj === 'string' ? valObj : valObj.status;
-          if (!status) return;
-          records.push({
-            date: sess.date,
-            status: status,
-            topic: valObj.topic || sess.topic || "",
-            notes: valObj.notes || "",
-            hw: valObj.hw || ""
-          });
-        });
-      }
-      // === Direct date keys (no schedule, no sessions) ===
+      // Direct date keys fallback
       else {
         Object.keys(studentData).forEach(function(dateKey) {
           var valObj = studentData[dateKey];
@@ -854,6 +832,9 @@
         stats: { total: total, present: present, absent: absent, cancelled: cancelled, rescheduled: rescheduled, rate: rate }
       };
     }
+    // ── JSON parsing (runs in browser) ──
+
+    /* JSONBIN_DEPRECATED: processJSON function replaced by processStudentData above */
 
     // ── UI helpers ──
 

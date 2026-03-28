@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="robots" content="noindex, nofollow"/>
 <title>Flight Deck — Pawn Pilots</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="../firebase-config.js"></script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -408,14 +412,12 @@ tailwind.config={
 <script>
 (function(){
 'use strict';
-var BIN='69b859a2aa77b81da9ee0ccc';
-var SYNC_KEY=localStorage.getItem('att_apiKey')||'';
+/* JSONBIN_DEPRECATED: var BIN='69b859a2aa77b81da9ee0ccc'; */
+/* JSONBIN_DEPRECATED: var SYNC_KEY=localStorage.getItem('att_apiKey')||''; */
 var qs=new URLSearchParams(location.search);
 var token=qs.get('t');
 if(!token){showError('No link','This page needs a valid student link.');return}
-// Accept k= param to store API key (override)
-var kParam=qs.get('k');
-if(kParam){SYNC_KEY=kParam;localStorage.setItem('att_apiKey',kParam);qs.delete('k');history.replaceState(null,'',location.pathname+'?'+qs.toString())}
+/* JSONBIN_DEPRECATED: k= param handling removed — Firebase Auth replaces API key sharing */
 
 var student=null, statsLoaded=false, currentTheme=null;
 
@@ -437,35 +439,35 @@ var ALL_BADGES=[
   {id:'sessions_40',name:'Level Complete',icon:'🎓',desc:'Completed a full level'}
 ];
 
-fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest')
-.then(function(r){if(!r.ok)throw{ue:1,t:'Data unavailable',m:'Could not load.'};return r.json()})
-.then(function(j){
-  var db=j.record||j;
-  if(!db||!db.students){showError('Empty','No data.');return}
-  var s=db.students.find(function(x){return x.token.toLowerCase()===token.toLowerCase()});
-  if(!s){showError('Not found',"This link doesn't match any student.");return}
-  student={name:s.name,token:s.token,recaps:s.recaps||[],puzzles:s.puzzles||[],puzzleLog:s.puzzleLog||[],stats:s.stats||{},badges:s.badges||[],plan:s.plan||null,lichessUsername:s.lichessUsername||'',chesscomUsername:s.chesscomUsername||'',h2h:s.h2h||null,attendance:db.attendance?(db.attendance[s.token]||{}):{}};
-  // Merge solves: cloud (JSONBin) + local (localStorage), deduplicated by puzzle ID
-  var cloudSolves=s.puzzleSolves||[];
-  var localSolves=JSON.parse(localStorage.getItem('pp_puzzleSolves_'+token)||'[]');
-  var solveMap={};
-  cloudSolves.forEach(function(sv){if(sv.id)solveMap[sv.id]=sv});
-  localSolves.forEach(function(sv){if(sv.id)solveMap[sv.id]=sv});
-  var mergedSolves=Object.keys(solveMap).map(function(k){return solveMap[k]});
-  localStorage.setItem('pp_puzzleSolves_'+token,JSON.stringify(mergedSolves));
-  var solvedIds={};mergedSolves.forEach(function(sv){solvedIds[sv.id]=1});
-  // Merge puzzle pool — add pool puzzles not already in student.puzzles
-  var existingIds={};student.puzzles.forEach(function(p){existingIds[p.id]=1});
-  PUZZLE_POOL.forEach(function(pp){
-    if(!existingIds[pp.id]){student.puzzles.push({id:pp.id,rating:pp.rating,theme:pp.theme,solved:!!solvedIds[pp.id],fen:'',moves:''})}
+// ── Firebase Auth Guard + Firestore Data Load ──
+ppAuth.requireAuth({ token: token }).then(function() {
+  // Load student data from Firestore
+  return ppDB.collection('students').doc(token).get();
+}).then(function(doc) {
+  if(!doc || !doc.exists){showError('Not found',"This link doesn't match any student.");return}
+  var s=doc.data();
+  // Load attendance from subcollection
+  return ppDB.collection('students').doc(token).collection('attendance').get().then(function(snap) {
+    var attendance={};
+    snap.forEach(function(adoc){attendance[adoc.id]=adoc.data()});
+    student={name:s.name||'',token:s.token||token,recaps:s.recaps||[],puzzles:s.puzzles||[],puzzleLog:s.puzzleLog||[],stats:s.stats||{},badges:s.badges||[],plan:s.plan||null,lichessUsername:s.lichessUsername||'',chesscomUsername:s.chesscomUsername||'',h2h:s.h2h||null,attendance:attendance};
+    // Puzzle solves from Firestore (single source of truth)
+    var cloudSolves=s.puzzleSolves||[];
+    var solvedIds={};cloudSolves.forEach(function(sv){solvedIds[sv.id]=1});
+    // Also cache to localStorage for offline reference
+    localStorage.setItem('pp_puzzleSolves_'+token,JSON.stringify(cloudSolves));
+    // Merge puzzle pool — add pool puzzles not already in student.puzzles
+    var existingIds={};student.puzzles.forEach(function(p){existingIds[p.id]=1});
+    PUZZLE_POOL.forEach(function(pp){
+      if(!existingIds[pp.id]){student.puzzles.push({id:pp.id,rating:pp.rating,theme:pp.theme,solved:!!solvedIds[pp.id],fen:'',moves:''})}
+    });
+    // Apply solved state to ALL puzzles
+    student.puzzles.forEach(function(p){if(solvedIds[p.id])p.solved=true});
+    render();
   });
-  // Apply merged solved state to ALL puzzles
-  student.puzzles.forEach(function(p){if(solvedIds[p.id])p.solved=true});
-  // If we have new local solves that cloud doesn't have, sync them up
-  if(SYNC_KEY&&localSolves.length>cloudSolves.length){syncAllToCloud(mergedSolves)}
-  render();
 }).catch(function(e){
-  if(e.ue)showError(e.t,e.m);else{console.error(e);showError('Connection error','Could not reach database.')}
+  if(e==='not_authenticated'||e==='no_user_doc'||e==='no_token_access')return; // redirect already handled
+  console.error(e);showError('Connection error','Could not reach database.');
 });
 
 function showError(t,m){
@@ -811,36 +813,14 @@ function puzzleSolved(){
   }
 }
 
-// ── Cloud Sync — write puzzle solves to JSONBin for cross-device persistence ──
+// ── Cloud Sync — write puzzle solves to Firestore ──
 function syncSolveToCloud(solveEntry){
-  if(!SYNC_KEY)return;
-  fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest',{headers:{'X-Master-Key':SYNC_KEY}})
-  .then(function(r){if(!r.ok)throw r;return r.json()})
-  .then(function(j){
-    var db=j.record||j;
-    var idx=db.students.findIndex(function(x){return x.token.toLowerCase()===token.toLowerCase()});
-    if(idx<0)return;
-    if(!db.students[idx].puzzleSolves)db.students[idx].puzzleSolves=[];
-    var exists=db.students[idx].puzzleSolves.some(function(sv){return sv.id===solveEntry.id});
-    if(!exists)db.students[idx].puzzleSolves.push(solveEntry);
-    if(db.students[idx].puzzles){db.students[idx].puzzles.forEach(function(p){if(p.id===solveEntry.id)p.solved=true})}
-    return fetch('https://api.jsonbin.io/v3/b/'+BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':SYNC_KEY},body:JSON.stringify(db)});
+  var ref=ppDB.collection('students').doc(token);
+  ref.update({
+    puzzleSolves: firebase.firestore.FieldValue.arrayUnion(solveEntry)
   }).catch(function(e){console.warn('Cloud sync failed:',e)});
 }
-function syncAllToCloud(mergedSolves){
-  if(!SYNC_KEY)return;
-  fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest',{headers:{'X-Master-Key':SYNC_KEY}})
-  .then(function(r){if(!r.ok)throw r;return r.json()})
-  .then(function(j){
-    var db=j.record||j;
-    var idx=db.students.findIndex(function(x){return x.token.toLowerCase()===token.toLowerCase()});
-    if(idx<0)return;
-    db.students[idx].puzzleSolves=mergedSolves;
-    var solvedIds={};mergedSolves.forEach(function(sv){solvedIds[sv.id]=1});
-    if(db.students[idx].puzzles){db.students[idx].puzzles.forEach(function(p){if(solvedIds[p.id])p.solved=true})}
-    return fetch('https://api.jsonbin.io/v3/b/'+BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':SYNC_KEY},body:JSON.stringify(db)});
-  }).catch(function(e){console.warn('Cloud sync-all failed:',e)});
-}
+/* JSONBIN_DEPRECATED: syncAllToCloud removed — Firestore arrayUnion handles deduplication */
 
 // ── Puzzle Setup (fetch from Lichess API) ──
 function fetchPuzzleData(puzzleId){

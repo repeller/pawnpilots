@@ -9,6 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="../../favicon-32.png" sizes="32x32" type="image/png" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="../../firebase-config.js"></script>
   <style>
     :root {
       --bg: #fffbf5;
@@ -283,34 +287,19 @@
       <span>Admin Attendance</span>
     </div>
     <div class="header-actions" id="headerActions" style="display:none;">
-      <button onclick="logout()">Settings / Logout</button>
+      <button onclick="ppAuth.signOut()">Logout</button>
     </div>
   </div>
 
   <div class="container">
     
-    <!-- SETUP SCREEN -->
+    <!-- SETUP SCREEN (DEPRECATED — Firebase Auth replaces this) -->
+    <!--
     <div id="setupScreen" class="card">
       <h2 class="card-title">Setup Database</h2>
-      <div class="setup-steps">
-        <p>Because the site is securely hosted on GitHub Pages, we use a free JSON bin to power the tracker.</p>
-        <ol>
-          <li>Go to <a href="https://jsonbin.io/" target="_blank" style="color:var(--gold);">JSONBin.io</a> and create a free account.</li>
-          <li>Click <strong>+ Create New</strong> to make a new empty Bin. Paste <code>{}</code> inside it and hit <strong>Save</strong>.</li>
-          <li>Click the <strong>Settings (gear)</strong> icon on that bin and switch it to <strong>Public</strong>.</li>
-          <li>Copy the <strong>Bin ID</strong> (from the URL or settings) and your <strong>Master API Key</strong> (from the API Keys section).</li>
-        </ol>
-      </div>
-      <div class="form-group">
-        <label>JSONBin ID</label>
-        <input type="text" id="setupBinId" placeholder="e.g. 64a...f92" />
-      </div>
-      <div class="form-group">
-        <label>Master API Key</label>
-        <input type="password" id="setupApiKey" placeholder="e.g. $2a$10$..." />
-      </div>
-      <button class="btn btn-primary" style="width:100%" onclick="saveSetup()">Connect Database</button>
+      <p>This screen has been replaced by Firebase Auth. Please use the login page.</p>
     </div>
+    -->
 
     <!-- DASHBOARD SCREEN -->
     <div id="dashboardScreen">
@@ -318,6 +307,7 @@
       <div class="top-bar">
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary" onclick="showAddStudentModal()">+ Add Student</button>
+          <button class="btn btn-secondary" onclick="showAddRecapModal()">+ Add Recap</button>
           <button class="btn btn-success" onclick="saveData()">💾 Save to Database</button>
         </div>
         <div class="month-nav">
@@ -368,6 +358,19 @@
           <label>Student's Timezone</label>
           <select id="modalTimezone"></select>
         </div>
+      </div>
+      <div class="form-group">
+        <label>Lichess Username</label>
+        <input type="text" id="modalLichess" placeholder="e.g. Aarvi-CT" />
+      </div>
+      <div class="form-group">
+        <label>Chess.com Username</label>
+        <input type="text" id="modalChesscom" placeholder="e.g. I_Bang_the_Drum" />
+      </div>
+      <div class="form-group">
+        <label>Parent Username (for login)</label>
+        <input type="text" id="modalParentUsername" placeholder="e.g. aarvi (auto-creates login)" />
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Creates a login at username@pawnpilots.com. Leave blank to skip.</div>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
@@ -457,6 +460,43 @@
     .btn-xs { font-size:0.72rem; padding:3px 8px; }
   </style>
 
+  <!-- ADD RECAP MODAL -->
+  <div class="modal-overlay" id="recapModal">
+    <div class="modal">
+      <h2 style="font-family:'Baloo 2';font-size:1.3rem;color:var(--walnut-deep);margin-bottom:20px;">Add Session Recap</h2>
+      <div class="form-group">
+        <label>Student</label>
+        <select id="recapStudent"></select>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="recapDate" />
+      </div>
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="recapTitle" placeholder="e.g. Tactical Patterns" />
+      </div>
+      <div class="form-group">
+        <label>Mood</label>
+        <select id="recapMood">
+          <option value="great">🔥 Great</option>
+          <option value="good">👍 Good</option>
+          <option value="ok">😐 OK</option>
+          <option value="challenging">💪 Challenging</option>
+          <option value="tough">😤 Tough</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Bullet Points (one per line)</label>
+        <textarea id="recapBullets" rows="4" placeholder="Learned pin tactics\nSolved 5 puzzles"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeRecapModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveRecap()">Add Recap</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast">Saved!</div>
 
   <script>
@@ -484,18 +524,18 @@
     // STATE
     // =====================================================
     let db = { students: [], attendance: {} };
-    let hasUnsavedDropdowns = false; // track unsaved attendance dropdown changes
-    let binId = localStorage.getItem('att_binId');
-    let apiKey = localStorage.getItem('att_apiKey');
-    let viewYear, viewMonth; // 0-indexed month
-    let editingStudentIndex = -1; // -1 = adding new
+    let hasUnsavedDropdowns = false;
+    /* JSONBIN_DEPRECATED: let binId = localStorage.getItem('att_binId'); */
+    /* JSONBIN_DEPRECATED: let apiKey = localStorage.getItem('att_apiKey'); */
+    let viewYear, viewMonth;
+    let editingStudentIndex = -1;
     
     // Session Edit State
     let currentSessionStu = null;
     let currentSessionDate = null;
 
     // =====================================================
-    // INIT
+    // INIT (Firebase Auth Guard)
     // =====================================================
     function init() {
       const now = new Date();
@@ -505,12 +545,13 @@
       populateTimeDropdown();
       populateTimezoneDropdown();
 
-      if (!binId || !apiKey) {
-        document.getElementById('setupScreen').style.display = 'block';
-      } else {
+      // Firebase Auth Guard — coach only
+      ppAuth.requireAuth({ roles: ['coach'] }).then(function() {
         document.getElementById('headerActions').style.display = 'block';
         loadData();
-      }
+      }).catch(function(e) {
+        // Redirect handled by requireAuth
+      });
     }
 
     function populateTimeDropdown() {
@@ -538,59 +579,39 @@
     }
 
     // =====================================================
-    // SETUP / AUTH
-    // =====================================================
-    function saveSetup() {
-      const b = document.getElementById('setupBinId').value.trim();
-      const k = document.getElementById('setupApiKey').value.trim();
-      if (!b || !k) return alert("Please enter both ID and Key");
-      
-      localStorage.setItem('att_binId', b);
-      localStorage.setItem('att_apiKey', k);
-      binId = b; apiKey = k;
-      
-      document.getElementById('setupScreen').style.display = 'none';
-      document.getElementById('headerActions').style.display = 'block';
-      
-      // Just load existing data — do NOT overwrite the bin
-      loadData();
-    }
-
-    async function logout() {
-      // Save current state before clearing credentials
-      syncDOMtoDB();
-      try { await saveData(true); } catch(e) { /* best-effort */ }
-      localStorage.removeItem('att_binId');
-      localStorage.removeItem('att_apiKey');
-      location.reload();
-    }
-
-    // =====================================================
-    // DATA LOAD / SAVE
+    // DATA LOAD / SAVE (Firestore)
     // =====================================================
     async function loadData() {
       try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-          headers: { 'X-Master-Key': apiKey }
+        // Load all students
+        const studentsSnap = await ppDB.collection('students').get();
+        db.students = [];
+        db.attendance = {};
+
+        const attPromises = [];
+        studentsSnap.forEach(doc => {
+          const stu = doc.data();
+          stu._docId = doc.id; // store Firestore doc ID
+          db.students.push(stu);
+          
+          // Load attendance subcollection for this student (current month range)
+          const p = ppDB.collection('students').doc(doc.id).collection('attendance').get()
+            .then(attSnap => {
+              db.attendance[stu.token] = {};
+              attSnap.forEach(adoc => {
+                db.attendance[stu.token][adoc.id] = adoc.data();
+              });
+            });
+          attPromises.push(p);
         });
-        if (!res.ok) throw new Error("Fetch failed");
-        const json = await res.json();
-        
-        if (Object.keys(json.record).length === 0) {
-          db = { students: [], attendance: {} };
-        } else {
-          db = json.record;
-          if (!db.students) db.students = [];
-          if (!db.attendance) db.attendance = {};
-          // Migrate old sessions-based format
-          if (db.sessions) delete db.sessions;
-        }
-        
+
+        await Promise.all(attPromises);
+
         document.getElementById('dashboardScreen').style.display = 'block';
         renderDashboard();
       } catch (err) {
-        alert("Error loading data. Check your API key and Bin ID.");
-        logout();
+        console.error('Error loading data:', err);
+        alert('Error loading data from Firestore. Check console.');
       }
     }
 
@@ -598,24 +619,37 @@
       syncDOMtoDB();
 
       const btn = document.querySelector('.btn-success');
-      if (btn) btn.textContent = "Saving...";
+      if (btn) btn.textContent = 'Saving...';
 
       try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': apiKey
-          },
-          body: JSON.stringify(db)
+        const batch = ppDB.batch();
+
+        // Save each student doc
+        db.students.forEach(stu => {
+          const docId = stu._docId || stu.token;
+          const ref = ppDB.collection('students').doc(docId);
+          const stuData = Object.assign({}, stu);
+          delete stuData._docId; // don't store internal field
+          batch.set(ref, stuData, { merge: true });
         });
-        if (!res.ok) throw new Error("Save failed");
-        if (!isInit) showToast("Saved to database!");
+
+        // Save attendance subcollection docs
+        Object.keys(db.attendance).forEach(token => {
+          const dates = db.attendance[token];
+          Object.keys(dates).forEach(dateStr => {
+            const ref = ppDB.collection('students').doc(token).collection('attendance').doc(dateStr);
+            batch.set(ref, dates[dateStr]);
+          });
+        });
+
+        await batch.commit();
+        if (!isInit) showToast('Saved to database!');
         hasUnsavedDropdowns = false;
       } catch (err) {
-        alert("Failed to save data to JSONBin.");
+        console.error('Save error:', err);
+        alert('Failed to save data to Firestore.');
       } finally {
-        if (btn) btn.textContent = "💾 Save to Database";
+        if (btn) btn.textContent = '💾 Save to Database';
       }
     }
 
@@ -852,7 +886,9 @@
       document.getElementById('tokenGroup').style.display = 'none';
       document.getElementById('modalTime').value = '16:00';
       document.getElementById('modalTimezone').value = 'America/New_York';
-      // Clear all day toggles
+      document.getElementById('modalLichess').value = '';
+      document.getElementById('modalChesscom').value = '';
+      document.getElementById('modalParentUsername').value = '';
       document.querySelectorAll('.day-toggle').forEach(d => d.classList.remove('active'));
       document.getElementById('studentModal').classList.add('show');
     }
@@ -867,6 +903,9 @@
       document.getElementById('tokenGroup').style.display = 'block';
       document.getElementById('modalTime').value = stu.time || '16:00';
       document.getElementById('modalTimezone').value = stu.timezone || 'America/New_York';
+      document.getElementById('modalLichess').value = stu.lichessUsername || '';
+      document.getElementById('modalChesscom').value = stu.chesscomUsername || '';
+      document.getElementById('modalParentUsername').value = '';
       // Set day toggles
       document.querySelectorAll('.day-toggle').forEach(d => {
         const dayNum = parseInt(d.dataset.day);
@@ -895,6 +934,9 @@
 
       const time = document.getElementById('modalTime').value;
       const timezone = document.getElementById('modalTimezone').value;
+      const lichessUsername = (document.getElementById('modalLichess').value || '').trim();
+      const chesscomUsername = (document.getElementById('modalChesscom').value || '').trim();
+      const parentUsername = (document.getElementById('modalParentUsername').value || '').trim();
 
       if (editingStudentIndex >= 0) {
         // Editing existing — check if token changed
@@ -902,7 +944,6 @@
         const newToken = document.getElementById('modalToken').value.trim() || oldToken;
         
         if (newToken !== oldToken) {
-          // Migrate attendance data from old token to new token
           if (db.attendance[oldToken]) {
             db.attendance[newToken] = db.attendance[oldToken];
             delete db.attendance[oldToken];
@@ -914,16 +955,24 @@
         db.students[editingStudentIndex].days = days;
         db.students[editingStudentIndex].time = time;
         db.students[editingStudentIndex].timezone = timezone;
+        db.students[editingStudentIndex].lichessUsername = lichessUsername;
+        db.students[editingStudentIndex].chesscomUsername = chesscomUsername;
       } else {
         // Adding new
         const rand = Math.random().toString(36).substring(2, 6);
         const token = name.split(' ')[0].toLowerCase() + '-' + rand;
-        db.students.push({ token, name, days, time, timezone });
+        db.students.push({
+          token, name, days, time, timezone,
+          lichessUsername, chesscomUsername,
+          recaps: [], puzzles: [], puzzleSolves: [],
+          badges: [], stats: {}, plan: null, h2h: null,
+          _docId: token
+        });
       }
 
       closeModal();
       renderDashboard();
-      saveData(); // auto-save to JSONBin
+      saveData();
     }
 
     function deleteStudent(idx) {
@@ -1168,6 +1217,61 @@
 
     function escHtml(s) {
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // =====================================================
+    // ADD RECAP MODAL
+    // =====================================================
+    function showAddRecapModal() {
+      const sel = document.getElementById('recapStudent');
+      sel.innerHTML = '';
+      db.students.forEach((stu, idx) => {
+        sel.innerHTML += `<option value="${idx}">${stu.name}</option>`;
+      });
+      document.getElementById('recapDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('recapTitle').value = '';
+      document.getElementById('recapMood').value = 'good';
+      document.getElementById('recapBullets').value = '';
+      document.getElementById('recapModal').classList.add('show');
+    }
+
+    function closeRecapModal() {
+      document.getElementById('recapModal').classList.remove('show');
+    }
+
+    async function saveRecap() {
+      const idx = parseInt(document.getElementById('recapStudent').value);
+      const stu = db.students[idx];
+      if (!stu) return alert('Please select a student.');
+
+      const date = document.getElementById('recapDate').value;
+      const title = document.getElementById('recapTitle').value.trim();
+      const mood = document.getElementById('recapMood').value;
+      const bulletsRaw = document.getElementById('recapBullets').value.trim();
+
+      if (!date || !title) return alert('Please enter a date and title.');
+
+      const bullets = bulletsRaw ? bulletsRaw.split('\n').map(b => b.trim()).filter(b => b) : [];
+
+      const recap = { date, title, mood, bullets };
+
+      // Add to local state
+      if (!stu.recaps) stu.recaps = [];
+      stu.recaps.push(recap);
+
+      // Save to Firestore
+      const docId = stu._docId || stu.token;
+      try {
+        await ppDB.collection('students').doc(docId).update({
+          recaps: firebase.firestore.FieldValue.arrayUnion(recap)
+        });
+        showToast('Recap added for ' + stu.name + '!');
+      } catch (e) {
+        console.error('Failed to save recap:', e);
+        alert('Failed to save recap.');
+      }
+
+      closeRecapModal();
     }
 
     // =====================================================

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — PawnPilots Academy</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Sign in to your PawnPilots Academy dashboard." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png" />
+  <style>
+    :root {
+      --bg: #fffbf5;
+      --paper: #fff8ef;
+      --ink: #1a1209;
+      --muted: #7a6a5a;
+      --warm: #f5ead8;
+      --walnut: #5a3925;
+      --walnut-deep: #2e1b12;
+      --felt: #2f7a54;
+      --gold: #c4862e;
+      --gold-glow: #e8a840;
+      --red: #c44a2e;
+      --line: rgba(90,57,37,0.1);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 8px 32px rgba(50,28,14,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { height: 100%; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Background Pattern ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(47,122,84,0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(196,134,46,0.04) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(46,27,18,0.02) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      padding: 0 24px;
+    }
+
+    /* ── Brand ── */
+    .login-brand {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .login-brand img {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(46,27,18,0.12);
+      margin-bottom: 16px;
+    }
+    .login-brand h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--walnut-deep);
+      line-height: 1.1;
+    }
+    .login-brand p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* ── Card ── */
+    .login-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ── Form ── */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--walnut);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      border: 2px solid var(--line);
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input::placeholder {
+      color: var(--muted);
+      opacity: 0.5;
+    }
+    .form-group input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(196,134,46,0.08);
+    }
+
+    /* ── Button ── */
+    .login-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--walnut-deep) 0%, var(--walnut) 100%);
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(46,27,18,0.2);
+    }
+    .login-btn:active {
+      transform: translateY(0);
+    }
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .login-btn .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    .login-btn.loading .btn-text { display: none; }
+    .login-btn.loading .spinner { display: inline-block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error Message ── */
+    .login-error {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      background: rgba(196,74,46,0.08);
+      border: 1px solid rgba(196,74,46,0.15);
+      color: var(--red);
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-align: center;
+      animation: shake 0.4s ease;
+    }
+    .login-error.show { display: block; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* ── Footer ── */
+    .login-footer {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+    .login-footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    /* ── Gold accent line at top ── */
+    .login-card::before {
+      content: '';
+      display: block;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-glow), var(--felt));
+      border-radius: 3px;
+      margin: -32px -32px 24px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .login-card { padding: 24px 20px; }
+      .login-card::before { margin: -24px -20px 20px; }
+      .login-brand h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-wrapper">
+
+    <!-- Brand -->
+    <div class="login-brand">
+      <img src="../favicon-192.png" alt="PawnPilots" />
+      <h1>Pawn Pilots</h1>
+      <p>Sign in to your flight deck</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <form id="loginForm" autocomplete="on" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-wrap">
+            <span class="input-icon">♟</span>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="e.g. aarvi"
+              autocomplete="username"
+              autocapitalize="off"
+              spellcheck="false"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="login-btn" id="loginBtn">
+          <span class="btn-text">Sign In</span>
+          <span class="spinner"></span>
+        </button>
+
+        <div class="login-error" id="loginError"></div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <a href="../">pawnpilots.com</a> · Flight Deck Access
+    </div>
+
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // If already logged in, redirect immediately
+      ppAuth.getCurrentUser().then(function (user) {
+        if (user) redirectUser(user.uid);
+      });
+
+      // Error messages map
+      var ERROR_MAP = {
+        'auth/user-not-found': 'Account not found. Check your username.',
+        'auth/wrong-password': 'Wrong password. Please try again.',
+        'auth/invalid-credential': 'Invalid username or password.',
+        'auth/invalid-email': 'Please enter a valid username.',
+        'auth/too-many-requests': 'Too many attempts. Please wait a moment.',
+        'auth/network-request-failed': 'Network error. Check your connection.',
+        'auth/user-disabled': 'This account has been disabled.'
+      };
+
+      window.handleLogin = function (e) {
+        e.preventDefault();
+
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value;
+        var btn = document.getElementById('loginBtn');
+        var errorEl = document.getElementById('loginError');
+
+        if (!username || !password) {
+          showError('Please enter both username and password.');
+          return;
+        }
+
+        // Show loading state
+        btn.classList.add('loading');
+        btn.disabled = true;
+        errorEl.classList.remove('show');
+
+        ppAuth.signIn(username, password)
+          .then(function (cred) {
+            return redirectUser(cred.user.uid);
+          })
+          .catch(function (err) {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            var msg = ERROR_MAP[err.code] || 'Sign in failed. Please try again.';
+            showError(msg);
+          });
+      };
+
+      function showError(msg) {
+        var el = document.getElementById('loginError');
+        el.textContent = msg;
+        el.classList.add('show');
+      }
+
+      function redirectUser(uid) {
+        return ppAuth.getUserDoc(uid).then(function (userDoc) {
+          if (!userDoc) {
+            showError('Account not configured. Contact your coach.');
+            return;
+          }
+
+          if (userDoc.role === 'coach') {
+            window.location.href = '../admin/attendance/';
+          } else if (userDoc.role === 'parent') {
+            var tokens = userDoc.studentTokens || [];
+            if (tokens.length > 0) {
+              window.location.href = '../dashboard/?t=' + tokens[0];
+            } else {
+              showError('No student linked to this account. Contact your coach.');
+            }
+          } else {
+            showError('Unknown account type. Contact your coach.');
+          }
+        });
+      }
+
+    })();
+  </script>
+
+</body>
+</html>
