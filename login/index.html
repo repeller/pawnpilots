@@ -421,11 +421,28 @@
                 showError('Failed to set up account. Check Firestore rules.');
               });
             }
+
+            // Auto-create viewer doc for friend
+            if (email === 'shwaty@pawnpilots.com' || email === 'shawty@pawnpilots.com') {
+              return ppDB.collection('users').doc(uid).set({
+                email: email,
+                role: 'viewer',
+                displayName: 'Admin Friend',
+                studentTokens: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              }).then(function() {
+                window.location.href = '../admin/attendance/';
+              }).catch(function(err) {
+                console.error('Failed to create viewer doc:', err);
+                showError('Failed to set up account. Check Firestore rules.');
+              });
+            }
+
             showError('Account not configured. Contact your coach.');
             return;
           }
 
-          if (userDoc.role === 'coach') {
+          if (userDoc.role === 'coach' || userDoc.role === 'viewer') {
             window.location.href = '../admin/attendance/';
           } else if (userDoc.role === 'parent') {
             var tokens = userDoc.studentTokens || [];

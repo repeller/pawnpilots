@@ -305,7 +305,7 @@
     <div id="dashboardScreen">
       
       <div class="top-bar">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div id="authorActions" style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary" onclick="showAddStudentModal()">+ Add Student</button>
           <button class="btn btn-secondary" onclick="showAddRecapModal()">+ Add Recap</button>
           <button class="btn btn-success" onclick="saveData()">💾 Save to Database</button>
@@ -538,21 +538,36 @@
     // INIT (Firebase Auth Guard)
     // =====================================================
     function init() {
-      const now = new Date();
-      viewYear = now.getFullYear();
-      viewMonth = now.getMonth();
-
-      populateTimeDropdown();
-      populateTimezoneDropdown();
-
-      // Firebase Auth Guard — coach only
-      ppAuth.requireAuth({ roles: ['coach'] }).then(function() {
-        document.getElementById('headerActions').style.display = 'block';
-        loadData();
-      }).catch(function(e) {
-        // Redirect handled by requireAuth
-      });
+      // Replaced by DOMContentLoaded below
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      firebase.firestore().settings({ ignoreUndefinedProperties: true });
+      
+      ppAuth.requireAuth({ roles: ['coach', 'viewer'] }).then(function(result) {
+        document.getElementById('headerActions').style.display = 'block';
+
+        if (result.userDoc.role === 'viewer') {
+          window.isViewer = true;
+          document.getElementById('authorActions').style.display = 'none';
+        } else {
+          window.isViewer = false;
+        }
+        
+        const now = new Date();
+        viewYear = now.getFullYear();
+        viewMonth = now.getMonth();
+
+        populateTimeDropdown();
+        populateTimezoneDropdown();
+        
+        loadData().then(function() {
+          renderDashboard();
+        });
+      }).catch(function(err) {
+        console.warn('Auth guard failed:', err);
+      });
+    });
 
     function populateTimeDropdown() {
       const sel = document.getElementById('modalTime');
@@ -608,7 +623,6 @@
         await Promise.all(attPromises);
 
         document.getElementById('dashboardScreen').style.display = 'block';
-        renderDashboard();
       } catch (err) {
         console.error('Error loading data:', err);
         alert('Error loading data from Firestore. Check console.');
@@ -747,9 +761,11 @@
                 </div>
               </div>
               <div class="student-card-actions">
+                ${window.isViewer ? '' : `
                 <button class="btn btn-secondary btn-sm" onclick="openPlanEditor(${idx})" title="Curriculum Plan">📋 Plan${getPlanBadge(stu)}</button>
                 <button class="btn btn-secondary btn-sm" onclick="editStudent(${idx})">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteStudent(${idx})">×</button>
+                `}
               </div>
             </div>
         `;
@@ -782,7 +798,7 @@
                   <span class="session-date">${dayName} ${dayNum}</span>
                   <button class="edit-session-btn" title="Add Notes or Homework" onclick="openSessionModal('${stu.token}', '${dateStr}', '${stu.name.replace(/'/g, "\\'")}', '${dayName} ${dayNum}')">✏️</button>
                 </div>
-                <select class="att-select ${cls}" data-stu="${stu.token}" data-date="${dateStr}" onchange="updateColor(this)" ${isFuture ? 'style="opacity:0.4"' : ''}>
+                <select class="att-select ${cls}" data-stu="${stu.token}" data-date="${dateStr}" onchange="updateColor(this)" ${isFuture ? 'style="opacity:0.4"' : ''} ${window.isViewer ? 'disabled' : ''}>
                   <option value="" ${val===''?'selected':''}>—</option>
                   <option value="Present" ${val==='Present'?'selected':''}>✓ Present</option>
                   <option value="Absent" ${val==='Absent'?'selected':''}>✗ Absent</option>
