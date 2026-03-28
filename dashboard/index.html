@@ -118,10 +118,6 @@ tailwind.config={
       <span class="plusJakartaSans font-bold uppercase tracking-widest text-xs">Medals</span>
     </a>
   </nav>
-  <button class="mt-auto horizon-gradient text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:scale-105 transition-transform" onclick="switchTab('puzzles')">
-    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">rocket</span>
-    <span class="plusJakartaSans uppercase tracking-widest text-xs">Start Puzzle</span>
-  </button>
 </aside>
 
 <!-- Loading -->
@@ -331,7 +327,10 @@ tailwind.config={
           <span class="material-symbols-outlined text-sm">refresh</span> Refresh
         </button>
       </div>
-      <canvas id="ratingChart" style="width:100%;height:200px"></canvas>
+      <div style="position:relative">
+        <canvas id="ratingChart" style="width:100%;height:220px"></canvas>
+        <div id="chartTooltip" class="plusJakartaSans" style="display:none;position:absolute;background:#2e1b12;color:#fef9ee;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;pointer-events:none;white-space:nowrap;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.2)"></div>
+      </div>
     </div>
     <p class="text-xs text-on-surface-variant text-right mt-2 opacity-50 inter" id="statsUpdated"></p>
   </div>
@@ -1302,15 +1301,68 @@ function renderChartPlaceholder(){
 }
 function drawChart(history){
   var c=document.getElementById('ratingChart');if(!c)return;var ctx=c.getContext('2d');
-  var W=c.parentElement.clientWidth-48,H=200;c.width=W*2;c.height=H*2;c.style.width=W+'px';c.style.height=H+'px';ctx.scale(2,2);
+  var PAD_L=44,PAD_R=12,PAD_T=16,PAD_B=28;
+  var W=c.parentElement.clientWidth,H=220;c.width=W*2;c.height=H*2;c.style.width=W+'px';c.style.height=H+'px';ctx.scale(2,2);
   if(history.length<2){ctx.fillStyle='#45464e';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Need more data points',W/2,H/2);return}
-  var vals=history.map(function(h){return h.lichessRapid||h.lichessBlitz||h.chesscomRapid||h.chesscomBlitz||0}),mn=Math.min.apply(null,vals)-50,mx=Math.max.apply(null,vals)+50,rng=mx-mn||1,sx=W/(vals.length-1);
-  ctx.strokeStyle='rgba(47,122,84,0.08)';ctx.lineWidth=1;
-  for(var g=0;g<5;g++){var gy=H-(g/4)*H;ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke()}
-  ctx.beginPath();ctx.strokeStyle='#2f7a54';ctx.lineWidth=2.5;ctx.lineJoin='round';
-  vals.forEach(function(v,i){var x=i*sx,y=H-((v-mn)/rng)*(H-20)-10;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
-  var gd=ctx.createLinearGradient(0,0,0,H);gd.addColorStop(0,'rgba(196,134,46,0.15)');gd.addColorStop(1,'rgba(196,134,46,0)');ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fillStyle=gd;ctx.fill();
-  vals.forEach(function(v,i){var x=i*sx,y=H-((v-mn)/rng)*(H-20)-10;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#2f7a54';ctx.fill();ctx.strokeStyle='#fef9ee';ctx.lineWidth=2;ctx.stroke()});
+  var vals=history.map(function(h){return h.lichessRapid||h.lichessBlitz||h.chesscomRapid||h.chesscomBlitz||0});
+  var rawMn=Math.min.apply(null,vals),rawMx=Math.max.apply(null,vals);
+  // Nice round grid lines
+  var step=rawMx-rawMn<=100?25:rawMx-rawMn<=200?50:100;
+  var mn=Math.floor(rawMn/step)*step,mx=Math.ceil(rawMx/step)*step;
+  if(mn===mx)mx+=step;
+  var rng=mx-mn,cW=W-PAD_L-PAD_R,cH=H-PAD_T-PAD_B,sx=cW/(vals.length-1);
+  function yPos(v){return PAD_T+cH-(((v-mn)/rng)*cH)}
+  // Grid lines + Y-axis labels
+  ctx.textAlign='right';ctx.textBaseline='middle';ctx.font='bold 10px Inter';
+  for(var g=mn;g<=mx;g+=step){
+    var gy=yPos(g);
+    ctx.strokeStyle='rgba(47,122,84,0.07)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PAD_L,gy);ctx.lineTo(W-PAD_R,gy);ctx.stroke();
+    ctx.fillStyle='#45464e';ctx.globalAlpha=0.5;ctx.fillText(g,PAD_L-8,gy);ctx.globalAlpha=1;
+  }
+  // X-axis date labels (first, middle, last)
+  ctx.textAlign='center';ctx.textBaseline='top';ctx.font='bold 9px Inter';ctx.fillStyle='#45464e';ctx.globalAlpha=0.4;
+  var dateIdxs=[0,Math.floor(history.length/2),history.length-1];
+  dateIdxs.forEach(function(di){
+    if(!history[di])return;
+    var d=history[di].date||'';var parts=d.split('-');
+    var label=parts.length===3?(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(parts[1])-1]||'')+' '+parseInt(parts[2]):'';
+    if(label)ctx.fillText(label,PAD_L+di*sx,H-PAD_B+6);
+  });
+  ctx.globalAlpha=1;
+  // Line
+  ctx.beginPath();ctx.strokeStyle='#2f7a54';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+  var points=[];
+  vals.forEach(function(v,i){var x=PAD_L+i*sx,y=yPos(v);points.push({x:x,y:y,val:v,date:history[i].date||''});i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.stroke();
+  // Gradient fill
+  var gd=ctx.createLinearGradient(0,PAD_T,0,H-PAD_B);gd.addColorStop(0,'rgba(47,122,84,0.12)');gd.addColorStop(1,'rgba(47,122,84,0)');
+  ctx.lineTo(PAD_L+(vals.length-1)*sx,H-PAD_B);ctx.lineTo(PAD_L,H-PAD_B);ctx.fillStyle=gd;ctx.fill();
+  // Dots
+  points.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);ctx.fillStyle='#2f7a54';ctx.fill();ctx.strokeStyle='#fef9ee';ctx.lineWidth=1.5;ctx.stroke()});
+  // Store points for hover
+  c._chartPoints=points;c._chartW=W;c._chartH=H;
+  // Hover handler
+  c.onmousemove=function(e){
+    var rect=c.getBoundingClientRect();var mx=((e.clientX-rect.left)/rect.width)*W;var my=((e.clientY-rect.top)/rect.height)*H;
+    var tip=document.getElementById('chartTooltip');if(!tip)return;
+    var closest=null,closestDist=Infinity;
+    points.forEach(function(p){var dist=Math.abs(p.x-mx);if(dist<closestDist){closestDist=dist;closest=p}});
+    if(closest&&closestDist<30){
+      var parts=closest.date.split('-');
+      var label=parts.length===3?(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(parts[1])-1]||'')+' '+parseInt(parts[2])+', '+parts[0]:'';
+      tip.innerHTML='<span style="font-size:14px">'+closest.val+'</span><br><span style="opacity:.6;font-weight:500">'+label+'</span>';
+      var tipX=(closest.x/W)*100,tipY=(closest.y/H)*100;
+      tip.style.left=Math.min(Math.max(tipX,10),85)+'%';tip.style.top=Math.max(tipY-18,0)+'%';tip.style.transform='translate(-50%,-100%)';tip.style.display='block';
+      // Redraw with highlighted dot
+      ctx.clearRect(closest.x-8,closest.y-8,16,16);
+      ctx.beginPath();ctx.arc(closest.x,closest.y,5,0,Math.PI*2);ctx.fillStyle='#c4862e';ctx.fill();ctx.strokeStyle='#fef9ee';ctx.lineWidth=2;ctx.stroke();
+    }else{tip.style.display='none'}
+  };
+  c.onmouseleave=function(){
+    var tip=document.getElementById('chartTooltip');if(tip)tip.style.display='none';
+    // Redraw all dots normal
+    points.forEach(function(p){ctx.clearRect(p.x-7,p.y-7,14,14);ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);ctx.fillStyle='#2f7a54';ctx.fill();ctx.strokeStyle='#fef9ee';ctx.lineWidth=1.5;ctx.stroke()});
+  };
 }
 
 // ═══ NEXT CLASS COUNTDOWN ═══
