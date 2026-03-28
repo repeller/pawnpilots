@@ -1,0 +1,302 @@
+<!doctype html>
+<html><head>
+<meta charset="UTF-8"><title>Add Abhi's Curriculum Plan</title>
+<style>body{font-family:monospace;background:#1a1209;color:#f5ead8;padding:40px;max-width:600px;margin:0 auto}
+button{padding:12px 24px;background:#c4862e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;margin-top:20px}
+button:hover{background:#e8a840}
+#log{margin-top:20px;padding:16px;background:#0f0a06;border-radius:8px;white-space:pre-wrap;font-size:0.85rem;line-height:1.6}
+.ok{color:#4aad7a}.err{color:#c44a2e}</style>
+</head><body>
+<h2>Add Abhi's 5-Month Curriculum</h2>
+<p>This will add Abhi's full Grandmaster Development curriculum to his profile in JSONBin.<br>
+You must have previously logged into the <a href="../admin/attendance/" style="color:#c4862e">Admin Dashboard</a> so the API key is stored.</p>
+<button onclick="run()">Add Plan Now</button>
+<div id="log"></div>
+<script>
+var LOG = document.getElementById('log');
+function log(msg, ok) { LOG.innerHTML += '<span class="'+(ok?'ok':'err')+'">' + msg + '</span>\n'; }
+
+async function run() {
+  LOG.innerHTML = '';
+  var binId = localStorage.getItem('att_binId') || '69b859a2aa77b81da9ee0ccc';
+  var apiKey = localStorage.getItem('att_apiKey');
+  if (!apiKey) { log('❌ No API key found. Please log into the Admin Dashboard first.', false); return; }
+
+  log('📡 Fetching current data...', true);
+  var res = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', { headers: { 'X-Master-Key': apiKey } });
+  if (!res.ok) { log('❌ Fetch failed: ' + res.status, false); return; }
+  var json = await res.json();
+  var db = json.record;
+
+  var idx = db.students.findIndex(function(s) { return s.name.toLowerCase().indexOf('abhi') === 0; });
+  if (idx < 0) { log('❌ Abhi not found in database. Add him via the Admin Dashboard first.', false); return; }
+  log('✓ Found ' + db.students[idx].name + ' at index ' + idx + ' (token: ' + db.students[idx].token + ')', true);
+
+  db.students[idx].lichessUsername = 'Abhi-CT';
+  db.students[idx].chesscomUsername = '';
+
+  db.students[idx].plan = {
+    title: "Abhi's Grandmaster Development Curriculum",
+    pace: "2 classes/week — Mondays & Thursdays",
+    months: [
+      {
+        name: "Mating Mastery & Tactical Depth",
+        goal: "Named mating patterns, advanced tactical combinations, and a Month 1 tactical test.",
+        weeks: [
+          {
+            label: "Week 1 — Mar 30",
+            classes: [
+              { topic: "Smothered Mate — Philidor Legacy pattern, 5 interactive positions", done: false, date: "2026-03-30" },
+              { topic: "Back Rank Mate (Advanced) — Setting up the weakness, deflection combos", done: false, date: "2026-04-02" }
+            ],
+            homework: { text: "20 smothered mate puzzles + back rank study", done: false },
+            links: [
+              { text: "Smothered Mate Training", url: "https://lichess.org/training/smotheredMate" },
+              { text: "Back Rank Study", url: "https://lichess.org/study/nSoD7A1V" }
+            ]
+          },
+          {
+            label: "Week 2 — Apr 6",
+            classes: [
+              { topic: "Arabian Mate & Anastasia's Mate — Rook + Knight cooperation", done: false, date: "2026-04-06" },
+              { topic: "Hook Mate & Greco's Mate — Diagonal sacrifice patterns", done: false, date: "2026-04-09" }
+            ],
+            homework: { text: "Arabian + Anastasia + Hook mate puzzles", done: false },
+            links: [
+              { text: "Arabian Mate", url: "https://lichess.org/training/arabianMate" },
+              { text: "Anastasia's Mate", url: "https://lichess.org/training/anastasiaMate" },
+              { text: "Hook Mate", url: "https://lichess.org/training/hookMate" },
+              { text: "Greco's Mate Study", url: "https://lichess.org/study/h9X4zxkL" }
+            ]
+          },
+          {
+            label: "Week 3 — Apr 13",
+            classes: [
+              { topic: "The Decoy — Luring pieces to the wrong square, 8 progressive puzzles", done: false, date: "2026-04-13" },
+              { topic: "Zwischenzug (In-Between Moves) — 3 master examples + 5 puzzles", done: false, date: "2026-04-16" }
+            ],
+            homework: { text: "Decoy + Zwischenzug studies", done: false },
+            links: [
+              { text: "Decoy Study", url: "https://lichess.org/study/WhRZMRFB" },
+              { text: "Zwischenzug Study", url: "https://lichess.org/study/EVIKaunq" }
+            ]
+          },
+          {
+            label: "Week 4 — Apr 20",
+            classes: [
+              { topic: "X-Ray Attacks & Quiet Moves — Winning by NOT capturing", done: false, date: "2026-04-20" },
+              { topic: "MONTH 1 TACTICAL TEST — 15-puzzle timed test + practice game", done: false, date: "2026-04-23" }
+            ],
+            homework: { text: "X-Ray + Quiet Moves studies, review weakest areas", done: false },
+            links: [
+              { text: "X-Ray Study", url: "https://lichess.org/study/QHSTmDdk" },
+              { text: "Quiet Moves Study", url: "https://lichess.org/study/iLXociqv" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "The Art of Sacrifice & Endgame Foundations",
+        goal: "Sacrificing material for checkmate with confidence, and converting won endgames without stalemates.",
+        weeks: [
+          {
+            label: "Week 5 — Apr 27",
+            classes: [
+              { topic: "Queen Sacrifices to Checkmate — 6 guided examples", done: false, date: "2026-04-27" },
+              { topic: "Rook Sacrifices to Checkmate — h-file & g-file clearance sacs", done: false, date: "2026-04-30" }
+            ],
+            homework: { text: "Queen sac + Rook sac studies", done: false },
+            links: [
+              { text: "Queen Sacrifice Study", url: "https://lichess.org/study/PR73q8Ht" },
+              { text: "Rook Sacrifice Study", url: "https://lichess.org/study/0p2Q56xj" }
+            ]
+          },
+          {
+            label: "Week 6 — May 4",
+            classes: [
+              { topic: "Bishop Sacrifices — The Greek Gift (Bxh7+), when it works & doesn't", done: false, date: "2026-05-04" },
+              { topic: "Knight & Pawn Sacrifices to Checkmate — Opening the King", done: false, date: "2026-05-07" }
+            ],
+            homework: { text: "Greek Gift + Knight/Pawn sac studies", done: false },
+            links: [
+              { text: "Greek Gift Study", url: "https://lichess.org/study/5dZCQMGd" },
+              { text: "Knight Sacrifice Study", url: "https://lichess.org/study/GT2Fx1MB" },
+              { text: "Pawn Breakthrough Study", url: "https://lichess.org/study/ZQTF8V3p" }
+            ]
+          },
+          {
+            label: "Week 7 — May 11",
+            classes: [
+              { topic: "King Activity in Endgames — Centralization & basic opposition", done: false, date: "2026-05-11" },
+              { topic: "Creating a Passed Pawn — The Square Rule", done: false, date: "2026-05-14" }
+            ],
+            homework: { text: "King + Pawn vs King positions + passed pawn study", done: false },
+            links: [
+              { text: "Passed Pawn Study", url: "https://lichess.org/study/6RW2PV4h" }
+            ]
+          },
+          {
+            label: "Week 8 — May 18",
+            classes: [
+              { topic: "Converting Material Advantage — Trade pieces not pawns, simplify", done: false, date: "2026-05-18" },
+              { topic: "MONTH 2 ASSESSMENT — 10 sacrifice + 5 endgame puzzles, practice game", done: false, date: "2026-05-21" }
+            ],
+            homework: { text: "Material conversion study + review Month 2", done: false },
+            links: [
+              { text: "Conversion Study", url: "https://lichess.org/study/lPc99i9z" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "Calculation & Opening Expansion",
+        goal: "Close the puzzle-game gap (1173 puzzles vs 861 blitz). Bridge pattern recognition to in-game execution.",
+        weeks: [
+          {
+            label: "Week 9 — May 25",
+            classes: [
+              { topic: "Checkmate in 2 — Say opponent's move OUT LOUD before clicking", done: false, date: "2026-05-25" },
+              { topic: "Checkmate in 3 — Extending the calculation tree", done: false, date: "2026-05-28" }
+            ],
+            homework: { text: "30 mate-in-2 + 20 mate-in-3 puzzles over the week", done: false },
+            links: [
+              { text: "Mate in 2 Training", url: "https://lichess.org/training/mateIn2" },
+              { text: "Mate in 3 Training", url: "https://lichess.org/training/mateIn3" }
+            ]
+          },
+          {
+            label: "Week 10 — Jun 1",
+            classes: [
+              { topic: "Candidate Moves — Kid Kotov Method: find 3 moves FIRST, then calculate", done: false, date: "2026-06-01" },
+              { topic: "Piece Centralization & Board Control — Knight in centre vs rim", done: false, date: "2026-06-04" }
+            ],
+            homework: { text: "Candidate moves + centralization studies", done: false },
+            links: [
+              { text: "Candidate Moves Study", url: "https://lichess.org/study/BRNyYDUA" },
+              { text: "Centralization Study", url: "https://lichess.org/study/9cUfe2nt" }
+            ]
+          },
+          {
+            label: "Week 11 — Jun 8",
+            classes: [
+              { topic: "Italian Opening Deep Dive — d3-c3 setup, f4 break, piece placement", done: false, date: "2026-06-08" },
+              { topic: "Italian vs Two Knights Defense — The Fried Liver Attack (White)", done: false, date: "2026-06-11" }
+            ],
+            homework: { text: "Italian Game + Fried Liver studies", done: false },
+            links: [
+              { text: "Italian Game Study", url: "https://lichess.org/study/euFJZrrt" },
+              { text: "Two Knights / Fried Liver", url: "https://lichess.org/study/DvVLvznr" }
+            ]
+          },
+          {
+            label: "Week 12 — Jun 15",
+            classes: [
+              { topic: "Playing Black vs 1.e4 — Italian (Black side), defending the Fried Liver", done: false, date: "2026-06-15" },
+              { topic: "MONTH 3 ASSESSMENT — 10 calculation puzzles + opening quiz + full game", done: false, date: "2026-06-18" }
+            ],
+            homework: { text: "Black repertoire study + review Month 3", done: false },
+            links: [
+              { text: "Italian as Black Study", url: "https://lichess.org/study/pJ3iQVa1" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "Positional Chess & Middlegame Planning",
+        goal: "Pawn structures, central breaks, attacking the castled king, and basic prophylaxis.",
+        weeks: [
+          {
+            label: "Week 13 — Jun 22",
+            classes: [
+              { topic: "Isolated Pawns — Weakness or Strength? 4 annotated positions", done: false, date: "2026-06-22" },
+              { topic: "Doubled & Passed Pawns — Identify and promote the criminal pawn", done: false, date: "2026-06-25" }
+            ],
+            homework: { text: "Play 2 games, circle every isolated pawn in review + 5 passed pawn positions", done: false }
+          },
+          {
+            label: "Week 14 — Jun 29",
+            classes: [
+              { topic: "Breaking in the Centre — Timing d4/e4 pushes: prepare, prepare, PUSH", done: false, date: "2026-06-29" },
+              { topic: "Attacking the Castled King — Rook lifts, h/g-file battery + sacrifice combos", done: false, date: "2026-07-02" }
+            ],
+            homework: { text: "2 master games on central breaks + 5 attacking positions", done: false }
+          },
+          {
+            label: "Week 15 — Jul 6",
+            classes: [
+              { topic: "Rooks on Open Files — Doubling rooks, 7th rank invasion", done: false, date: "2026-07-06" },
+              { topic: "Good Bishops vs Bad Bishops — Blocked by own pawns vs open diagonals", done: false, date: "2026-07-09" }
+            ],
+            homework: { text: "5 rook placement + 5 bishop evaluation positions", done: false }
+          },
+          {
+            label: "Week 16 — Jul 13",
+            classes: [
+              { topic: "Basic Prophylaxis — 'What does my opponent want?' before every move", done: false, date: "2026-07-13" },
+              { topic: "MONTH 4 ASSESSMENT — 5 pawn structure + 5 find-the-plan + full game", done: false, date: "2026-07-16" }
+            ],
+            homework: { text: "Annotate 1 own game writing opponent's threat before each move", done: false }
+          }
+        ]
+      },
+      {
+        name: "Tournament Readiness & Game Mastery",
+        goal: "Master game study, clock management, self-analysis, and graduation assessment.",
+        weeks: [
+          {
+            label: "Week 17 — Jul 20",
+            classes: [
+              { topic: "Paul Morphy — The Opera House Game, replay & explain every move", done: false, date: "2026-07-20" },
+              { topic: "Bobby Fischer's Best Miniatures — 2 crushing games with opening + tactics", done: false, date: "2026-07-23" }
+            ],
+            homework: { text: "Replay Opera House game 3 times from memory + Fischer collection", done: false },
+            links: [
+              { text: "Fischer Games Collection", url: "https://lichess.org/study/8pC0jBLy" }
+            ]
+          },
+          {
+            label: "Week 18 — Jul 27",
+            classes: [
+              { topic: "Clock Management — 10sec minimum on captures/checks, practice on clock", done: false, date: "2026-07-27" },
+              { topic: "Handling Mistakes & Bouncing Back — 3 master comeback games", done: false, date: "2026-07-30" }
+            ],
+            homework: { text: "Find 1 own game with a blunder — what could you have done after?", done: false }
+          },
+          {
+            label: "Week 19 — Aug 3",
+            classes: [
+              { topic: "Annotating Your Own Games — Best game, move-by-move with coach", done: false, date: "2026-08-03" },
+              { topic: "Homework Review + Weakness Targeting — Top 3 Mistakes flashcard", done: false, date: "2026-08-06" }
+            ],
+            homework: { text: "Annotate worst recent game independently for coach review", done: false }
+          },
+          {
+            label: "Week 20 — Aug 10",
+            classes: [
+              { topic: "Comprehensive Test — 20 mixed puzzles + 5 name-the-pattern + 3 find-the-plan", done: false, date: "2026-08-10" },
+              { topic: "GRADUATION GAME & CEREMONY — 15+10 vs coach (~1200), post-mortem, certificate", done: false, date: "2026-08-13" }
+            ],
+            homework: { text: "Prepare for graduation — review all key concepts from 5 months", done: false }
+          }
+        ]
+      }
+    ]
+  };
+  log('✓ Built full curriculum: 5 months, 20 weeks, 40 classes — Mon & Thu from Mar 30 to Aug 13', true);
+
+  log('\n💾 Saving to JSONBin...', true);
+  var saveRes = await fetch('https://api.jsonbin.io/v3/b/' + binId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+    body: JSON.stringify(db)
+  });
+
+  if (saveRes.ok) {
+    log('\n🎉 ALL DONE! Curriculum added for Abhi.', true);
+    log('→ Parent dashboard: /dashboard/?t=' + db.students[idx].token, true);
+  } else {
+    log('❌ Save failed: ' + saveRes.status + ' ' + (await saveRes.text()), false);
+  }
+}
+</script>
+</body></html>
