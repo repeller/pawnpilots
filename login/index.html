@@ -358,7 +358,8 @@
           .catch(function (err) {
             btn.classList.remove('loading');
             btn.disabled = false;
-            var msg = ERROR_MAP[err.code] || 'Sign in failed. Please try again.';
+            console.error('Firebase Auth Error:', err.code, err.message);
+            var msg = ERROR_MAP[err.code] || 'Sign in failed (' + (err.code || 'unknown') + '). Please try again.';
             showError(msg);
           });
       };
