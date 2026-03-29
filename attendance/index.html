@@ -596,7 +596,10 @@
       <img src="../favicon-192.png" alt="PawnPilots" />
       <span>PawnPilots<small>Academy</small></span>
     </a>
-    <span class="att-header-label">Attendance</span>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <span class="att-header-label" style="opacity:0.6;">Attendance</span>
+      <button onclick="ppAuth.signOut().then(function(){ window.location.href='../login/'; })" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:6px; padding:4px 10px; font-family:'Outfit'; font-size:0.75rem; font-weight:600; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">Log Out</button>
+    </div>
   </div>
 
   <!-- Loading state -->
