@@ -315,6 +315,15 @@
 
         <div class="login-error" id="loginError"></div>
       </form>
+
+      <!-- Portal Selection (shown after parent login) -->
+      <div id="portalSelection" style="display:none; text-align:center;">
+        <h2 style="font-family:'Baloo 2'; font-size:1.3rem; margin-bottom:16px;">Welcome! Choose your portal:</h2>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <a id="btnStudent" class="login-btn" style="background:var(--gold); text-decoration:none; display:block;">🎓 Student Dashboard</a>
+          <a id="btnParent" class="login-btn" style="background:var(--felt); text-decoration:none; display:block;">📊 Attendance Dashboard</a>
+        </div>
+      </div>
     </div>
 
     <!-- Footer -->
@@ -447,7 +456,10 @@
           } else if (userDoc.role === 'parent') {
             var tokens = userDoc.studentTokens || [];
             if (tokens.length > 0) {
-              window.location.href = '../dashboard/?t=' + tokens[0];
+              document.getElementById('loginForm').style.display = 'none';
+              document.getElementById('btnStudent').href = '../dashboard/?t=' + tokens[0];
+              document.getElementById('btnParent').href = '../attendance/?t=' + tokens[0];
+              document.getElementById('portalSelection').style.display = 'block';
             } else {
               showError('No student linked to this account. Contact your coach.');
             }
